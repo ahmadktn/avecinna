@@ -1,10 +1,13 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import authPlugin from './plugins/authPlugin.js';
-import authRoutes from './routes/auth.js';
-import adminRoutes from './routes/admin.ts';
-import unitRoutes from './routes/unit.js';
-import patientRoutes from './routes/patients.js';
+import authPlugin from './plugins/authPlugin';
+import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
+import unitRoutes from './routes/unit';
+import patientRoutes from './routes/patients';
+import { breakGlassRoutes } from './routes/breakGlass';
+import { documentsRoutes } from './routes/documents';
+import { auditRoutes } from './routes/audit';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -20,10 +23,13 @@ export async function buildApp() {
   await fastify.register(authPlugin);
 
   // 3. Register Route Modules
-  await fastify.register(authRoutes);
-  await fastify.register(adminRoutes);
-  await fastify.register(unitRoutes);
-  await fastify.register(patientRoutes);
+  await fastify.register(authRoutes, { prefix: '/api/v1' });
+  await fastify.register(adminRoutes, { prefix: '/api/v1' });
+  await fastify.register(unitRoutes, { prefix: '/api/v1' });
+  await fastify.register(patientRoutes, { prefix: '/api/v1' });
+  await fastify.register(breakGlassRoutes, { prefix: '/api/v1' });
+  await fastify.register(documentsRoutes, { prefix: '/api/v1' });
+  await fastify.register(auditRoutes, { prefix: '/api/v1' });
 
   return fastify;
 }

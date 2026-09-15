@@ -46,22 +46,22 @@
 ---
 
 ## Phase 3: Medical Documents, Two-Tier Break-Glass & Isolated Merkle Audit Ledger
-- [ ] Build **Medical Documents & Lab Results Storage Module**:
-  - [ ] File Upload endpoint (`/api/v1/documents/upload`) with SHA-256 document hashing.
-  - [ ] Lab results creation & retrieval with document hash verification.
-- [ ] Build **Cryptographic Merkle Audit Engine**:
-  - [ ] Connects exclusively to `avecinna_audit_db`.
-  - [ ] SHA-256 block hashing formula ($\text{Block}_n = \text{SHA256}(\text{PrevHash} \parallel \text{User} \parallel \text{Patient} \parallel \text{Action} \parallel \text{PayloadHash})$).
-  - [ ] Audit Ledger verification endpoint (`POST /api/v1/audit/verify`) reading isolated audit DB.
-- [ ] Implement **Two-Tier Break-Glass Endpoints**:
-  - [ ] Tier 1 Immediate Emergency View (`POST /api/v1/patients/:id/break-glass/tier1`).
-  - [ ] Tier 2 Full Record Request (`POST /api/v1/patients/:id/break-glass/tier2` with reason code validation).
-- [ ] Implement **Suspicious Access Rule Scanner**:
-  - [ ] Detect clerk unauthorized views, admin clinical access attempts, expired consult use, and excessive Tier 2 requests.
-  - [ ] Generate `security_alerts` entries in primary database.
-- [ ] Automated Tests:
-  - [ ] Isolated audit chain integrity verification test.
-  - [ ] Document SHA-256 hash verification & attachment access tests.
+- [x] Build **Medical Documents & Lab Results Storage Module**:
+  - [x] File Upload endpoint (`/api/v1/patients/:id/documents`) with SHA-256 document hashing.
+  - [x] Lab results creation & retrieval with document hash verification (`/api/v1/patients/:id/lab-results`).
+- [x] Build **Cryptographic Merkle Audit Engine**:
+  - [x] Connects exclusively to `avecinna_audit_db`.
+  - [x] SHA-256 block hashing formula ($\text{Block}_n = \text{SHA256}(\text{PrevHash} \parallel \text{User} \parallel \text{Patient} \parallel \text{Action} \parallel \text{PayloadHash})$).
+  - [x] Audit Ledger verification endpoint (`POST /api/v1/audit/verify`) reading isolated audit DB.
+- [x] Implement **Two-Tier Break-Glass Endpoints**:
+  - [x] Tier 1 Immediate Emergency View (`POST /api/v1/patients/:id/break-glass/tier1`).
+  - [x] Tier 2 Full Record Request (`POST /api/v1/patients/:id/break-glass/tier2` with reason code validation).
+- [x] Implement **Suspicious Access Rule Scanner**:
+  - [x] Detect clerk unauthorized views, admin clinical access attempts, expired consult use, and excessive Tier 2 requests.
+  - [x] Generate `security_alerts` entries in primary database.
+- [x] Automated Tests:
+  - [x] Isolated audit chain integrity verification test (`tests/merkle.test.ts`).
+  - [x] Document SHA-256 hash verification & attachment access tests (`tests/breakGlass.test.ts`).
 
 ---
 
