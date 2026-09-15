@@ -5,15 +5,31 @@ import { evaluateCAAC } from '../services/caacEngine.js';
 import { filterPatientRecordByRole } from '../services/dtoMasker.js';
 import { appendAuditBlock } from '../services/merkleEngine.js';
 import { eq } from 'drizzle-orm';
+import crypto from 'crypto';
 
-export default async function patientRoutes(fastify: FastifyInstance) {
-  // 1. GET /api/v1/patients/:id (Retrieve Single Patient Record with CAAC + Role DTO Masking)
+export async function patientRoutes(fastify: FastifyInstance) {
+  // 1. GET /patients/:id (Retrieve Single Patient Record with CAAC + Role DTO Masking)
   fastify.get(
-    '/api/v1/patients/:id',
-    { preHandler: [fastify.authenticate] },
+    '/patients/:id',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Patient Records (CAAC & DTO)'],
+        summary: 'Get Single Patient Record (Role DTO Masked & CAAC Protected)',
+        description:
+          'Evaluates CAAC rule (Permit = RoleValid AND ShiftActive AND (ActiveWard == PatientWard OR CareTeam OR OutpatientDoctor)). Applies OWASP API3 role DTO filter and Admin clinical redaction.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-cardio-01' },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id: patientId } = request.params;
-      const session = request.userSession;
+      const session = request.userSession || request.user;
 
       // A. Evaluate CAAC Authorization
       const caacResult = await evaluateCAAC({
@@ -45,7 +61,7 @@ export default async function patientRoutes(fastify: FastifyInstance) {
       const rawPatient = caacResult.patient;
       const maskedPatient = filterPatientRecordByRole(rawPatient, session.role, false);
 
-      // D. Append Success View Block to Isolated Audit DB (avecinna_audit_db)
+      // D. Append Success View Block to Isolated Audit DB
       await appendAuditBlock({
         userId: session.userId,
         patientId: patientId,
@@ -62,12 +78,20 @@ export default async function patientRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 2. GET /api/v1/patients (List Patients in Active Ward or Permitted Scope)
+  // 2. GET /patients (List Patients in Active Ward or Permitted Scope)
   fastify.get(
-    '/api/v1/patients',
-    { preHandler: [fastify.authenticate] },
+    '/patients',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Patient Records (CAAC & DTO)'],
+        summary: 'List Patients in Active Ward Scope',
+        description: 'Retrieves patient directory for clinician active ward context, filtered by role DTO mask.',
+        security: [{ bearerAuth: [] }],
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const session = request.userSession;
+      const session = request.userSession || request.user;
 
       // Fetch patients in active ward
       const activeWardPatients = await dbPrimary
@@ -84,4 +108,91 @@ export default async function patientRoutes(fastify: FastifyInstance) {
       });
     }
   );
+
+  // 3. POST /patients (Create / Register New Patient Record)
+  fastify.post(
+    '/patients',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Patient Records (CAAC & DTO)'],
+        summary: 'Register New Patient Record',
+        description: 'Registers a new inpatient or outpatient record with demographics and primary ward assignment.',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          required: ['mrn', 'fullName', 'dateOfBirth', 'gender', 'primaryWardId'],
+          properties: {
+            mrn: { type: 'string', example: 'MRN-2026-9090' },
+            fullName: { type: 'string', example: 'Tunde Bakare' },
+            dateOfBirth: { type: 'string', example: '1985-06-15' },
+            gender: { type: 'string', example: 'MALE' },
+            patientType: { type: 'string', enum: ['INPATIENT', 'OUTPATIENT'], example: 'INPATIENT' },
+            genotype: { type: 'string', example: 'AA' },
+            bloodGroup: { type: 'string', example: 'O+' },
+            primaryWardId: { type: 'string', example: 'w-cardio' },
+            assignedBed: { type: 'string', example: 'CARD-BED-12' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const session = request.userSession || request.user;
+      const body: any = request.body || {};
+      const {
+        mrn,
+        fullName,
+        dateOfBirth,
+        gender,
+        patientType = 'INPATIENT',
+        genotype,
+        bloodGroup,
+        primaryWardId,
+        assignedBed,
+      } = body;
+
+      if (!mrn || !fullName || !dateOfBirth || !gender || !primaryWardId) {
+        return reply.status(400).send({
+          error: 'Bad Request',
+          message: 'mrn, fullName, dateOfBirth, gender, and primaryWardId are required.',
+        });
+      }
+
+      const newPatientId = `p-${crypto.randomUUID()}`;
+
+      const [newPatient] = await dbPrimary
+        .insert(patients)
+        .values({
+          id: newPatientId,
+          mrn,
+          fullName,
+          dateOfBirth,
+          gender,
+          patientType,
+          genotype,
+          bloodGroup,
+          primaryWardId,
+          assignedBed,
+          allergiesJson: { allergies: [] },
+          emergencySummaryJson: { allergies: [], activeMedications: [] },
+          fullRecordJson: { clinicalHistory: [] },
+        })
+        .returning();
+
+      await appendAuditBlock({
+        userId: session.userId,
+        patientId: newPatientId,
+        action: 'PATIENT_CREATE',
+        activeWard: session.activeWardId,
+        payload: { mrn, fullName, primaryWardId },
+      });
+
+      return reply.status(201).send({
+        message: 'Patient registered successfully.',
+        patient: filterPatientRecordByRole(newPatient, session.role, false),
+      });
+    }
+  );
 }
+
+export default patientRoutes;

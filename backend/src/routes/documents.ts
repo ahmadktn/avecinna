@@ -1,15 +1,15 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { dbPrimary } from '../db/clientPrimary';
-import { medicalDocuments, labResults, patients } from '../db/schemaPrimary';
+import { dbPrimary } from '../db/clientPrimary.js';
+import { medicalDocuments, labResults, patients } from '../db/schemaPrimary.js';
 import { eq, desc } from 'drizzle-orm';
-import { evaluateCAAC } from '../services/caacEngine';
-import { appendAuditBlock } from '../services/merkleEngine';
+import { evaluateCAAC } from '../services/caacEngine.js';
+import { appendAuditBlock } from '../services/merkleEngine.js';
 import crypto from 'crypto';
 
 interface DocumentUploadBody {
   documentType: string;
   title: string;
-  fileContentBase64: string; // Base64 encoded file binary
+  fileContentBase64: string;
   fileUrl?: string;
 }
 
@@ -25,9 +25,34 @@ export async function documentsRoutes(fastify: FastifyInstance) {
   // 1. Upload Medical Document
   fastify.post(
     '/patients/:id/documents',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Medical Documents & Lab Results'],
+        summary: 'Upload Medical Document',
+        description:
+          'Uploads a medical document for a patient, computes SHA-256 hash of binary content, and logs audit event.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-cardio-01' },
+          },
+        },
+        body: {
+          type: 'object',
+          required: ['documentType', 'title', 'fileContentBase64'],
+          properties: {
+            documentType: { type: 'string', example: 'ECG_SCAN' },
+            title: { type: 'string', example: '12-Lead Electrocardiogram' },
+            fileContentBase64: { type: 'string', example: 'SGVsbG8gV29ybGQ=' },
+            fileUrl: { type: 'string' },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string }; Body: DocumentUploadBody }>, reply: FastifyReply) => {
-      const user = request.user;
+      const user = request.userSession || request.user;
       const { id: patientId } = request.params;
       const { documentType, title, fileContentBase64, fileUrl } = request.body;
 
@@ -36,18 +61,22 @@ export async function documentsRoutes(fastify: FastifyInstance) {
       }
 
       // CAAC Check
-      const caacResult = await evaluateCAAC(user, patientId);
-      if (!caacResult.permitted) {
+      const caacResult = await evaluateCAAC({
+        userId: user.userId,
+        role: user.role,
+        activeWardId: user.activeWardId,
+        patientId,
+      });
+
+      if (!caacResult.isPermitted) {
         await appendAuditBlock({
-          eventType: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-          staffId: user.userId,
+          userId: user.userId,
           patientId,
-          activeWardId: user.activeWardId,
-          ipAddress: request.ip,
-          payloadHash: crypto.createHash('sha256').update(JSON.stringify({ action: 'UPLOAD_DOCUMENT', reason: caacResult.reason })).digest('hex'),
-          executionMode: 'MODE_A',
+          action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+          activeWard: user.activeWardId,
+          payload: { action: 'UPLOAD_DOCUMENT', reason: caacResult.denialReason },
         });
-        return reply.status(403).send({ error: caacResult.reason });
+        return reply.status(403).send({ error: caacResult.denialReason });
       }
 
       // Compute SHA-256 hash of binary file content (Rule 4)
@@ -55,26 +84,27 @@ export async function documentsRoutes(fastify: FastifyInstance) {
       const documentHash = crypto.createHash('sha256').update(buffer).digest('hex');
       const docId = crypto.randomUUID();
 
-      const [newDoc] = await dbPrimary.insert(medicalDocuments).values({
-        id: docId,
-        patientId,
-        uploaderId: user.userId,
-        documentType,
-        title,
-        fileUrl: fileUrl || `/uploads/documents/${docId}.bin`,
-        fileSizeBytes: buffer.length,
-        documentHash,
-      }).returning();
+      const [newDoc] = await dbPrimary
+        .insert(medicalDocuments)
+        .values({
+          id: docId,
+          patientId,
+          uploaderId: user.userId,
+          documentType,
+          title,
+          fileUrl: fileUrl || `/uploads/documents/${docId}.bin`,
+          fileSizeBytes: buffer.length,
+          documentHash,
+        })
+        .returning();
 
       // Log to Audit Ledger
       await appendAuditBlock({
-        eventType: 'DOCUMENT_UPLOAD',
-        staffId: user.userId,
+        userId: user.userId,
         patientId,
-        activeWardId: user.activeWardId,
-        ipAddress: request.ip,
+        action: 'DOCUMENT_UPLOAD',
+        activeWard: user.activeWardId,
         payloadHash: documentHash,
-        executionMode: 'MODE_A',
       });
 
       return reply.status(201).send({
@@ -87,23 +117,41 @@ export async function documentsRoutes(fastify: FastifyInstance) {
   // 2. Get Medical Documents for Patient
   fastify.get(
     '/patients/:id/documents',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Medical Documents & Lab Results'],
+        summary: 'List Patient Medical Documents',
+        description: 'Retrieves all uploaded medical documents for a CAAC-permitted patient record.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-cardio-01' },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-      const user = request.user;
+      const user = request.userSession || request.user;
       const { id: patientId } = request.params;
 
-      const caacResult = await evaluateCAAC(user, patientId);
-      if (!caacResult.permitted) {
+      const caacResult = await evaluateCAAC({
+        userId: user.userId,
+        role: user.role,
+        activeWardId: user.activeWardId,
+        patientId,
+      });
+
+      if (!caacResult.isPermitted) {
         await appendAuditBlock({
-          eventType: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-          staffId: user.userId,
+          userId: user.userId,
           patientId,
-          activeWardId: user.activeWardId,
-          ipAddress: request.ip,
-          payloadHash: crypto.createHash('sha256').update(JSON.stringify({ action: 'GET_DOCUMENTS', reason: caacResult.reason })).digest('hex'),
-          executionMode: 'MODE_A',
+          action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+          activeWard: user.activeWardId,
+          payload: { action: 'GET_DOCUMENTS', reason: caacResult.denialReason },
         });
-        return reply.status(403).send({ error: caacResult.reason });
+        return reply.status(403).send({ error: caacResult.denialReason });
       }
 
       const docs = await dbPrimary
@@ -113,13 +161,11 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         .orderBy(desc(medicalDocuments.createdAt));
 
       await appendAuditBlock({
-        eventType: 'VIEW_RECORD',
-        staffId: user.userId,
+        userId: user.userId,
         patientId,
-        activeWardId: user.activeWardId,
-        ipAddress: request.ip,
-        payloadHash: crypto.createHash('sha256').update(JSON.stringify({ count: docs.length })).digest('hex'),
-        executionMode: 'MODE_A',
+        action: 'VIEW_DOCUMENTS',
+        activeWard: user.activeWardId,
+        payload: { count: docs.length },
       });
 
       return reply.send({ documents: docs });
@@ -129,9 +175,38 @@ export async function documentsRoutes(fastify: FastifyInstance) {
   // 3. Create Lab Result
   fastify.post(
     '/patients/:id/lab-results',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Medical Documents & Lab Results'],
+        summary: 'Add Patient Lab Result',
+        description:
+          'Creates a lab result record with optional attachment binary SHA-256 calculation and audit log entry.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-cardio-01' },
+          },
+        },
+        body: {
+          type: 'object',
+          required: ['testName', 'category', 'resultDataJson'],
+          properties: {
+            testName: { type: 'string', example: 'Serum Troponin I' },
+            category: { type: 'string', example: 'CARDIOLOGY_LAB' },
+            resultDataJson: {
+              type: 'object',
+              example: { troponinLevel: '2.4 ng/mL', normalRange: '0.0 - 0.04' },
+            },
+            attachmentBase64: { type: 'string' },
+            status: { type: 'string', enum: ['PENDING', 'PRELIMINARY', 'FINAL', 'AMENDED'] },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string }; Body: LabResultBody }>, reply: FastifyReply) => {
-      const user = request.user;
+      const user = request.userSession || request.user;
       const { id: patientId } = request.params;
       const { testName, category, resultDataJson, attachmentBase64, status } = request.body;
 
@@ -139,47 +214,52 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         return reply.status(400).send({ error: 'Missing required lab result fields (testName, category, resultDataJson)' });
       }
 
-      const caacResult = await evaluateCAAC(user, patientId);
-      if (!caacResult.permitted) {
+      const caacResult = await evaluateCAAC({
+        userId: user.userId,
+        role: user.role,
+        activeWardId: user.activeWardId,
+        patientId,
+      });
+
+      if (!caacResult.isPermitted) {
         await appendAuditBlock({
-          eventType: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-          staffId: user.userId,
+          userId: user.userId,
           patientId,
-          activeWardId: user.activeWardId,
-          ipAddress: request.ip,
-          payloadHash: crypto.createHash('sha256').update(JSON.stringify({ action: 'CREATE_LAB_RESULT', reason: caacResult.reason })).digest('hex'),
-          executionMode: 'MODE_A',
+          action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+          activeWard: user.activeWardId,
+          payload: { action: 'CREATE_LAB_RESULT', reason: caacResult.denialReason },
         });
-        return reply.status(403).send({ error: caacResult.reason });
+        return reply.status(403).send({ error: caacResult.denialReason });
       }
 
       const contentToHash = attachmentBase64
         ? Buffer.from(attachmentBase64, 'base64')
         : JSON.stringify(resultDataJson);
-      
+
       const documentHash = crypto.createHash('sha256').update(contentToHash).digest('hex');
       const labId = crypto.randomUUID();
 
-      const [newLab] = await dbPrimary.insert(labResults).values({
-        id: labId,
-        patientId,
-        orderingDoctorId: user.userId,
-        testName,
-        category,
-        resultDataJson,
-        attachmentUrl: attachmentBase64 ? `/uploads/labs/${labId}.bin` : null,
-        documentHash,
-        status: status || 'FINAL',
-      }).returning();
+      const [newLab] = await dbPrimary
+        .insert(labResults)
+        .values({
+          id: labId,
+          patientId,
+          orderingDoctorId: user.userId,
+          testName,
+          category,
+          resultDataJson,
+          attachmentUrl: attachmentBase64 ? `/uploads/labs/${labId}.bin` : null,
+          documentHash,
+          status: status || 'FINAL',
+        })
+        .returning();
 
       await appendAuditBlock({
-        eventType: 'LAB_RESULT_UPLOAD',
-        staffId: user.userId,
+        userId: user.userId,
         patientId,
-        activeWardId: user.activeWardId,
-        ipAddress: request.ip,
+        action: 'LAB_RESULT_UPLOAD',
+        activeWard: user.activeWardId,
         payloadHash: documentHash,
-        executionMode: 'MODE_A',
       });
 
       return reply.status(201).send({
@@ -192,23 +272,41 @@ export async function documentsRoutes(fastify: FastifyInstance) {
   // 4. Get Lab Results for Patient
   fastify.get(
     '/patients/:id/lab-results',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Medical Documents & Lab Results'],
+        summary: 'List Patient Lab Results',
+        description: 'Retrieves all lab results for a CAAC-permitted patient record.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-cardio-01' },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-      const user = request.user;
+      const user = request.userSession || request.user;
       const { id: patientId } = request.params;
 
-      const caacResult = await evaluateCAAC(user, patientId);
-      if (!caacResult.permitted) {
+      const caacResult = await evaluateCAAC({
+        userId: user.userId,
+        role: user.role,
+        activeWardId: user.activeWardId,
+        patientId,
+      });
+
+      if (!caacResult.isPermitted) {
         await appendAuditBlock({
-          eventType: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-          staffId: user.userId,
+          userId: user.userId,
           patientId,
-          activeWardId: user.activeWardId,
-          ipAddress: request.ip,
-          payloadHash: crypto.createHash('sha256').update(JSON.stringify({ action: 'GET_LAB_RESULTS', reason: caacResult.reason })).digest('hex'),
-          executionMode: 'MODE_A',
+          action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+          activeWard: user.activeWardId,
+          payload: { action: 'GET_LAB_RESULTS', reason: caacResult.denialReason },
         });
-        return reply.status(403).send({ error: caacResult.reason });
+        return reply.status(403).send({ error: caacResult.denialReason });
       }
 
       const labs = await dbPrimary
@@ -218,16 +316,16 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         .orderBy(desc(labResults.createdAt));
 
       await appendAuditBlock({
-        eventType: 'VIEW_RECORD',
-        staffId: user.userId,
+        userId: user.userId,
         patientId,
-        activeWardId: user.activeWardId,
-        ipAddress: request.ip,
-        payloadHash: crypto.createHash('sha256').update(JSON.stringify({ count: labs.length })).digest('hex'),
-        executionMode: 'MODE_A',
+        action: 'VIEW_LAB_RESULTS',
+        activeWard: user.activeWardId,
+        payload: { count: labs.length },
       });
 
       return reply.send({ labResults: labs });
     }
   );
 }
+
+export default documentsRoutes;

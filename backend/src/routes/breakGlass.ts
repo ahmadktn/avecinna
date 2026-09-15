@@ -11,7 +11,22 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
   // 1. POST /patients/:id/break-glass/tier1 (Immediate Emergency View - 0 Delay)
   fastify.post(
     '/patients/:id/break-glass/tier1',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Two-Tier Break-Glass Emergency'],
+        summary: 'Tier 1 Immediate Emergency View',
+        description:
+          'Provides instant 0-delay access to critical emergency fields (demographics, vitals, allergies, code status) for out-of-ward acute patients.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-peds-01' },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id: patientId } = request.params;
       const session = request.userSession || request.user;
@@ -29,7 +44,7 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         return reply.status(404).send({ error: 'Not Found', message: 'Patient record does not exist.' });
       }
 
-      // B. Filter into Tier 1 Emergency Summary Mask (vitals, allergies, active meds, code status)
+      // B. Filter into Tier 1 Emergency Summary Mask
       const emergencySummary = filterPatientRecordByRole(caacResult.patient, session.role, true);
 
       // C. AUTOMATIC Server-Side Audit Log to avecinna_audit_db
@@ -54,7 +69,33 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
   // 2. POST /patients/:id/break-glass/tier2 (Reasoned Full Record Unlock)
   fastify.post(
     '/patients/:id/break-glass/tier2',
-    { preHandler: [fastify.authenticate] },
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Two-Tier Break-Glass Emergency'],
+        summary: 'Tier 2 Reasoned Full Record Unlock',
+        description:
+          'Unlocks full clinical record for acute emergencies. Requires mandatory justification reason (min 10 chars), appends cryptographic audit block, and creates high-priority security alert.',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'p-peds-01' },
+          },
+        },
+        body: {
+          type: 'object',
+          required: ['justificationReason'],
+          properties: {
+            justificationReason: {
+              type: 'string',
+              minLength: 10,
+              example: 'Patient collapsed in ER with acute anaphylaxis requiring full history.',
+            },
+          },
+        },
+      },
+    },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id: patientId } = request.params;
       const body: any = request.body || {};

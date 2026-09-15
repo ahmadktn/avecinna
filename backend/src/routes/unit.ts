@@ -3,10 +3,11 @@ import { dbPrimary } from '../db/clientPrimary.js';
 import { users, securityAlerts, wards } from '../db/schemaPrimary.js';
 import { eq } from 'drizzle-orm';
 
-export default async function unitRoutes(fastify: FastifyInstance) {
+export async function unitRoutes(fastify: FastifyInstance) {
   // Middleware: Require HEAD_OF_UNIT or ADMIN role
   const requireHeadOfUnitRole = async (request: FastifyRequest, reply: FastifyReply) => {
-    const role = request.userSession?.role;
+    const session = request.userSession || request.user;
+    const role = session?.role;
     if (role !== 'HEAD_OF_UNIT' && role !== 'ADMIN') {
       return reply.status(403).send({
         error: 'Forbidden',
@@ -15,12 +16,21 @@ export default async function unitRoutes(fastify: FastifyInstance) {
     }
   };
 
-  // 1. GET /api/v1/unit/staff (List staff assigned to supervisor's ward)
+  // 1. GET /unit/staff (List staff assigned to supervisor's ward)
   fastify.get(
-    '/api/v1/unit/staff',
-    { preHandler: [fastify.authenticate, requireHeadOfUnitRole] },
+    '/unit/staff',
+    {
+      preHandler: [fastify.authenticate, requireHeadOfUnitRole],
+      schema: {
+        tags: ['Head of Unit Supervision'],
+        summary: 'List Ward Staff Roster',
+        description: 'Retrieves all active and inactive staff accounts assigned to the Head of Unit home ward.',
+        security: [{ bearerAuth: [] }],
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const wardId = request.userSession.homeWardId;
+      const session = request.userSession || request.user;
+      const wardId = session.homeWardId;
 
       const wardStaff = await dbPrimary
         .select({
@@ -37,13 +47,23 @@ export default async function unitRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 2. GET /api/v1/unit/alerts (List security alerts for unit supervisor)
+  // 2. GET /unit/alerts (List security alerts for unit supervisor)
   fastify.get(
-    '/api/v1/unit/alerts',
-    { preHandler: [fastify.authenticate, requireHeadOfUnitRole] },
+    '/unit/alerts',
+    {
+      preHandler: [fastify.authenticate, requireHeadOfUnitRole],
+      schema: {
+        tags: ['Head of Unit Supervision'],
+        summary: 'List Ward Security Scanner Alerts',
+        description: 'Retrieves security scanner alerts generated for unit staff access anomalies or break-glass triggers.',
+        security: [{ bearerAuth: [] }],
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const alerts = await dbPrimary.select().from(securityAlerts);
       return reply.send({ alerts });
     }
   );
 }
+
+export default unitRoutes;
