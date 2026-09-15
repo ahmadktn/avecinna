@@ -4,12 +4,18 @@ import { auditBlocks } from '../db/schemaAudit.js';
 import { desc, eq } from 'drizzle-orm';
 
 export interface AuditEventInput {
-  userId: string;
+  userId?: string;
+  staffId?: string;
   patientId?: string;
-  action: string;
-  activeWard: string;
+  action?: string;
+  eventType?: string;
+  activeWard?: string;
+  activeWardId?: string;
   relationshipType?: string;
-  payload: any;
+  payload?: any;
+  payloadHash?: string;
+  ipAddress?: string;
+  executionMode?: string;
 }
 
 const GENESIS_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
@@ -18,7 +24,17 @@ const GENESIS_HASH = '0000000000000000000000000000000000000000000000000000000000
  * 1. Appends a new sequential block to the Hash Chain in avecinna_audit_db
  * Automatically called 100% server-side by Fastify route handlers & hooks.
  */
-export async function appendAuditBlock(event: AuditEventInput): Promise<string> {
+export async function appendAuditBlock(event: AuditEventInput) {
+  const uId = event.userId || event.staffId || 'SYSTEM';
+  const act = event.action || event.eventType || 'UNKNOWN_ACTION';
+  const ward = event.activeWard || event.activeWardId || 'N/A';
+  const pHash =
+    event.payloadHash ||
+    crypto
+      .createHash('sha256')
+      .update(JSON.stringify(event.payload || {}))
+      .digest('hex');
+
   // 1. Fetch latest block from isolated audit database (tail of the chain)
   const latestBlock = await dbAudit
     .select()
@@ -29,30 +45,27 @@ export async function appendAuditBlock(event: AuditEventInput): Promise<string> 
   const prevHash = latestBlock.length > 0 ? latestBlock[0].blockHash : GENESIS_HASH;
   const timestamp = new Date().toISOString();
 
-  // 2. Hash raw payload to protect ePHI in audit database
-  const payloadHash = crypto
-    .createHash('sha256')
-    .update(JSON.stringify(event.payload || {}))
-    .digest('hex');
-
-  // 3. Compute current block SHA-256 hash (Hash Chain formula)
-  const blockRawString = `${prevHash}|${event.userId}|${event.patientId || ''}|${event.action}|${event.activeWard}|${payloadHash}|${timestamp}`;
+  // 2. Compute current block SHA-256 hash (Hash Chain formula)
+  const blockRawString = `${prevHash}|${uId}|${event.patientId || ''}|${act}|${ward}|${pHash}|${timestamp}`;
   const currentBlockHash = crypto.createHash('sha256').update(blockRawString).digest('hex');
 
-  // 4. Insert into isolated audit DB
-  await dbAudit.insert(auditBlocks).values({
-    blockHash: currentBlockHash,
-    prevHash: prevHash,
-    userId: event.userId,
-    patientId: event.patientId,
-    action: event.action,
-    activeWard: event.activeWard,
-    relationshipType: event.relationshipType,
-    payloadHash: payloadHash,
-    isOfflineSync: false,
-  });
+  // 3. Insert into isolated audit DB
+  const [inserted] = await dbAudit
+    .insert(auditBlocks)
+    .values({
+      blockHash: currentBlockHash,
+      prevHash: prevHash,
+      userId: uId,
+      patientId: event.patientId,
+      action: act,
+      activeWard: ward,
+      relationshipType: event.relationshipType,
+      payloadHash: pHash,
+      isOfflineSync: false,
+    })
+    .returning();
 
-  return currentBlockHash;
+  return inserted || { id: 1, blockHash: currentBlockHash, currentHash: currentBlockHash, prevHash };
 }
 
 /**
@@ -76,13 +89,21 @@ export function buildMerkleTreeRoot(leafHashes: string[]): string {
   return currentLevel[0];
 }
 
+export async function computeMerkleRoot(): Promise<string> {
+  const blocks = await dbAudit.select().from(auditBlocks).orderBy(auditBlocks.indexNum);
+  const leafHashes = blocks.map((b) => b.blockHash);
+  return buildMerkleTreeRoot(leafHashes);
+}
+
 /**
  * 3. Single-Click Audit Chain Verification Algorithm (POST /api/v1/audit/verify)
  */
 export async function verifyAuditLedgerChain(): Promise<{
   status: 'VERIFIED' | 'CORRUPTED';
+  valid: boolean;
   totalBlocks: number;
   tamperedBlockIndex: number | null;
+  brokenBlockId?: string | null;
 }> {
   const blocks = await dbAudit.select().from(auditBlocks).orderBy(auditBlocks.indexNum);
   let expectedPrevHash = GENESIS_HASH;
@@ -93,8 +114,10 @@ export async function verifyAuditLedgerChain(): Promise<{
     if (block.prevHash !== expectedPrevHash) {
       return {
         status: 'CORRUPTED',
+        valid: false,
         totalBlocks: blocks.length,
         tamperedBlockIndex: Number(block.indexNum),
+        brokenBlockId: String(block.indexNum),
       };
     }
 
@@ -103,7 +126,11 @@ export async function verifyAuditLedgerChain(): Promise<{
 
   return {
     status: 'VERIFIED',
+    valid: true,
     totalBlocks: blocks.length,
     tamperedBlockIndex: null,
+    brokenBlockId: null,
   };
 }
+
+export const verifyHashChainIntegrity = verifyAuditLedgerChain;

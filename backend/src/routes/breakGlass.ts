@@ -7,14 +7,14 @@ import { appendAuditBlock } from '../services/merkleEngine.js';
 import { createSecurityAlert } from '../services/scannerService.js';
 import { eq } from 'drizzle-orm';
 
-export default async function breakGlassRoutes(fastify: FastifyInstance) {
-  // 1. POST /api/v1/patients/:id/break-glass/tier1 (Immediate Emergency View - 0 Delay)
+export async function breakGlassRoutes(fastify: FastifyInstance) {
+  // 1. POST /patients/:id/break-glass/tier1 (Immediate Emergency View - 0 Delay)
   fastify.post(
-    '/api/v1/patients/:id/break-glass/tier1',
+    '/patients/:id/break-glass/tier1',
     { preHandler: [fastify.authenticate] },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id: patientId } = request.params;
-      const session = request.userSession;
+      const session = request.userSession || request.user;
 
       // A. Evaluate CAAC with Emergency Override flag
       const caacResult = await evaluateCAAC({
@@ -43,28 +43,28 @@ export default async function breakGlassRoutes(fastify: FastifyInstance) {
       });
 
       return reply.send({
-        tier: 1,
+        tier: 'TIER_1_EMERGENCY_SUMMARY',
         message: 'Tier 1 Immediate Emergency View granted.',
-        data: emergencySummary,
+        emergencySummary,
         auditBlockHash,
       });
     }
   );
 
-  // 2. POST /api/v1/patients/:id/break-glass/tier2 (Reasoned Full Record Unlock)
+  // 2. POST /patients/:id/break-glass/tier2 (Reasoned Full Record Unlock)
   fastify.post(
-    '/api/v1/patients/:id/break-glass/tier2',
+    '/patients/:id/break-glass/tier2',
     { preHandler: [fastify.authenticate] },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id: patientId } = request.params;
       const body: any = request.body || {};
-      const { reasonCode, justification } = body;
-      const session = request.userSession;
+      const justificationReason = body.justificationReason || body.justification;
+      const session = request.userSession || request.user;
 
-      if (!reasonCode) {
+      if (!justificationReason || justificationReason.trim().length < 10) {
         return reply.status(400).send({
           error: 'Bad Request',
-          message: 'Tier 2 Break-Glass requires a reasonCode (e.g. CARDIAC_ARREST, TRAUMA_RESUSCITATION, UNCONSCIOUS_PATIENT, OTHER).',
+          message: 'Tier 2 Break-Glass requires a justificationReason (Minimum 10 characters required).',
         });
       }
 
@@ -77,7 +77,7 @@ export default async function breakGlassRoutes(fastify: FastifyInstance) {
       const rawPatient = patientRows[0];
 
       // B. Unmask Full Clinical Record (Doctor level emergency unlock)
-      const fullRecord = filterPatientRecordByRole(rawPatient, 'DOCTOR', false);
+      const patientRecord = filterPatientRecordByRole(rawPatient, 'DOCTOR', false);
 
       // C. AUTOMATIC Server-Side Audit Log to avecinna_audit_db
       const auditBlockHash = await appendAuditBlock({
@@ -88,28 +88,29 @@ export default async function breakGlassRoutes(fastify: FastifyInstance) {
         relationshipType: 'BREAK_GLASS',
         payload: {
           tier: 2,
-          reasonCode,
-          justification: justification || 'N/A',
+          justificationReason,
         },
       });
 
       // D. AUTOMATIC High-Priority Security Alert in avecinna_primary_db
       const alertId = await createSecurityAlert({
-        alertType: 'EXCESSIVE_BREAK_GLASS',
+        alertType: 'BREAK_GLASS_ACTIVATION',
         severity: 'HIGH',
         userId: session.userId,
         patientId: patientId,
-        description: `Tier 2 Break-Glass activated by ${session.username} (${session.role}) for patient ${rawPatient.mrn}. Reason: ${reasonCode}. Justification: ${justification || 'None provided'}.`,
-        metadata: { reasonCode, justification, auditBlockHash },
+        description: `Tier 2 Break-Glass activated by ${session.username} (${session.role}) for patient ${rawPatient.mrn}. Justification: ${justificationReason}.`,
+        metadata: { justificationReason, auditBlockHash },
       });
 
       return reply.send({
-        tier: 2,
+        tier: 'TIER_2_FULL_RECORD_UNLOCKED',
         message: 'Tier 2 Full Record Access granted. Security Alert generated for administrative review.',
-        data: fullRecord,
+        patientRecord,
         alertId,
         auditBlockHash,
       });
     }
   );
 }
+
+export default breakGlassRoutes;

@@ -12,10 +12,32 @@ import {
 import { auditBlocks } from './schemaAudit.js';
 import argon2 from 'argon2';
 import crypto from 'crypto';
+import { sql } from 'drizzle-orm';
 import { parseSyntheaFhirBundle } from './syntheaParser.js';
 
 async function seed() {
   console.log('🌱 Starting Avecinna System Seeding...');
+
+  // 0. Ensure audit_blocks table exists on isolated audit database (avecinna_audit_db)
+  await dbAudit.execute(sql`
+    CREATE TABLE IF NOT EXISTS audit_blocks (
+      index_num BIGSERIAL PRIMARY KEY,
+      block_hash VARCHAR(64) NOT NULL UNIQUE,
+      prev_hash VARCHAR(64) NOT NULL,
+      user_id VARCHAR(36) NOT NULL,
+      patient_id VARCHAR(36),
+      action VARCHAR(50) NOT NULL,
+      active_ward VARCHAR(36) NOT NULL,
+      relationship_type VARCHAR(20),
+      payload_hash VARCHAR(64) NOT NULL,
+      merkle_root VARCHAR(64),
+      signature VARCHAR(256),
+      is_offline_sync BOOLEAN DEFAULT FALSE NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW() NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_blocks_hash ON audit_blocks(block_hash);
+    CREATE INDEX IF NOT EXISTS idx_audit_blocks_user ON audit_blocks(user_id);
+  `);
 
   // 1. Create Hospital Wards
   const wardList = [

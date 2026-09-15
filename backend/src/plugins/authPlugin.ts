@@ -22,6 +22,7 @@ declare module 'fastify' {
   }
   interface FastifyRequest {
     userSession: UserSession;
+    user: UserSession;
   }
 }
 
@@ -78,8 +79,7 @@ export default fp(async function (fastify: FastifyInstance) {
 
       const s = sessionRows[0];
 
-      // C. Attach UserSession to request object
-      request.userSession = {
+      const sessionObj = {
         userId: s.userId,
         username: s.username,
         role: s.role,
@@ -89,6 +89,10 @@ export default fp(async function (fastify: FastifyInstance) {
         shiftEnd: s.shiftEnd.toISOString(),
         token: token,
       };
+
+      // C. Attach UserSession to request object
+      request.userSession = sessionObj;
+      request.user = sessionObj;
 
     } catch (err: any) {
       return reply.status(401).send({

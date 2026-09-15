@@ -14,8 +14,10 @@ export interface CAACInput {
 
 export interface CAACResult {
   isPermitted: boolean;
+  permitted: boolean;
   relationshipType: 'PRIMARY' | 'ON_CALL' | 'CONSULT' | 'OUTPATIENT_DOCTOR' | 'BREAK_GLASS' | null;
   denialReason?: string;
+  reason?: string;
   patient?: any;
 }
 
@@ -33,10 +35,13 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     const end = new Date(shiftEnd);
 
     if (now < start || now > end) {
+      const msg = 'SHIFT_INACTIVE: Access requested outside scheduled shift window.';
       return {
         isPermitted: false,
+        permitted: false,
         relationshipType: null,
-        denialReason: 'SHIFT_INACTIVE: Access requested outside scheduled shift window.',
+        denialReason: msg,
+        reason: msg,
       };
     }
   }
@@ -44,10 +49,13 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
   // 2. Fetch Patient Record from Primary DB
   const patientRows = await dbPrimary.select().from(patients).where(eq(patients.id, patientId)).limit(1);
   if (patientRows.length === 0) {
+    const msg = 'PATIENT_NOT_FOUND: Specified patient record does not exist.';
     return {
       isPermitted: false,
+      permitted: false,
       relationshipType: null,
-      denialReason: 'PATIENT_NOT_FOUND: Specified patient record does not exist.',
+      denialReason: msg,
+      reason: msg,
     };
   }
 
@@ -57,6 +65,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
   if (isBreakGlass) {
     return {
       isPermitted: true,
+      permitted: true,
       relationshipType: 'BREAK_GLASS',
       patient,
     };
@@ -66,6 +75,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
   if (patient.primaryWardId && patient.primaryWardId === activeWardId) {
     return {
       isPermitted: true,
+      permitted: true,
       relationshipType: 'PRIMARY',
       patient,
     };
@@ -89,6 +99,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     const relType = careTeamMatches[0].relationshipType as any;
     return {
       isPermitted: true,
+      permitted: true,
       relationshipType: relType,
       patient,
     };
@@ -117,16 +128,20 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
   if (apptMatches.length > 0) {
     return {
       isPermitted: true,
+      permitted: true,
       relationshipType: 'OUTPATIENT_DOCTOR',
       patient,
     };
   }
 
   // 7. No Relationship or Ward Context Match -> Deny Access
+  const msg = 'NO_WARD_OR_CARE_TEAM_RELATIONSHIP: Clinician is not on patient care team or assigned ward.';
   return {
     isPermitted: false,
+    permitted: false,
     relationshipType: null,
-    denialReason: 'NO_WARD_OR_CARE_TEAM_RELATIONSHIP: Clinician is not on patient care team or assigned ward.',
+    denialReason: msg,
+    reason: msg,
     patient: null,
   };
 }
