@@ -277,6 +277,10 @@ async function seed() {
     })
     .onConflictDoNothing();
 
+  await dbAudit.execute(
+    sql`SELECT setval(pg_get_serial_sequence('audit_blocks', 'index_num'), COALESCE((SELECT MAX(index_num) FROM audit_blocks), 1));`
+  );
+
   console.log('✅ Isolated Audit DB Genesis Block created.');
   console.log('🎉 Seeding completed successfully!');
   process.exit(0);

@@ -13,6 +13,11 @@ import { healthRoutes } from './routes/health';
 export async function buildApp() {
   const fastify = Fastify({
     logger: true,
+    ajv: {
+      customOptions: {
+        keywords: ['example'],
+      },
+    },
   });
 
   // 1. Register CORS

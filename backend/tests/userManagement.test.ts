@@ -1,8 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { buildApp } from '../src/app';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'avecinna_jwt_super_secret_key_2026_icsc_secure';
 
 describe('User Management & Profile Update Integration Tests', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
@@ -12,27 +9,29 @@ describe('User Management & Profile Update Integration Tests', () => {
   beforeAll(async () => {
     app = await buildApp();
 
-    adminToken = jwt.sign(
-      {
-        userId: 'u-admin-01',
-        role: 'ADMIN',
-        activeWardId: 'w-emerg',
-        shiftStart: new Date(Date.now() - 3600000).toISOString(),
-        shiftEnd: new Date(Date.now() + 36000000).toISOString(),
+    const adminLoginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: {
+        username: 'admin',
+        password: 'SecurePassword123!',
       },
-      JWT_SECRET
-    );
+    });
 
-    doctorToken = jwt.sign(
-      {
-        userId: 'u-doc-cardio',
-        role: 'DOCTOR',
-        activeWardId: 'w-cardio',
-        shiftStart: new Date(Date.now() - 3600000).toISOString(),
-        shiftEnd: new Date(Date.now() + 36000000).toISOString(),
+    const adminLoginBody = JSON.parse(adminLoginRes.payload);
+    adminToken = adminLoginBody.token;
+
+    const docLoginRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: {
+        username: 'dr_cardio',
+        password: 'SecurePassword123!',
       },
-      JWT_SECRET
-    );
+    });
+
+    const docLoginBody = JSON.parse(docLoginRes.payload);
+    doctorToken = docLoginBody.token;
   });
 
   it('ADMIN can list all staff accounts', async () => {

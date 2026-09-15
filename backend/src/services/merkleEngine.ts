@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { dbAudit } from '../db/clientAudit.js';
 import { auditBlocks } from '../db/schemaAudit.js';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 export interface AuditEventInput {
   userId?: string;
@@ -50,22 +50,47 @@ export async function appendAuditBlock(event: AuditEventInput) {
   const currentBlockHash = crypto.createHash('sha256').update(blockRawString).digest('hex');
 
   // 3. Insert into isolated audit DB
-  const [inserted] = await dbAudit
-    .insert(auditBlocks)
-    .values({
-      blockHash: currentBlockHash,
-      prevHash: prevHash,
-      userId: uId,
-      patientId: event.patientId,
-      action: act,
-      activeWard: ward,
-      relationshipType: event.relationshipType,
-      payloadHash: pHash,
-      isOfflineSync: false,
-    })
-    .returning();
+  try {
+    const [inserted] = await dbAudit
+      .insert(auditBlocks)
+      .values({
+        blockHash: currentBlockHash,
+        prevHash: prevHash,
+        userId: uId,
+        patientId: event.patientId,
+        action: act,
+        activeWard: ward,
+        relationshipType: event.relationshipType,
+        payloadHash: pHash,
+        isOfflineSync: false,
+      })
+      .returning();
 
-  return inserted || { id: 1, blockHash: currentBlockHash, currentHash: currentBlockHash, prevHash };
+    return inserted || { id: 1, blockHash: currentBlockHash, currentHash: currentBlockHash, prevHash };
+  } catch (err: any) {
+    if (err.message && err.message.includes('audit_blocks_pkey')) {
+      // Sync sequence and retry
+      await dbAudit.execute(
+        sql`SELECT setval(pg_get_serial_sequence('audit_blocks', 'index_num'), COALESCE((SELECT MAX(index_num) FROM audit_blocks), 1));`
+      );
+      const [inserted] = await dbAudit
+        .insert(auditBlocks)
+        .values({
+          blockHash: currentBlockHash,
+          prevHash: prevHash,
+          userId: uId,
+          patientId: event.patientId,
+          action: act,
+          activeWard: ward,
+          relationshipType: event.relationshipType,
+          payloadHash: pHash,
+          isOfflineSync: false,
+        })
+        .returning();
+      return inserted || { id: 1, blockHash: currentBlockHash, currentHash: currentBlockHash, prevHash };
+    }
+    throw err;
+  }
 }
 
 /**

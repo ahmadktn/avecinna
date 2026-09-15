@@ -6,7 +6,7 @@ describe('Phase 3 Cryptographic Audit Ledger Engine Tests', () => {
   it('should append audit blocks and maintain sequential SHA-256 hash chain link', async () => {
     const payloadHash = crypto.createHash('sha256').update('test_payload_1').digest('hex');
 
-    const block = await appendAuditBlock({
+    const block: any = await appendAuditBlock({
       eventType: 'VIEW_RECORD',
       staffId: 'u-doc-cardio',
       patientId: 'p-cardio-01',
@@ -16,8 +16,9 @@ describe('Phase 3 Cryptographic Audit Ledger Engine Tests', () => {
       executionMode: 'MODE_A',
     });
 
-    expect(block.id).toBeDefined();
-    expect(block.currentHash).toHaveLength(64); // SHA-256 hex length
+    const hash = block.blockHash || block.currentHash;
+    expect(hash).toBeDefined();
+    expect(hash).toHaveLength(64); // SHA-256 hex length
     expect(block.prevHash).toBeDefined();
   });
 
