@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # 1. Primary PostgreSQL Database Container (Operational Clinical Data)
+  primary_db:
+    image: postgres:16-alpine
+    container_name: avecinna_primary_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgresPassword123!
+      POSTGRES_DB: avecinna_primary_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - primary_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d avecinna_primary_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Isolated Audit PostgreSQL Database Container (Append-Only Merkle Audit Ledger)
+  audit_db:
+    image: postgres:16-alpine
+    container_name: avecinna_audit_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: audit_admin
+      POSTGRES_PASSWORD: auditPassword123!
+      POSTGRES_DB: avecinna_audit_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - audit_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audit_admin -d avecinna_audit_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  primary_db_data:
+    driver: local
+  audit_db_data:
+    driver: local

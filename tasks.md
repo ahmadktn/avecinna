@@ -25,23 +25,23 @@
 ---
 
 ## Phase 2: Authentication, User & Ward Management, CAAC & Admin Privacy DTO Engine
-- [ ] Implement Fastify Auth Plugin (`/api/v1/auth/login`, JWT issue, password hashing via argon2/bcrypt).
-- [ ] Implement System Admin User Management endpoints (`/api/v1/admin/users`, `/api/v1/admin/wards`).
-- [ ] Implement Head of Unit Ward Supervision endpoints (`/api/v1/unit/staff`, `/api/v1/unit/alerts`).
-- [ ] Implement Outpatient Consultation Scheduling endpoints (`/api/v1/appointments`).
-- [ ] Build **CAAC Engine Service**:
-  - [ ] Evaluate `Permit = Role AND Shift AND (ActiveWard == PatientWard OR StaffID IN CareTeam OR OutpatientDoctorToday)`
-  - [ ] Check time-boxed consult exclamations & outpatient appointment expiry.
-- [ ] Build **Role-Scoped DTO Response Filter with Admin Redaction** (OWASP API3 Mitigation):
-  - [ ] Doctor / Head of Unit DTO filter (Full record for assigned/consulted patients)
-  - [ ] Nurse/Paramedic DTO filter (Vitals, active meds, allergies)
-  - [ ] Clerk DTO filter (Demographics & bed assignment only)
-  - [ ] Pharmacist DTO filter (Medication history & allergy profile only)
-  - [ ] **System Admin DTO filter (User/Ward management access, BUT CLINICAL DATA STRICTLY REDACTED)**
-- [ ] Automated Tests:
-  - [ ] Unit tests for CAAC decision matrix and Outpatient appointment bindings.
-  - [ ] **Admin Privacy Test**: Verify System Admin querying `/api/v1/patients/:id` receives `[REDACTED - ADMIN PRIVACY RESTRICTION]` for clinical notes/vitals.
-  - [ ] BOLA / IDOR security test (OWASP API1 verification: User A accessing User B's patient returns HTTP 403).
+- [x] Implement Fastify Auth Plugin (`/api/v1/auth/login`, JWT issue, password hashing via argon2, session validation in `authPlugin.ts`).
+- [x] Implement Active Ward Context Switching (`/api/v1/auth/switch-ward`).
+- [x] Implement System Admin User Management endpoints (`/api/v1/admin/users`, `/api/v1/admin/wards`).
+- [x] Implement Head of Unit Ward Supervision endpoints (`/api/v1/unit/staff`, `/api/v1/unit/alerts`).
+- [x] Build **CAAC Engine Service** (`caacEngine.ts`):
+  - [x] Evaluate `Permit = Role AND Shift AND (ActiveWard == PatientWard OR StaffID IN CareTeam OR OutpatientDoctorToday)`
+  - [x] Check time-boxed consult exclamations & outpatient appointment expiry.
+- [x] Build **Role-Scoped DTO Response Filter with Admin Redaction** (`dtoMasker.ts`, OWASP API3 Mitigation):
+  - [x] Doctor / Head of Unit DTO filter (Full record for assigned/consulted patients)
+  - [x] Nurse/Paramedic DTO filter (Vitals, active meds, allergies)
+  - [x] Clerk DTO filter (Demographics & bed assignment only)
+  - [x] Pharmacist DTO filter (Medication history & allergy profile only)
+  - [x] **System Admin DTO filter (User/Ward management access, BUT CLINICAL DATA STRICTLY REDACTED)**
+- [x] Automated Security Tests:
+  - [x] Unit tests for CAAC decision matrix (`tests/caac.test.ts`).
+  - [x] **Admin Privacy Test**: Verify System Admin querying `/api/v1/patients/:id` receives `[REDACTED - ADMIN PRIVACY RESTRICTION]` (`tests/adminPrivacy.test.ts`).
+  - [x] BOLA / IDOR security test (`tests/dtoMasking.test.ts`, OWASP API1 verification: User A accessing User B's patient returns HTTP 403).
 
 ---
 
