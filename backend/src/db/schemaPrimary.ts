@@ -187,7 +187,7 @@ export const medicalDocuments = pgTable(
 export const sessions = pgTable(
   'sessions',
   {
-    id: varchar('id', { length: 36 }).primaryKey(),
+    id: varchar('id', { length: 64 }).primaryKey(),
     userId: varchar('user_id', { length: 36 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

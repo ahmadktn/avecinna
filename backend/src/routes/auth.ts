@@ -91,7 +91,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         role: user.role,
       });
 
-      const sessionId = `sess-${crypto.randomUUID()}`;
+      const sessionId = crypto.randomUUID();
 
       await dbPrimary.insert(sessions).values({
         id: sessionId,
