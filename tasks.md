@@ -66,23 +66,24 @@
 ---
 
 ## Phase 4: Nuxt 4 Frontend PWA & Dynamic Role-Scoped Clinical UI
-- [ ] Initialize Nuxt 4 project under `frontend/` (using new `app/` directory convention).
-- [ ] Configure TailwindCSS 3 with Vite in Nuxt 4 (`nuxt.config.ts`, `@tailwindcss/vite` or `@nuxtjs/tailwindcss`).
-- [ ] Build Core Components (`app/components/`):
-  - [ ] Navbar & Ward Switcher dropdown (`Active Ward: Cardiology -> Switch`).
-  - [ ] Dynamic Role Badge & Shift status indicator.
-  - [ ] User & Ward Management Table (Admin View).
-  - [ ] Head of Unit Staff & Alert Review Dashboard.
-  - [ ] Outpatient Appointment Scheduling Modal.
-  - [ ] Lab Results & Document Attachment Viewer.
-  - [ ] Tier 1 & Tier 2 Emergency Break-Glass Modals.
-  - [ ] Isolated Audit Ledger Verification Component.
-- [ ] Build Role-Scoped Clinical Pages (`app/pages/`):
-  - [ ] Login View (`/login`)
-  - [ ] Patient Directory (`/patients` - toggle Inpatient / Outpatient view)
-  - [ ] Patient Detail View (`/patients/:id`) rendering role-appropriate fields dynamically (with Redacted notice for Admin).
-  - [ ] Admin Control Panel (`/admin/users`, `/admin/wards`)
-  - [ ] Head of Unit Dashboard (`/unit/manage`)
+- [x] Initialize Nuxt 4 project under `frontend/` (using new `app/` directory convention).
+- [x] Configure TailwindCSS 4 with Vite in Nuxt 4 (`nuxt.config.ts`, `@tailwindcss/vite`).
+- [x] Build Core Components (`app/components/`):
+  - [x] Navbar & Ward Switcher dropdown (`Active Ward: Cardiology -> Switch`).
+  - [x] Dynamic Role Badge & Shift status indicator.
+  - [x] User & Ward Management Table (Admin View).
+  - [x] Head of Unit Staff & Alert Review Dashboard.
+  - [x] Outpatient Appointment Scheduling Modal.
+  - [x] Lab Results & Document Attachment Viewer.
+  - [x] Tier 1 & Tier 2 Emergency Break-Glass Modals.
+  - [x] Isolated Audit Ledger Verification Component.
+- [x] Build Role-Scoped Clinical Pages (`app/pages/`):
+  - [x] Login View (`/login`)
+  - [x] Patient Directory (`/patients` - dynamic ward patient dashboard)
+  - [x] Patient Detail View (`/patients/:id`) rendering role-appropriate fields dynamically (with Redacted notice for Admin).
+  - [x] Admin Control Panel (`/admin/dashboard`, `/admin/audit`, `/admin/users`)
+  - [x] Head of Unit Dashboard (`/unit/manage`)
+
 - [ ] Automated Tests:
   - [ ] Vue Component tests with Vitest & `@vue/test-utils`.
   - [ ] Playwright E2E tests for Admin User Creation, Outpatient Appointment Flow, and Break-Glass.
