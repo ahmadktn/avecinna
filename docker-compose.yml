@@ -8,7 +8,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${PRIMARY_DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${PRIMARY_DB_PASSWORD:-postgresPassword123!}
+      POSTGRES_PASSWORD: ${PRIMARY_DB_PASSWORD:-postgresPassword123}
       POSTGRES_DB: ${PRIMARY_DB_NAME:-avecinna_primary_db}
     volumes:
       - primary_db_data:/var/lib/postgresql/data
@@ -29,7 +29,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${AUDIT_DB_USER:-audit_admin}
-      POSTGRES_PASSWORD: ${AUDIT_DB_PASSWORD:-auditPassword123!}
+      POSTGRES_PASSWORD: ${AUDIT_DB_PASSWORD:-auditPassword123}
       POSTGRES_DB: ${AUDIT_DB_NAME:-avecinna_audit_db}
     volumes:
       - audit_db_data:/var/lib/postgresql/data
@@ -59,8 +59,8 @@ services:
       NODE_ENV: production
       PORT: 4000
       HOST: 0.0.0.0
-      DATABASE_URL_PRIMARY: postgres://${PRIMARY_DB_USER:-postgres}:${PRIMARY_DB_PASSWORD:-postgresPassword123!}@primary_db:5432/${PRIMARY_DB_NAME:-avecinna_primary_db}
-      DATABASE_URL_AUDIT: postgres://${AUDIT_DB_USER:-audit_admin}:${AUDIT_DB_PASSWORD:-auditPassword123!}@audit_db:5432/${AUDIT_DB_NAME:-avecinna_audit_db}
+      DATABASE_URL_PRIMARY: ${DATABASE_URL_PRIMARY:-postgres://${PRIMARY_DB_USER:-postgres}:${PRIMARY_DB_PASSWORD:-postgresPassword123}@primary_db:5432/${PRIMARY_DB_NAME:-avecinna_primary_db}}
+      DATABASE_URL_AUDIT: ${DATABASE_URL_AUDIT:-postgres://${AUDIT_DB_USER:-audit_admin}:${AUDIT_DB_PASSWORD:-auditPassword123}@audit_db:5432/${AUDIT_DB_NAME:-avecinna_audit_db}}
       JWT_SECRET: ${JWT_SECRET:-avecinna_super_secret_jwt_key_icsc_2026_hackathon}
       SEED_DATABASE: ${SEED_DATABASE:-false}
     expose:
