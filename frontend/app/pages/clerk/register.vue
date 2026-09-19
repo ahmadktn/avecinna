@@ -205,6 +205,7 @@
 import { ref, onMounted } from 'vue'
 import { usePatients } from '~/composables/usePatients'
 import { useClerk } from '~/composables/useClerk'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const patientsApi = usePatients()
 const clerk = useClerk()
@@ -261,6 +262,7 @@ const handleRegister = async () => {
     successMessage.value = `Patient ${p.fullName} (${p.mrn}) registered and admitted successfully!`
     form.value.fullName = ''
     generateMrn()
+    triggerGlobalRefresh()
   } catch (err: any) {
     error.value = err.message || 'Failed to register patient'
   } finally {

@@ -215,9 +215,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useClerk } from '~/composables/useClerk'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const auth = useAuth()
 const clerkApi = useClerk()
@@ -280,6 +281,7 @@ const handleStatusChange = async (id: string, newStatus: any) => {
   try {
     await clerkApi.updateAppointmentStatus(id, { status: newStatus })
     await loadAppointments()
+    triggerGlobalRefresh()
   } catch (err: any) {
     alert(err.message || 'Failed to update status')
   }
@@ -311,7 +313,6 @@ const formatDateTime = (isoString: string) => {
   }
 }
 
-onMounted(() => {
-  loadAppointments()
-})
+// Auto-refresh when ward changes or every 20s in background
+useAutoRefresh(() => loadAppointments(), { interval: 20000 })
 </script>

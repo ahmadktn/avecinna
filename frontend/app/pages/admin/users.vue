@@ -319,8 +319,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 import type { User } from '~/composables/useAuth'
 
 const admin = useAdmin()
@@ -381,9 +382,7 @@ const loadData = async () => {
   }
 }
 
-onMounted(() => {
-  loadData()
-})
+useAutoRefresh(() => loadData(), { interval: 25000 })
 
 const getInitials = (name: string) => {
   const parts = name.split(' ')
@@ -421,6 +420,7 @@ const handleUpdateUser = async () => {
       payload.password = editForm.value.password
     }
     await admin.updateUser(editingUser.value.id, payload)
+    triggerGlobalRefresh()
     showEditModal.value = false
   } catch (err) {
     // Handled in composable
@@ -432,6 +432,7 @@ const handleUpdateUser = async () => {
 const toggleStatus = async (id: string, isActive: boolean) => {
   try {
     await admin.toggleUserStatus(id, isActive)
+    triggerGlobalRefresh()
   } catch (err) {
     // Handled in composable
   }

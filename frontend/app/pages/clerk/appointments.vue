@@ -294,8 +294,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useClerk } from '~/composables/useClerk'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const clerk = useClerk()
 const appointmentsList = clerk.appointments
@@ -350,14 +351,19 @@ const changePage = (p: number) => {
   loadAppointments()
 }
 
-onMounted(async () => {
-  await Promise.all([
-    clerk.fetchDoctors(),
-    clerk.fetchWards(),
-    clerk.fetchPatients({ limit: 100 }),
-  ])
-  loadAppointments()
-})
+const loadInitialData = async () => {
+  if (doctorsList.value.length === 0 || wardsList.value.length === 0) {
+    await Promise.all([
+      clerk.fetchDoctors(),
+      clerk.fetchWards(),
+      clerk.fetchPatients({ limit: 100 }),
+    ])
+  }
+  await loadAppointments()
+}
+
+// Auto-refresh queue when ward changes or every 20s in background
+useAutoRefresh(() => loadInitialData(), { interval: 20000 })
 
 const openBookingModal = () => {
   const now = new Date()
@@ -387,6 +393,7 @@ const handleCreateAppointment = async () => {
     showBookingModal.value = false
     successMessage.value = 'Consultation slot confirmed and added to live queue!'
     await loadAppointments()
+    triggerGlobalRefresh()
   } catch (err: any) {
     // Handled in composable
   } finally {
@@ -398,6 +405,7 @@ const handleUpdateStatus = async (id: string, status: 'SCHEDULED' | 'IN_CONSULTA
   try {
     await clerk.updateAppointmentStatus(id, { status })
     await loadAppointments()
+    triggerGlobalRefresh()
   } catch (err) {
     // Handled in composable
   }

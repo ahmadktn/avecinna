@@ -1075,6 +1075,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useAudit, type AuditBlock, type MerkleNode } from '~/composables/useAudit'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
 interface NodeLayout {
   id: string
@@ -1365,7 +1366,7 @@ const loadBlocks = async (page = 1) => {
 
 const loadAllData = async () => {
   await Promise.all([
-    loadBlocks(1),
+    loadBlocks(pagination.value.page || 1),
     audit.fetchAuditAnalytics(),
     audit.fetchMerkleTree(),
   ])
@@ -1440,8 +1441,6 @@ const formatDate = (iso: string) => {
   })
 }
 
-onMounted(() => {
-  loadAllData()
-})
+useAutoRefresh(() => loadAllData(), { interval: 15000 })
 </script>
 

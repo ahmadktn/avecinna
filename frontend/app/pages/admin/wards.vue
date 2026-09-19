@@ -365,8 +365,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 import type { Ward, User } from '~/composables/useAuth'
 
 const admin = useAdmin()
@@ -448,6 +449,7 @@ const handleCreateWard = async () => {
   actionLoading.value = true
   try {
     await admin.createWard(createForm.value)
+    triggerGlobalRefresh()
     showCreateModal.value = false
   } catch (err) {
     // Handled in composable
@@ -471,6 +473,7 @@ const handleUpdateWard = async () => {
   actionLoading.value = true
   try {
     await admin.updateWard(editingWard.value.id, editForm.value)
+    triggerGlobalRefresh()
     showEditModal.value = false
   } catch (err) {
     // Handled in composable
@@ -490,6 +493,7 @@ const handleAssignStaff = async () => {
   actionLoading.value = true
   try {
     await admin.assignStaffToWard(selectedWardForAssign.value.id, assignStaffUserId.value)
+    triggerGlobalRefresh()
     showAssignModal.value = false
   } catch (err) {
     // Handled in composable
@@ -498,7 +502,5 @@ const handleAssignStaff = async () => {
   }
 }
 
-onMounted(() => {
-  loadData()
-})
+useAutoRefresh(() => loadData(), { interval: 25000 })
 </script>

@@ -183,6 +183,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useNurse } from '~/composables/useNurse'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const props = defineProps<{
   isOpen: boolean
@@ -247,6 +248,7 @@ const handleSaveVitals = async () => {
     })
 
     emit('saved', res)
+    triggerGlobalRefresh()
     closeModal()
   } catch (err: any) {
     submitError.value = err.message || 'Failed to record vital signs observation'

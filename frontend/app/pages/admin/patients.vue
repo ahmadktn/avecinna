@@ -152,8 +152,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
 const admin = useAdmin()
 const patientsList = admin.patients
@@ -227,8 +228,12 @@ const formatDate = (isoString: string) => {
   })
 }
 
-onMounted(async () => {
-  await admin.fetchWards()
-  await loadPatients(1)
-})
+const loadData = async () => {
+  if (wardsList.value.length === 0) {
+    await admin.fetchWards()
+  }
+  await loadPatients(pagination.value.page || 1)
+}
+
+useAutoRefresh(() => loadData(), { interval: 20000 })
 </script>

@@ -221,8 +221,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
 const admin = useAdmin()
 const overview = admin.overview
@@ -237,9 +237,7 @@ const loadOverview = async () => {
   }
 }
 
-onMounted(() => {
-  loadOverview()
-})
+useAutoRefresh(() => loadOverview(), { interval: 15000 })
 
 const getActionBadgeClass = (action: string) => {
   if (action.includes('BREAK_GLASS') || action.includes('EMERGENCY')) {

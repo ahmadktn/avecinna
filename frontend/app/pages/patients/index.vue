@@ -349,10 +349,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { usePatients, type Patient } from '~/composables/usePatients'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const route = useRoute()
 const auth = useAuth()
@@ -470,6 +471,7 @@ const openVitalsModal = (patientId?: string, patientName?: string) => {
 
 const handleVitalsSaved = () => {
   loadData()
+  triggerGlobalRefresh()
 }
 
 const getInitials = (name: string) => {
@@ -496,7 +498,6 @@ watch(
   }
 )
 
-onMounted(() => {
-  loadData()
-})
+// Auto-refresh when ward changes, vitals saved, or every 20s in background
+useAutoRefresh(() => loadData(), { interval: 20000 })
 </script>

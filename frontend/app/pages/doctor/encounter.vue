@@ -457,10 +457,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useDoctor } from '~/composables/useDoctor'
 import { usePatients, type Patient } from '~/composables/usePatients'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const route = useRoute()
 const doctorApi = useDoctor()
@@ -608,6 +609,7 @@ const handleSubmitEncounter = async () => {
     })
 
     encounterCompleted.value = true
+    triggerGlobalRefresh()
   } catch (err: any) {
     error.value = err.message || 'Failed to submit clinical encounter'
   } finally {
@@ -626,7 +628,6 @@ const resetEncounterForm = () => {
   labOrders.value = []
 }
 
-onMounted(() => {
-  loadPatients()
-})
+// Auto-refresh patient selector when active ward switches or patients are added
+useAutoRefresh(() => loadPatients(), { interval: 0 })
 </script>

@@ -145,6 +145,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 import type { Ward, User } from '~/composables/useAuth'
 
 const props = defineProps<{
@@ -227,6 +228,7 @@ const handleSubmit = async () => {
   try {
     const res = await admin.createUser(form.value)
     emit('created', res)
+    triggerGlobalRefresh()
     close()
   } catch (err: any) {
     error.value = err.message || 'Failed to create user account'

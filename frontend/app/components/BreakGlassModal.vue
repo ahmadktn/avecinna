@@ -179,6 +179,7 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue'
 import { useBreakGlass, type Tier1BreakGlassResponse, type Tier2BreakGlassResponse } from '~/composables/useBreakGlass'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const props = defineProps<{
   isOpen: boolean
@@ -235,6 +236,7 @@ const handleTier1 = async () => {
   try {
     const res = await breakGlass.triggerTier1(props.patientId)
     tier1Result.value = res
+    triggerGlobalRefresh()
   } catch (err: any) {
     error.value = err.message || 'Tier 1 Break-Glass failed'
   } finally {
@@ -248,6 +250,7 @@ const handleTier2 = async () => {
   try {
     const res: Tier2BreakGlassResponse = await breakGlass.triggerTier2(props.patientId, justificationReason.value)
     emit('unlocked', res)
+    triggerGlobalRefresh()
     close()
   } catch (err: any) {
     error.value = err.message || 'Tier 2 Break-Glass failed'

@@ -263,8 +263,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useClerk } from '~/composables/useClerk'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
 const clerk = useClerk()
 const overview = clerk.overview
@@ -279,9 +279,7 @@ const loadData = async () => {
   }
 }
 
-onMounted(() => {
-  loadData()
-})
+useAutoRefresh(() => loadData(), { interval: 20000 })
 
 const getApptStatusClass = (status: string) => {
   if (status === 'SCHEDULED') return 'bg-blue-100 text-blue-800'

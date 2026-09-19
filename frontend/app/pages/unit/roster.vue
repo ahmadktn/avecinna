@@ -558,10 +558,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import RoleBadge from '~/components/RoleBadge.vue'
 import { useUnit, type UnitRosterItem, type UnitStaffMember } from '~/composables/useUnit'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const unit = useUnit()
 const route = useRoute()
@@ -810,6 +811,7 @@ const handleCreateShiftSubmit = async () => {
     showCreateShiftModal.value = false
     newShift.value.notes = ''
     await loadRoster()
+    triggerGlobalRefresh()
   } catch (err: any) {
     showToast(err.message || 'Failed to assign duty shift', 'error')
   } finally {
@@ -817,10 +819,11 @@ const handleCreateShiftSubmit = async () => {
   }
 }
 
-onMounted(() => {
-  if (route.query.search) {
+// Auto-refresh when ward changes or every 20s in background
+useAutoRefresh(() => {
+  if (route.query.search && !searchQuery.value) {
     searchQuery.value = String(route.query.search)
   }
-  loadRoster()
-})
+  return loadRoster()
+}, { interval: 20000 })
 </script>

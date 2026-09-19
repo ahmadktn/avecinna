@@ -205,6 +205,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useDoctor } from '~/composables/useDoctor'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 interface Props {
   isOpen: boolean
@@ -277,6 +278,7 @@ const handleBatchGrant = async () => {
     selectedStaffIds.value = []
     grantConfig.value.grantReason = ''
     emit('updated')
+    triggerGlobalRefresh()
   } catch (err: any) {
     errorMsg.value = err.message || 'Failed to grant care team access'
   } finally {
@@ -292,6 +294,7 @@ const handleRevoke = async (careTeamId: string) => {
     await doctorApi.revokeCareTeam(props.patientId, careTeamId)
     successMsg.value = 'Care team consult access revoked.'
     emit('updated')
+    triggerGlobalRefresh()
   } catch (err: any) {
     errorMsg.value = err.message || 'Failed to revoke care team access'
   } finally {

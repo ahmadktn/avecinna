@@ -288,8 +288,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useClerk, type ClerkPatientItem } from '~/composables/useClerk'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const clerk = useClerk()
 const patientsList = clerk.patients
@@ -343,9 +344,8 @@ const changePage = (p: number) => {
   loadPatients()
 }
 
-onMounted(() => {
-  loadData()
-})
+// Auto-refresh when ward changes or every 20s in background
+useAutoRefresh(() => loadData(), { interval: 20000 })
 
 const openTransferModal = (p: ClerkPatientItem) => {
   activePatient.value = p
@@ -365,6 +365,7 @@ const handleSaveTransfer = async () => {
     showTransferModal.value = false
     successMessage.value = `Bed allocation updated for ${activePatient.value.fullName}!`
     await loadPatients()
+    triggerGlobalRefresh()
   } catch (err) {
     // Handled in composable
   } finally {

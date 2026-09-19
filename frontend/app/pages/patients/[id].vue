@@ -398,13 +398,13 @@
       </div>
 
     <!-- Modals -->
-    <BreakGlassModal :isOpen="showBreakGlassModal" :patientId="patientId" @close="showBreakGlassModal = false" @unlocked="loadPatientData" />
+    <BreakGlassModal :isOpen="showBreakGlassModal" :patientId="patientId" @close="showBreakGlassModal = false" @unlocked="handleDataUpdated" />
     <CareTeamModal
       :isOpen="showCareTeamModal"
       :patientId="patientId"
       :patientName="patient?.fullName"
       @close="showCareTeamModal = false"
-      @updated="loadPatientData"
+      @updated="handleDataUpdated"
     />
 
     <!-- Bedside Vitals Observation Modal -->
@@ -413,16 +413,17 @@
       :patientId="patientId"
       :patientName="patient?.fullName"
       @close="showVitalsModal = false"
-      @saved="loadPatientData"
+      @saved="handleDataUpdated"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { usePatients } from '~/composables/usePatients'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const route = useRoute()
 const auth = useAuth()
@@ -514,7 +515,11 @@ const formatTimestamp = (iso: string) => {
   })
 }
 
-onMounted(() => {
+const handleDataUpdated = () => {
   loadPatientData()
-})
+  triggerGlobalRefresh()
+}
+
+// Auto-refresh when ward changes, break-glass unlocks, or every 20s in background
+useAutoRefresh(() => loadPatientData(), { interval: 20000 })
 </script>

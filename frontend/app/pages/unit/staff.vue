@@ -528,6 +528,7 @@ const handleReassignConfirm = async (c: UnitCandidateMember) => {
     showToast(`Clinician "${c.fullName || c.username}" reassigned to your unit successfully.`, 'success')
     showReassignModal.value = false
     await loadStaff()
+    triggerGlobalRefresh()
   } catch (err: any) {
     showToast(err.message || 'Failed to reassign clinician', 'error')
   } finally {
@@ -535,7 +536,6 @@ const handleReassignConfirm = async (c: UnitCandidateMember) => {
   }
 }
 
-onMounted(() => {
-  loadStaff()
-})
+// Auto-refresh when ward changes or every 20s in background
+useAutoRefresh(() => loadStaff(), { interval: 20000 })
 </script>

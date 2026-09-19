@@ -345,8 +345,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useClerk, type ClerkPatientItem } from '~/composables/useClerk'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const clerk = useClerk()
 const patientsList = clerk.patients
@@ -401,10 +402,15 @@ const changePage = (p: number) => {
   loadPatients()
 }
 
-onMounted(async () => {
-  await Promise.all([clerk.fetchWards(), clerk.fetchDoctors()])
-  loadPatients()
-})
+const loadInitialData = async () => {
+  if (wardsList.value.length === 0 || doctorsList.value.length === 0) {
+    await Promise.all([clerk.fetchWards(), clerk.fetchDoctors()])
+  }
+  await loadPatients()
+}
+
+// Auto-refresh when ward changes or every 20s in background
+useAutoRefresh(() => loadInitialData(), { interval: 20000 })
 
 const openBedModal = (p: ClerkPatientItem) => {
   activePatient.value = p
@@ -423,6 +429,7 @@ const handleSaveBed = async () => {
     await clerk.updateBedAllocation(activePatient.value.id, bedForm.value)
     showBedModal.value = false
     await loadPatients()
+    triggerGlobalRefresh()
   } catch (err) {
     // Handled in composable
   } finally {
@@ -457,6 +464,7 @@ const handleSaveQueue = async () => {
       notes: queueForm.value.notes,
     })
     showQueueModal.value = false
+    triggerGlobalRefresh()
   } catch (err) {
     // Handled in composable
   } finally {
