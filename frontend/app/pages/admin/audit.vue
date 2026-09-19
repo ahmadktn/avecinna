@@ -1,102 +1,91 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Title Header & Verify Button -->
+    <PageHeader
+      title="Audit Ledger &amp; Merkle Verification"
+      description="Cryptographic access history, Merkle tree proofs, and automated anomaly flagging"
+    >
+      <template #actions>
+        <button
+          type="button"
+          @click="loadAllData"
+          :disabled="loading"
+          class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh</span>
+        </button>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar />
+        <button
+          type="button"
+          @click="showAuditVerifierModal = true"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>Verify Integrity</span>
+        </button>
+      </template>
+    </PageHeader>
 
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Title Header & Verify Button -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Audit Ledger & Merkle Verification</h1>
-            <p class="text-xs text-slate-500 mt-1">Cryptographic access history, Merkle tree proofs, and automated anomaly flagging</p>
-          </div>
+    <!-- 4 Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Blocks -->
+      <MetricCard
+        label="Chained Blocks"
+        :value="analytics?.metrics.totalBlocks ?? blocksList.length"
+        subtext="Sequential SHA-256 Chain"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </template>
+      </MetricCard>
 
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="loadAllData"
-              :disabled="loading"
-              class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </button>
+      <!-- Chain Health -->
+      <MetricCard
+        label="Integrity Status"
+        value="100% INTACT"
+        subtext="Zero Hash Link Breaks"
+      >
+        <template #icon>
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </template>
+      </MetricCard>
 
-            <button
-              type="button"
-              @click="showAuditVerifierModal = true"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>Verify Integrity</span>
-            </button>
-          </div>
-        </div>
+      <!-- Smart Flagged Anomalies -->
+      <MetricCard
+        label="Flagged Anomalies"
+        :value="analytics?.metrics.flaggedCount ?? 0"
+        subtext="Rule Engine Triggers"
+        :variant="(analytics?.metrics.flaggedCount ?? 0) > 0 ? 'critical' : 'default'"
+      >
+        <template #icon>
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <!-- 4 Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Total Blocks -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-slate-500">Chained Blocks</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.totalBlocks ?? blocksList.length }}</p>
-            <p class="text-xs text-slate-400 mt-2 font-mono">Sequential SHA-256 Chain</p>
-          </div>
-
-          <!-- Chain Health -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-slate-500">Integrity Status</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-emerald-700 font-mono">100% INTACT</p>
-            <p class="text-xs text-slate-400 mt-2">Zero Hash Link Breaks</p>
-          </div>
-
-          <!-- Smart Flagged Anomalies -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-slate-500">Flagged Anomalies</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.flaggedCount ?? 0 }}</p>
-            <p class="text-xs text-slate-400 mt-2">Rule Engine Triggers</p>
-          </div>
-
-          <!-- Active Entities -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-slate-500">Audited Scope</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.uniqueUsersCount ?? 0 }} Users</p>
-            <p class="text-xs text-slate-400 mt-2">Across {{ analytics?.metrics.uniqueWardsCount ?? 0 }} Wards</p>
-          </div>
-        </div>
+      <!-- Active Entities -->
+      <MetricCard
+        label="Audited Scope"
+        :value="`${analytics?.metrics.uniqueUsersCount ?? 0} Users`"
+        :subtext="`Across ${analytics?.metrics.uniqueWardsCount ?? 0} Wards`"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </template>
+      </MetricCard>
+    </div>
 
         <!-- Section Navigation Tabs -->
         <div class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-xs font-semibold">
@@ -852,8 +841,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Individual Log Analysis Drawer/Modal -->
     <div

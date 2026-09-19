@@ -1,63 +1,48 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Header Title -->
+    <PageHeader
+      title="Patient Registration & Ward Admission"
+      description="Register new inpatient or outpatient record and allocate bed space assignment"
+    >
+      <template #actions>
+        <button
+          type="button"
+          @click="generateMrn"
+          class="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 px-4 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
+        >
+          Generate MRN
+        </button>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar />
+        <button
+          type="button"
+          @click="fillDemoData"
+          class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer"
+        >
+          Sample Data
+        </button>
+      </template>
+    </PageHeader>
 
-      <main class="flex-1 w-full px-8 py-8 space-y-5">
-        <!-- Header Title -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Patient Registration & Ward Admission</h1>
-            <p class="text-xs text-slate-500 mt-1">Register new inpatient or outpatient record and allocate bed space assignment</p>
-          </div>
+    <!-- Success Toast -->
+    <AlertBanner
+      v-if="successMessage"
+      variant="success"
+      :message="successMessage"
+      @dismiss="successMessage = null"
+    >
+      <template #actions>
+        <NuxtLink to="/clerk/patients" class="underline font-bold hover:text-emerald-950">View in Directory</NuxtLink>
+      </template>
+    </AlertBanner>
 
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="generateMrn"
-              class="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 px-4 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
-            >
-              Generate MRN
-            </button>
-
-            <button
-              type="button"
-              @click="fillDemoData"
-              class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer"
-            >
-              Sample Data
-            </button>
-          </div>
-        </div>
-
-        <!-- Success Toast -->
-        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <span class="font-medium">{{ successMessage }}</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <NuxtLink to="/clerk/patients" class="underline font-bold hover:text-emerald-950">View in Directory</NuxtLink>
-            <button type="button" @click="successMessage = null" class="text-emerald-700 font-bold hover:text-emerald-900 cursor-pointer">Dismiss</button>
-          </div>
-        </div>
-
-        <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ error }}</span>
-          </div>
-          <button type="button" @click="error = null" class="text-red-700 font-bold hover:text-red-900 cursor-pointer">Dismiss</button>
-        </div>
+    <!-- Error Alert -->
+    <AlertBanner
+      v-if="error"
+      variant="error"
+      :message="error"
+      @dismiss="error = null"
+    />
 
         <!-- Form Panel -->
         <div class="bg-white border border-slate-200/90 rounded-xl p-6 lg:p-8 shadow-2xs">
@@ -213,8 +198,6 @@
             </div>
           </form>
         </div>
-      </main>
-    </div>
   </div>
 </template>
 

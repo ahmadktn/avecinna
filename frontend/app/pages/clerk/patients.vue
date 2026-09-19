@@ -1,99 +1,80 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-6">
+    <!-- Header -->
+    <PageHeader
+      title="Hospital Patient Directory"
+      description="Administrative patient census, bed allocation, and clinic intake registry"
+    >
+      <template #actions>
+        <button
+          type="button"
+          @click="loadPatients"
+          :disabled="loading"
+          class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh</span>
+        </button>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar />
+        <NuxtLink
+          to="/clerk/register"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Register Patient</span>
+        </NuxtLink>
+      </template>
+    </PageHeader>
 
-      <main class="flex-1 w-full px-8 py-8 space-y-6">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Hospital Patient Directory</h1>
-            <p class="text-xs text-slate-500 mt-1">
-              Administrative patient census, bed allocation, and clinic intake registry
-            </p>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="loadPatients"
-              :disabled="loading"
-              class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </button>
-
-            <NuxtLink
-              to="/clerk/register"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Register Patient</span>
-            </NuxtLink>
-          </div>
+    <!-- Search & Filter Toolbar -->
+    <FilterToolbar
+      v-model="searchQuery"
+      placeholder="Search by patient name or MRN..."
+      :totalCount="pagination.total"
+      @update:modelValue="debouncedSearch"
+    >
+      <template #filters>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-semibold">Type:</span>
+          <select
+            v-model="selectedType"
+            @change="loadPatients"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500"
+          >
+            <option value="ALL">All Types</option>
+            <option value="INPATIENT">Inpatient</option>
+            <option value="OUTPATIENT">Outpatient</option>
+          </select>
         </div>
 
-        <!-- Search & Filter Toolbar -->
-        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
-          <div class="relative w-full md:w-80">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              @input="debouncedSearch"
-              type="text"
-              placeholder="Search by patient name or MRN..."
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-
-          <div class="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap">
-            <div class="flex items-center gap-2 text-xs">
-              <span class="text-slate-500 font-semibold">Type:</span>
-              <select
-                v-model="selectedType"
-                @change="loadPatients"
-                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500"
-              >
-                <option value="ALL">All Types</option>
-                <option value="INPATIENT">Inpatient</option>
-                <option value="OUTPATIENT">Outpatient</option>
-              </select>
-            </div>
-
-            <div class="flex items-center gap-2 text-xs">
-              <span class="text-slate-500 font-semibold">Ward:</span>
-              <select
-                v-model="selectedWard"
-                @change="loadPatients"
-                class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500"
-              >
-                <option value="ALL">All Wards</option>
-                <option v-for="w in wardsList" :key="w.id" :value="w.id">
-                  {{ w.name }} ({{ w.code }})
-                </option>
-              </select>
-            </div>
-
-            <span class="bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-xl">
-              {{ pagination.total }} Patients
-            </span>
-          </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-semibold">Ward:</span>
+          <select
+            v-model="selectedWard"
+            @change="loadPatients"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500"
+          >
+            <option value="ALL">All Wards</option>
+            <option v-for="w in wardsList" :key="w.id" :value="w.id">
+              {{ w.name }} ({{ w.code }})
+            </option>
+          </select>
         </div>
+      </template>
+    </FilterToolbar>
 
-        <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <span>{{ error }}</span>
-          <button @click="loadPatients" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
-        </div>
+    <!-- Error Alert -->
+    <AlertBanner
+      v-if="error"
+      variant="error"
+      :message="error"
+      actionLabel="Retry"
+      @action="loadPatients"
+    />
 
         <!-- Patients Table -->
         <div class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
@@ -215,8 +196,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Quick Bed Allocation Modal -->
     <div

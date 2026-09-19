@@ -1,186 +1,161 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Error Banner -->
+    <AlertBanner
+      v-if="error"
+      variant="error"
+      :message="error"
+      actionLabel="Retry"
+      @action="loadData"
+    />
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar
-        @openWardSwitcher="showWardSwitcher = true"
-        @openBreakGlass="showBreakGlassModal = true"
-      />
+    <!-- Admin Privacy Banner if Admin role -->
+    <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ error }}</span>
-          </div>
-          <button @click="loadData" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
+    <!-- Page Header -->
+    <PageHeader
+      title="Patients Directory"
+      :description="`Context-Aware Access Control (CAAC) authorized roster for ${activeWardName} and active Care Team consults.`"
+    >
+      <template #badge>
+        <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">
+          Ward: {{ activeWardCode }}
+        </span>
+      </template>
+
+      <template #actions>
+        <button
+          v-if="role === 'NURSE' || role === 'PARAMEDIC' || role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
+          type="button"
+          @click="openVitalsModal()"
+          class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Record Vitals</span>
+        </button>
+
+        <NuxtLink
+          v-if="role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
+          to="/doctor/encounter"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>New Encounter</span>
+        </NuxtLink>
+      </template>
+    </PageHeader>
+
+    <!-- 4 KPI Telemetry Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <MetricCard
+        label="Authorized Inpatients"
+        :value="wardCount"
+        :subtext="`In ${activeWardName} (${activeWardCode})`"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </template>
+      </MetricCard>
+
+      <MetricCard
+        label="Care Team Consults"
+        :value="careTeamCount"
+        subtext="Cross-ward grants"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </template>
+      </MetricCard>
+
+      <MetricCard
+        label="Monitoring"
+        :value="monitoringCount"
+        subtext="Telemetry watch protocol"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </template>
+      </MetricCard>
+
+      <MetricCard
+        label="Critical Acuity"
+        :value="criticalCount"
+        subtext="High vigilance care"
+        :variant="criticalCount > 0 ? 'critical' : 'default'"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </template>
+      </MetricCard>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <FilterToolbar
+      v-model="searchQuery"
+      placeholder="Search by patient name, MRN, or bed..."
+      :totalCount="patientsList.length"
+      :filteredCount="filteredPatients.length"
+    >
+      <template #filters>
+        <!-- Scope Filter Tabs (Ward vs Care Team) -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <button
+            type="button"
+            @click="setScopeFilter('all')"
+            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            :class="scopeFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
+          >
+            All Permitted
+          </button>
+          <button
+            type="button"
+            @click="setScopeFilter('ward')"
+            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
+            :class="scopeFilter === 'ward' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
+          >
+            Ward Inpatients
+          </button>
+          <button
+            type="button"
+            @click="setScopeFilter('care_team')"
+            class="px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+            :class="scopeFilter === 'care_team' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
+          >
+            <span>Care Team</span>
+            <span v-if="careTeamCount > 0" class="w-4 h-4 rounded-full bg-purple-100 text-purple-800 text-[10px] flex items-center justify-center font-mono">
+              {{ careTeamCount }}
+            </span>
+          </button>
         </div>
 
-        <!-- Admin Privacy Banner if Admin role -->
-        <AdminRedactionBanner v-if="role === 'ADMIN'" />
-
-        <!-- Clean Page Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2.5">
-              <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Patients Directory</h1>
-              <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">
-                Ward: {{ activeWardCode }}
-              </span>
-            </div>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Context-Aware Access Control (CAAC) authorized roster for {{ activeWardName }} and active Care Team consults.
-            </p>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <button
-              v-if="role === 'NURSE' || role === 'PARAMEDIC' || role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
-              type="button"
-              @click="openVitalsModal()"
-              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Record Vitals</span>
-            </button>
-
-            <NuxtLink
-              v-if="role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
-              to="/doctor/encounter"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>New Encounter</span>
-            </NuxtLink>
-          </div>
+        <!-- Acuity Filter Tabs -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+          <button
+            v-for="filter in ['all', 'stable', 'monitoring', 'critical']"
+            :key="filter"
+            @click="statusFilter = filter"
+            class="px-3 py-1.5 rounded-lg capitalize transition-all shrink-0 cursor-pointer"
+            :class="statusFilter === filter ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
+          >
+            {{ filter }}
+          </button>
         </div>
+      </template>
+    </FilterToolbar>
 
-        <!-- 4 KPI Telemetry Summary Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Authorized Inpatients</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ wardCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">In {{ activeWardName }} ({{ activeWardCode }})</p>
-          </div>
-
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Care Team Consults</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ careTeamCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">Cross-ward grants</p>
-          </div>
-
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Monitoring</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ monitoringCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">Telemetry watch protocol</p>
-          </div>
-
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Critical Acuity</span>
-              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-red-600 font-mono">{{ criticalCount }}</p>
-            <p class="text-[11px] text-red-600/80 mt-1">High vigilance care</p>
-          </div>
-        </div>
-
-        <!-- Search & Filter Controls -->
-        <div class="bg-white border border-slate-200/90 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
-          <!-- Search Input -->
-          <div class="relative w-full md:w-80">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search by patient name, MRN, or bed..."
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <!-- Scope Filter Tabs (Ward vs Care Team) -->
-            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-              <button
-                type="button"
-                @click="setScopeFilter('all')"
-                class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-                :class="scopeFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
-              >
-                All Permitted
-              </button>
-              <button
-                type="button"
-                @click="setScopeFilter('ward')"
-                class="px-3 py-1.5 rounded-lg transition-all cursor-pointer"
-                :class="scopeFilter === 'ward' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
-              >
-                Ward Inpatients
-              </button>
-              <button
-                type="button"
-                @click="setScopeFilter('care_team')"
-                class="px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
-                :class="scopeFilter === 'care_team' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
-              >
-                <span>Care Team</span>
-                <span v-if="careTeamCount > 0" class="w-4 h-4 rounded-full bg-purple-100 text-purple-800 text-[10px] flex items-center justify-center font-mono">
-                  {{ careTeamCount }}
-                </span>
-              </button>
-            </div>
-
-            <!-- Acuity Filter Tabs -->
-            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
-              <button
-                v-for="filter in ['all', 'stable', 'monitoring', 'critical']"
-                :key="filter"
-                @click="statusFilter = filter"
-                class="px-3 py-1.5 rounded-lg capitalize transition-all shrink-0 cursor-pointer"
-                :class="statusFilter === filter ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
-              >
-                {{ filter }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Patients List / Table -->
+    <!-- Patients List / Table -->
         <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
           <div v-if="loading && patientsList.length === 0" class="p-12 text-center text-xs text-slate-400">
             <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -351,22 +326,9 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
 
     <!-- Modals -->
-    <WardSwitcherModal
-      :isOpen="showWardSwitcher"
-      @close="showWardSwitcher = false"
-      @switched="loadData"
-    />
-
-    <BreakGlassModal
-      :isOpen="showBreakGlassModal"
-      :patientId="selectedPatientId"
-      @close="showBreakGlassModal = false"
-    />
-
     <CareTeamModal
       :isOpen="showCareTeamModal"
       :patientId="selectedPatientId"
@@ -412,8 +374,6 @@ const statusFilter = ref('all')
 const currentPage = ref(1)
 const pageSize = 10
 
-const showWardSwitcher = ref(false)
-const showBreakGlassModal = ref(false)
 const showCareTeamModal = ref(false)
 const selectedPatientId = ref('')
 const selectedPatientName = ref('')

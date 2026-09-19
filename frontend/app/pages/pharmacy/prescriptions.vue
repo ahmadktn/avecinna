@@ -1,44 +1,32 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Header -->
+    <PageHeader
+      title="Pharmacy Dispensing &amp; Medication Safety Queue"
+      description="Verify active prescription orders, screen contraindication alerts, and review patient allergy profiles"
+    />
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar @openWardSwitcher="showWardSwitcher = true" />
-
-      <main class="flex-1 w-full px-8 py-8 space-y-5">
-        <div>
-          <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Pharmacy Dispensing & Medication Safety Queue</h1>
-          <p class="text-xs text-slate-500 mt-1">Verify active prescription orders, screen contraindication alerts, and review patient allergy profiles</p>
+    <!-- Filter & Search Toolbar -->
+    <FilterToolbar
+      v-model="searchQuery"
+      placeholder="Search by drug name, patient, or MRN..."
+      :totalCount="orders.length"
+      :filteredCount="filteredOrders.length"
+    >
+      <template #filters>
+        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold w-full sm:w-auto overflow-x-auto">
+          <button
+            v-for="filter in ['all', 'PENDING', 'DISPENSED', 'FLAGGED']"
+            :key="filter"
+            @click="statusFilter = filter"
+            class="px-3.5 py-1.5 rounded-lg capitalize transition-all shrink-0 cursor-pointer"
+            :class="statusFilter === filter ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
+          >
+            {{ filter === 'all' ? 'All Orders' : filter }}
+          </button>
         </div>
-
-        <!-- Filter & Search Toolbar -->
-        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
-          <!-- Search input -->
-          <div class="relative w-full sm:w-80">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search by drug name, patient, or MRN..."
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-
-          <!-- Filter Tabs -->
-          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold w-full sm:w-auto overflow-x-auto">
-            <button
-              v-for="filter in ['all', 'PENDING', 'DISPENSED', 'FLAGGED']"
-              :key="filter"
-              @click="statusFilter = filter"
-              class="px-3.5 py-1.5 rounded-lg capitalize transition-all shrink-0 cursor-pointer"
-              :class="statusFilter === filter ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
-            >
-              {{ filter === 'all' ? 'All Orders' : filter }}
-            </button>
-          </div>
-        </div>
+      </template>
+    </FilterToolbar>
 
         <!-- Prescription Queue Table -->
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
@@ -117,8 +105,6 @@
             </tbody>
           </table>
         </div>
-      </main>
-    </div>
 
     <!-- Dispense Confirmation Sub-Modal -->
     <div
@@ -163,15 +149,12 @@
         </div>
       </div>
     </div>
-
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-const showWardSwitcher = ref(false)
 const searchQuery = ref('')
 const statusFilter = ref('all')
 const selectedOrderForDispense = ref<any | null>(null)

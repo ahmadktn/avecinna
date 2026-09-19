@@ -1,18 +1,12 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Header -->
+    <PageHeader
+      title="Compliance &amp; Cryptographic Reports Export"
+      description="Export HIPAA-compliant audit extracts, sequential block logs, incident registries, and Merkle tree proofs"
+    />
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar />
-
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Header -->
-        <div>
-          <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Compliance & Cryptographic Reports Export</h1>
-          <p class="text-xs text-slate-500 mt-1 font-medium">Export HIPAA-compliant audit extracts, sequential block logs, incident registries, and Merkle tree proofs</p>
-        </div>
-
-        <AdminRedactionBanner />
+    <AdminRedactionBanner />
 
         <!-- Report Catalog Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -186,15 +180,12 @@
           </div>
         </div>
 
-        <!-- Download status error alert -->
-        <div v-if="admin.error" class="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-800 text-xs">
-          <svg class="w-4 h-4 shrink-0 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{{ admin.error }}</span>
-        </div>
-      </main>
-    </div>
+    <!-- Download status error alert -->
+    <AlertBanner
+      v-if="admin.error"
+      variant="error"
+      :message="admin.error"
+    />
   </div>
 </template>
 

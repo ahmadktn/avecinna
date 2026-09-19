@@ -1,12 +1,6 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
-
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar @openWardSwitcher="showWardSwitcher = true" />
-
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Page Header -->
+  <div class="space-y-5">
+    <!-- Page Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
@@ -386,22 +380,15 @@
         </div>
       </div>
     </div>
-
-    <!-- Ward Switcher Modal -->
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import AppSidebar from '~/components/AppSidebar.vue'
-import AppNavbar from '~/components/AppNavbar.vue'
-import WardSwitcherModal from '~/components/WardSwitcherModal.vue'
 import RoleBadge from '~/components/RoleBadge.vue'
 import { useUnit, type UnitStaffMember, type UnitCandidateMember } from '~/composables/useUnit'
 
 const unit = useUnit()
-const showWardSwitcher = ref(false)
 const showReassignModal = ref(false)
 
 const loading = computed(() => unit.loading.value)

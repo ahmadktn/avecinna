@@ -1,107 +1,81 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Error Banner -->
+    <AlertBanner :message="error" @dismiss="doctorApi.error.value = null">
+      <template #actions>
+        <button @click="loadOverview" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
+      </template>
+    </AlertBanner>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar
-        @openWardSwitcher="showWardSwitcher = true"
-        @openBreakGlass="showBreakGlassModal = true"
-      />
+    <!-- Clean Page Header -->
+    <PageHeader
+      title="Clinical Overview"
+      :subtitle="`Ward: ${activeWardName} (${activeWardCode}) · Real-time patient telemetry & queue`"
+    >
+      <template #actions>
+        <NuxtLink
+          to="/doctor/encounter"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>New Encounter</span>
+        </NuxtLink>
+      </template>
+    </PageHeader>
 
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ error }}</span>
-          </div>
-          <button @click="loadOverview" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
-        </div>
+    <!-- 4 KPI Telemetry Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <MetricCard
+        label="In-Ward Patients"
+        :value="metrics.activeWardPatientsCount"
+        :subtext="`Under ${activeWardCode} care`"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <!-- Clean Page Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Clinical Overview</h1>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Ward: <strong class="text-slate-800">{{ activeWardName }} ({{ activeWardCode }})</strong> · Real-time patient telemetry & queue
-            </p>
-          </div>
+      <MetricCard
+        label="Active Consults"
+        :value="metrics.careTeamConsultsCount"
+        subtext="Multi-disciplinary grants"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-          <div class="flex items-center gap-2.5">
-            <NuxtLink
-              to="/doctor/encounter"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>New Encounter</span>
-            </NuxtLink>
-          </div>
-        </div>
+      <MetricCard
+        label="Today's Schedule"
+        :value="metrics.todayConsultationsCount"
+        :subtext="`${metrics.todayPendingConsultations} pending · ${metrics.todayCompletedConsultations} done`"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <!-- 4 KPI Telemetry Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <!-- Card 1: Inpatient Roster -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">In-Ward Patients</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ metrics.activeWardPatientsCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">Under {{ activeWardCode }} care</p>
-          </div>
-
-          <!-- Card 2: Care Team Consults -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Active Consults</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ metrics.careTeamConsultsCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">Multi-disciplinary grants</p>
-          </div>
-
-          <!-- Card 3: Today's Consultations -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Schedule</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-slate-900 font-mono">{{ metrics.todayConsultationsCount }}</p>
-            <p class="text-[11px] text-slate-400 mt-1">
-              {{ metrics.todayPendingConsultations }} pending · {{ metrics.todayCompletedConsultations }} done
-            </p>
-          </div>
-
-          <!-- Card 4: Critical Telemetry -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Acuity Status</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-2xl font-bold text-red-600 font-mono">{{ metrics.criticalCount }}</p>
-            <p class="text-[11px] text-red-600/80 mt-1">{{ metrics.monitoringCount }} monitoring · {{ metrics.stableCount }} stable</p>
-          </div>
-        </div>
+      <MetricCard
+        label="Acuity Status"
+        :value="metrics.criticalCount"
+        :subtext="`${metrics.monitoringCount} monitoring · ${metrics.stableCount} stable`"
+        :variant="metrics.criticalCount > 0 ? 'critical' : 'default'"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </template>
+      </MetricCard>
+    </div>
 
         <!-- Focused Clinical Queue View with Clean Tab Switcher -->
         <div class="space-y-4">
@@ -297,22 +271,8 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Modals -->
-    <WardSwitcherModal
-      :isOpen="showWardSwitcher"
-      @close="showWardSwitcher = false"
-      @switched="onWardSwitched"
-    />
-
-    <BreakGlassModal
-      :isOpen="showBreakGlassModal"
-      :patientId="selectedPatientId"
-      @close="showBreakGlassModal = false"
-    />
-
     <CareTeamModal
       :isOpen="showCareTeamModal"
       :patientId="selectedPatientId"
@@ -334,8 +294,6 @@ const doctorApi = useDoctor()
 
 const activeTab = ref<'inpatients' | 'consultations'>('inpatients')
 
-const showWardSwitcher = ref(false)
-const showBreakGlassModal = ref(false)
 const showCareTeamModal = ref(false)
 const selectedPatientId = ref('')
 const selectedPatientName = ref('')

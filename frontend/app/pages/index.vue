@@ -1,9 +1,7 @@
 <template>
-  <div class="min-h-screen bg-slate-950 flex items-center justify-center text-white text-xs">
-    <div class="flex items-center gap-3">
-      <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <span>Loading Avecinna EMR...</span>
-    </div>
+  <div class="flex items-center gap-3 text-white text-xs">
+    <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <span>Loading Avecinna EMR...</span>
   </div>
 </template>
 
@@ -11,6 +9,10 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
+
+definePageMeta({
+  layout: 'auth'
+})
 
 const auth = useAuth()
 const router = useRouter()

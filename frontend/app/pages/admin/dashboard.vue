@@ -1,104 +1,90 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Header & Quick Actions -->
+    <PageHeader
+      title="System Overview"
+      description="Real-time hospital operations, staff allocation, patient census, and security telemetry"
+    >
+      <template #actions>
+        <button
+          type="button"
+          @click="loadOverview"
+          :disabled="loading"
+          class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </template>
+    </PageHeader>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar />
+    <AdminRedactionBanner />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-5">
-        <!-- Header & Quick Actions -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">System Overview</h1>
-            <p class="text-xs text-slate-500 mt-1">Real-time hospital operations, staff allocation, patient census, and security telemetry</p>
-          </div>
+    <!-- Error State -->
+    <AlertBanner
+      v-if="error"
+      variant="error"
+      :message="error"
+      actionLabel="Retry"
+      @action="loadOverview"
+    />
 
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              @click="loadOverview"
-              :disabled="loading"
-              class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
+    <!-- 4 Clean Stat Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Total Patients -->
+      <MetricCard
+        label="Hospital Patients"
+        :value="overview?.metrics.totalPatients ?? '-'"
+        subtext="Inpatients &amp; Outpatients Census"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <AdminRedactionBanner />
+      <!-- Total Wards -->
+      <MetricCard
+        label="Hospital Wards"
+        :value="overview?.metrics.totalWards ?? '-'"
+        subtext="Active Clinical Units &amp; Wings"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <!-- Error State -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ error }}</span>
-          </div>
-          <button @click="loadOverview" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
-        </div>
+      <!-- Total Staff -->
+      <MetricCard
+        label="Staff Accounts"
+        :value="overview?.metrics.totalStaff ?? '-'"
+        :subtext="`${overview?.metrics.activeStaff ?? 0} active clinicians on shift`"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </template>
+      </MetricCard>
 
-        <!-- 4 Clean Stat Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Total Patients -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital Patients</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalPatients ?? '-' }}</p>
-            <p class="text-xs text-slate-400 mt-1">Inpatients &amp; Outpatients Census</p>
-          </div>
-
-          <!-- Total Wards -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital Wards</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalWards ?? '-' }}</p>
-            <p class="text-xs text-slate-400 mt-1">Active Clinical Units &amp; Wings</p>
-          </div>
-
-          <!-- Total Staff -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Staff Accounts</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalStaff ?? '-' }}</p>
-            <p class="text-xs text-slate-400 mt-1">{{ overview?.metrics.activeStaff ?? 0 }} active clinicians on shift</p>
-          </div>
-
-          <!-- Total Audit Blocks -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
-            <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Audit Ledger</span>
-              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-            </div>
-            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalAuditBlocks ?? '-' }}</p>
-            <p class="text-xs text-slate-500 font-medium mt-1">100% Cryptographically Intact</p>
-          </div>
-        </div>
+      <!-- Total Audit Blocks -->
+      <MetricCard
+        label="Audit Ledger"
+        :value="overview?.metrics.totalAuditBlocks ?? '-'"
+        subtext="100% Cryptographically Intact"
+      >
+        <template #icon>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </template>
+      </MetricCard>
+    </div>
 
         <!-- Real Meaningful Analytics Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -231,8 +217,6 @@
             </table>
           </div>
         </div>
-      </main>
-    </div>
   </div>
 </template>
 

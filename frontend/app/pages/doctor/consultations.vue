@@ -1,44 +1,29 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Error Banner -->
+    <AlertBanner :message="error" @dismiss="error = null">
+      <template #actions>
+        <button @click="loadAppointments" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
+      </template>
+    </AlertBanner>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar
-        @openWardSwitcher="showWardSwitcher = true"
-        @openBreakGlass="showBreakGlassModal = true"
-      />
-
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ error }}</span>
-          </div>
-          <button @click="loadAppointments" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
-        </div>
-
-        <!-- Clean Page Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Outpatient Consultation Schedule</h1>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Consultation queue and clinical encounters for <strong class="text-slate-800">{{ activeWardCode }}</strong>
-            </p>
-          </div>
-
-          <NuxtLink
-            to="/doctor/encounter"
-            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span>Open Clinical Encounter</span>
-          </NuxtLink>
-        </div>
+    <!-- Clean Page Header -->
+    <PageHeader
+      title="Outpatient Consultation Schedule"
+      :subtitle="`Consultation queue and clinical encounters for ${activeWardCode}`"
+    >
+      <template #actions>
+        <NuxtLink
+          to="/doctor/encounter"
+          class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>Open Clinical Encounter</span>
+        </NuxtLink>
+      </template>
+    </PageHeader>
 
         <!-- Filters & Search Bar -->
         <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
@@ -224,20 +209,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
-
-    <!-- Modals -->
-    <WardSwitcherModal
-      :isOpen="showWardSwitcher"
-      @close="showWardSwitcher = false"
-      @switched="loadAppointments"
-    />
-
-    <BreakGlassModal
-      :isOpen="showBreakGlassModal"
-      @close="showBreakGlassModal = false"
-    />
   </div>
 </template>
 
@@ -248,9 +219,6 @@ import { useClerk } from '~/composables/useClerk'
 
 const auth = useAuth()
 const clerkApi = useClerk()
-
-const showWardSwitcher = ref(false)
-const showBreakGlassModal = ref(false)
 
 const searchQuery = ref('')
 const selectedDate = ref('')

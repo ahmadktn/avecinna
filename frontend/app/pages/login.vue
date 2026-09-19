@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 sm:p-10 font-sans text-slate-100 selection:bg-blue-500/30 selection:text-blue-200">
+  <div class="w-full flex flex-col items-center">
     <!-- Brand Header -->
     <div class="text-center mb-8 flex flex-col items-center">
       <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white shadow-xl shadow-blue-500/20 mb-4 ring-4 ring-blue-500/10">
@@ -138,6 +138,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+
+definePageMeta({
+  layout: 'auth'
+})
 
 interface Persona {
   username: string

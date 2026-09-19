@@ -96,8 +96,11 @@
     - [x] Unified layout rhythm: Standardized sidebar width to `w-56`, main content padding offset to `pl-56`, and spacing to `space-y-5`.
     - [x] Clinical typography hierarchy: Inter (`font-sans`), Fraunces (`font-brand` for headings and wordmarks), IBM Plex Mono (`font-mono` for IDs, MRNs, vitals, timestamps).
     - [x] Color de-escalation: Neutralized KPI stat card icons to `bg-slate-100 text-slate-500`, softened Break-Glass action to subtle ghost outline, removed loud multi-color clutter.
-    - [x] Container standardization: Tables, toolbars, cards, and form panels unified to `rounded-xl`; modal dialogs unified to `rounded-2xl`.
     - [x] Refactored all 25+ views across Doctor, Head of Unit, Nurse, Clerk, Pharmacy, and Admin personas.
+  - [x] **Nuxt 4 Native Layout Engine & Reusable Component Library Refactoring**:
+    - [x] Native layout engine: `app/layouts/default.vue` (clinical shell with sidebar, navbar, global modals) and `app/layouts/auth.vue` (clean auth backdrop), wired through `<NuxtLayout>` in `app.vue`.
+    - [x] Standardized auto-imported components: `PageHeader.vue` (title, description/subtitle, badges, actions), `MetricCard.vue` (KPI card, icons, critical telemetry variants), `FilterToolbar.vue` (search, filter slots, count badges), `ModalDialog.vue` (standard modal surface), `AlertBanner.vue` (semantic alerts with type/variant).
+    - [x] Clean page architecture: Removed shell boilerplate, redundant navigation offsets, and duplicate modal instances across all 25+ role views.
 
 - [ ] Automated Tests:
   - [ ] Vue Component tests with Vitest & `@vue/test-utils`.

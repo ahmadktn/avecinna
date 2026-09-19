@@ -1,60 +1,39 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
+  <div class="space-y-5">
+    <!-- Page Header -->
+    <PageHeader
+      title="Physician Profile & Credentials"
+      subtitle="Review active clinical authorization parameters and manage personal credentials."
+    >
+      <template #badge>
+        <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-xs font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Active Clinical Shift
+        </span>
+      </template>
+    </PageHeader>
 
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar
-        @openWardSwitcher="showWardSwitcher = true"
-        @openBreakGlass="showBreakGlassModal = true"
-      />
+    <!-- Feedback Alert Messages -->
+    <AlertBanner
+      type="success"
+      :message="successMsg"
+      @dismiss="successMsg = null"
+    />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
-        <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Physician Profile & Credentials</h1>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Review active clinical authorization parameters and manage personal credentials.
-            </p>
+    <AlertBanner
+      type="error"
+      :message="errorMsg"
+      @dismiss="errorMsg = null"
+    />
+
+    <!-- Profile Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column: Identity Card -->
+      <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-6">
+        <div class="flex items-center gap-4 pb-5 border-b border-slate-100">
+          <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl font-mono shadow-md shadow-blue-900/20">
+            {{ initials }}
           </div>
-
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-full text-xs font-semibold">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Active Clinical Shift
-            </span>
-          </div>
-        </div>
-
-        <!-- Feedback Alert Messages -->
-        <div v-if="successMsg" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>{{ successMsg }}</span>
-          </div>
-          <button @click="successMsg = null" class="font-bold text-emerald-800 hover:text-emerald-950">✕</button>
-        </div>
-
-        <div v-if="errorMsg" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{{ errorMsg }}</span>
-          </div>
-          <button @click="errorMsg = null" class="font-bold text-red-800 hover:text-red-950">✕</button>
-        </div>
-
-        <!-- Profile Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Left Column: Identity Card -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-6">
-            <div class="flex items-center gap-4 pb-5 border-b border-slate-100">
-              <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-xl font-mono shadow-md shadow-blue-900/20">
-                {{ initials }}
-              </div>
               <div class="space-y-0.5 min-w-0">
                 <h3 class="text-base font-bold text-slate-900 truncate">{{ user?.fullName || 'Dr. Physician' }}</h3>
                 <p class="text-xs font-mono text-slate-500 truncate">@{{ user?.username }}</p>
@@ -190,12 +169,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
-
-    <!-- Modals -->
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" />
-    <BreakGlassModal :isOpen="showBreakGlassModal" @close="showBreakGlassModal = false" />
   </div>
 </template>
 
@@ -206,9 +179,6 @@ import { useApi } from '~/composables/useApi'
 
 const auth = useAuth()
 const api = useApi()
-
-const showWardSwitcher = ref(false)
-const showBreakGlassModal = ref(false)
 
 const user = computed(() => auth.user.value)
 const activeWard = computed(() => auth.activeWard.value)

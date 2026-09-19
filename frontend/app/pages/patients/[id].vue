@@ -1,14 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans">
-    <AppSidebar />
-
-    <div class="pl-56 flex flex-col min-h-screen">
-      <AppNavbar
-        @openWardSwitcher="showWardSwitcher = true"
-        @openBreakGlass="showBreakGlassModal = true"
-      />
-
-      <main class="flex-1 w-full px-8 py-6 space-y-5">
+  <div class="space-y-5">
         <!-- Back Link & Action Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <NuxtLink
@@ -402,14 +393,11 @@
                   {{ lab.status }}
                 </span>
               </div>
-            </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
 
     <!-- Modals -->
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" @switched="loadPatientData" />
     <BreakGlassModal :isOpen="showBreakGlassModal" :patientId="patientId" @close="showBreakGlassModal = false" @unlocked="loadPatientData" />
     <CareTeamModal
       :isOpen="showCareTeamModal"
@@ -447,7 +435,6 @@ const error = computed(() => patientsApi.error.value)
 const labResults = computed(() => patientsApi.labResults.value)
 const relationshipType = ref<string | null>(null)
 
-const showWardSwitcher = ref(false)
 const showBreakGlassModal = ref(false)
 const showCareTeamModal = ref(false)
 const showVitalsModal = ref(false)
