@@ -2,10 +2,10 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar @openWardSwitcher="showWardSwitcher = true" />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -19,7 +19,7 @@
               <span class="text-slate-300">/</span>
               <span class="text-xs font-medium text-slate-500">Staff Management</span>
             </div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight mt-1">Ward Staff Directory</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight mt-1">Ward Staff Directory</h1>
             <p class="text-xs text-slate-500 mt-0.5">
               Supervise clinicians assigned to your ward, manage active accounts, and reassign departmental staff
             </p>
@@ -30,7 +30,7 @@
               type="button"
               @click="loadStaff"
               :disabled="loading"
-              class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -41,7 +41,7 @@
             <button
               type="button"
               @click="openReassignModal"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
             >
               <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
@@ -54,7 +54,7 @@
         <!-- Notification / Toast Feedback -->
         <div
           v-if="toastMessage"
-          class="p-4 rounded-2xl text-xs flex items-center justify-between border transition-all"
+          class="p-4 rounded-xl text-xs flex items-center justify-between border transition-all"
           :class="toastType === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'"
         >
           <div class="flex items-center gap-2.5">
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="relative w-full md:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -132,14 +132,14 @@
               </select>
             </div>
 
-            <span class="bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-xl font-mono">
+            <span class="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-xl font-mono">
               {{ staffPagination.total }} Total Staff
             </span>
           </div>
         </div>
 
         <!-- Staff Table Card -->
-        <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
           <!-- Loading state -->
           <div v-if="loading && staffList.length === 0" class="p-12 text-center">
             <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>

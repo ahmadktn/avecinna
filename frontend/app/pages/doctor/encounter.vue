@@ -2,26 +2,26 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar
         @openWardSwitcher="showWardSwitcher = true"
         @openBreakGlass="showBreakGlassModal = true"
       />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-6">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Success Confirmation View -->
         <div
           v-if="encounterCompleted"
-          class="bg-white border border-emerald-200 rounded-3xl p-8 sm:p-12 text-center space-y-5 shadow-xs max-w-2xl mx-auto my-8"
+          class="bg-white border border-emerald-200 rounded-2xl p-8 sm:p-12 text-center space-y-5 shadow-xs max-w-2xl mx-auto my-8"
         >
-          <div class="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
+          <div class="w-16 h-16 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
             </svg>
           </div>
 
           <div class="space-y-1.5">
-            <h2 class="text-xl font-bold text-slate-900 tracking-tight">Clinical Encounter Signed & Cryptographically Recorded</h2>
+            <h2 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Clinical Encounter Signed & Cryptographically Recorded</h2>
             <p class="text-xs text-slate-500 max-w-md mx-auto">
               SOAP clinical notes, updated vital telemetry, active prescriptions, and lab orders have been committed to the patient record and logged to the Merkle audit ledger.
             </p>
@@ -45,13 +45,13 @@
         </div>
 
         <!-- Encounter Workspace Form -->
-        <div v-else class="space-y-6">
-          <!-- Page Header -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+        <div v-else class="space-y-5">
+          <!-- Clean Page Header -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div class="flex items-center gap-2.5">
-                <h1 class="text-xl font-bold text-slate-900 tracking-tight">Clinical Encounter Workspace</h1>
-                <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full font-mono">
+                <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Clinical Encounter Workspace</h1>
+                <span class="bg-slate-100 text-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-full font-mono">
                   SOAP & Rx
                 </span>
               </div>

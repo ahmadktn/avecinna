@@ -91,8 +91,13 @@
     - [x] Station Overview (`/nurse`): Ward census, active care team consults, acuity monitoring, shift details, bedside vitals recording
     - [x] Patients Directory Integration (`/patients`): Scope filters (All Permitted, Ward Inpatients, Care Team Consults), care team consult badges, bedside observation triggers
     - [x] Patient Chart View (`/patients/:id`): Nursing care plan, live physiological telemetry, allergy profiles, active medications, bedside observation modal, OWASP API3 clinical notes redaction notice
-    - [x] Nurse Profile & Credentials (`/nurse/profile`): Active nursing shift window, update clinical display name, Argon2id password management
     - [x] Backend Endpoints: `GET /api/v1/nurse/overview`, `POST /api/v1/nurse/vitals`, `GET /api/v1/care-teams/my-assignments`, `scope` query on `GET /api/v1/patients`, role DTO masking with `nursingCarePlan`
+  - [x] **Complete Clinical UI/UX Overhaul & Standardization**:
+    - [x] Unified layout rhythm: Standardized sidebar width to `w-56`, main content padding offset to `pl-56`, and spacing to `space-y-5`.
+    - [x] Clinical typography hierarchy: Inter (`font-sans`), Fraunces (`font-brand` for headings and wordmarks), IBM Plex Mono (`font-mono` for IDs, MRNs, vitals, timestamps).
+    - [x] Color de-escalation: Neutralized KPI stat card icons to `bg-slate-100 text-slate-500`, softened Break-Glass action to subtle ghost outline, removed loud multi-color clutter.
+    - [x] Container standardization: Tables, toolbars, cards, and form panels unified to `rounded-xl`; modal dialogs unified to `rounded-2xl`.
+    - [x] Refactored all 25+ views across Doctor, Head of Unit, Nurse, Clerk, Pharmacy, and Admin personas.
 
 - [ ] Automated Tests:
   - [ ] Vue Component tests with Vitest & `@vue/test-utils`.

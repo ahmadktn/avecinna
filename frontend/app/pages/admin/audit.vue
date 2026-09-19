@@ -2,14 +2,14 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Title Header & Verify Button -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Audit Ledger & Merkle Verification</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Audit Ledger & Merkle Verification</h1>
             <p class="text-xs text-slate-500 mt-1">Cryptographic access history, Merkle tree proofs, and automated anomaly flagging</p>
           </div>
 
@@ -40,60 +40,60 @@
         </div>
 
         <!-- 4 Stat Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Total Blocks -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between text-slate-400 mb-2">
               <span class="text-xs font-semibold text-slate-500">Chained Blocks</span>
-              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
             </div>
-            <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ analytics?.metrics.totalBlocks ?? blocksList.length }}</p>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.totalBlocks ?? blocksList.length }}</p>
             <p class="text-xs text-slate-400 mt-2 font-mono">Sequential SHA-256 Chain</p>
           </div>
 
           <!-- Chain Health -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-emerald-700">Integrity Status</span>
-              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span class="text-xs font-semibold text-slate-500">Integrity Status</span>
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
-            <p class="text-2xl font-extrabold text-emerald-700 font-mono">100% INTACT</p>
-            <p class="text-xs text-emerald-700/80 mt-2">Zero Hash Link Breaks</p>
+            <p class="text-2xl font-bold text-emerald-700 font-mono">100% INTACT</p>
+            <p class="text-xs text-slate-400 mt-2">Zero Hash Link Breaks</p>
           </div>
 
           <!-- Smart Flagged Anomalies -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-semibold text-amber-700">Flagged Anomalies</span>
-              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span class="text-xs font-semibold text-slate-500">Flagged Anomalies</span>
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
             </div>
-            <p class="text-3xl font-extrabold text-amber-600 font-mono">{{ analytics?.metrics.flaggedCount ?? 0 }}</p>
-            <p class="text-xs text-amber-700 font-medium mt-2">Rule Engine Triggers</p>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.flaggedCount ?? 0 }}</p>
+            <p class="text-xs text-slate-400 mt-2">Rule Engine Triggers</p>
           </div>
 
           <!-- Active Entities -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
             <div class="flex items-center justify-between text-slate-400 mb-2">
               <span class="text-xs font-semibold text-slate-500">Audited Scope</span>
-              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
             </div>
-            <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ analytics?.metrics.uniqueUsersCount ?? 0 }} Users</p>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ analytics?.metrics.uniqueUsersCount ?? 0 }} Users</p>
             <p class="text-xs text-slate-400 mt-2">Across {{ analytics?.metrics.uniqueWardsCount ?? 0 }} Wards</p>
           </div>
         </div>
@@ -150,9 +150,9 @@
         </div>
 
         <!-- Tab 1: Live Cryptographic Audit Trail (Every Single Action) -->
-        <div v-if="activeTab === 'ledger'" class="space-y-6">
+        <div v-if="activeTab === 'ledger'" class="space-y-5">
           <!-- Filter Toolbar -->
-          <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="relative w-full md:w-80">
               <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -192,7 +192,7 @@
           </div>
 
           <!-- Table Card -->
-          <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+          <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs border-collapse">
                 <thead>

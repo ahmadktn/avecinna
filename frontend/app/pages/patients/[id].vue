@@ -2,13 +2,13 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar
         @openWardSwitcher="showWardSwitcher = true"
         @openBreakGlass="showBreakGlassModal = true"
       />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-6">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Back Link & Action Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <NuxtLink
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Error / CAAC Access Denied State -->
-        <div v-if="error" class="bg-red-50 border border-red-200 rounded-3xl p-10 text-center space-y-5 shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 rounded-2xl p-10 text-center space-y-5 shadow-2xs">
           <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 mx-auto flex items-center justify-center shadow-xs">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -88,7 +88,7 @@
           <div>
             <button
               @click="showBreakGlassModal = true"
-              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-6 py-3 rounded-2xl transition-all shadow-sm cursor-pointer"
+              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-sm cursor-pointer"
             >
               <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -102,17 +102,17 @@
         <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
         <!-- Patient Full Chart Record -->
-        <div v-if="patient && !error" class="space-y-6">
+        <div v-if="patient && !error" class="space-y-5">
           <!-- Profile Header Card -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-2xs space-y-6">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 sm:p-8 shadow-2xs space-y-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
               <div class="flex items-center gap-4">
-                <div class="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl font-mono shadow-xs">
+                <div class="w-16 h-16 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl font-mono shadow-xs">
                   {{ initials }}
                 </div>
                 <div class="space-y-1">
                   <div class="flex flex-wrap items-center gap-3">
-                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">{{ patient.fullName }}</h2>
+                    <h2 class="font-brand text-2xl font-semibold text-slate-900 tracking-tight">{{ patient.fullName }}</h2>
 
                     <!-- Relationship / Scope Badge -->
                     <span
@@ -214,11 +214,11 @@
           <!-- Nursing Care Plan Banner (if present or if role is Nurse/Paramedic) -->
           <div
             v-if="patient.nursingCarePlan || patient.fullRecord?.nursingCarePlan || role === 'NURSE' || role === 'PARAMEDIC'"
-            class="bg-white border border-purple-200/90 rounded-2xl p-6 shadow-2xs space-y-3"
+            class="bg-white border border-purple-200/90 rounded-xl p-6 shadow-2xs space-y-3"
           >
             <div class="flex items-center justify-between pb-2 border-b border-purple-100">
               <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
@@ -237,7 +237,7 @@
           <!-- Clinical Diagnosis & Allergies -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
             <!-- Diagnosis Card -->
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+            <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-3">
               <h4 class="font-bold text-slate-700 uppercase tracking-wider">Clinical Diagnosis & Findings</h4>
               <p class="text-slate-800 leading-relaxed text-sm">
                 {{ patient.fullRecord?.diagnosis || 'Inpatient clinical surveillance and vital signs monitoring.' }}
@@ -245,7 +245,7 @@
             </div>
 
             <!-- Allergies Card -->
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+            <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-3">
               <h4 class="font-bold text-slate-700 uppercase tracking-wider">Known Allergies & Adverse Reactions</h4>
               <div v-if="allergyList.length === 0" class="text-slate-400 italic">
                 No known drug allergies or contraindications recorded (NKDA).
@@ -266,7 +266,7 @@
           </div>
 
           <!-- Active Prescriptions / Medication Regimen -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Active Prescriptions & Pharmacotherapy</h3>
               <span class="text-xs font-mono text-slate-400">{{ activeMedicationsList.length }} Medications</span>
@@ -300,7 +300,7 @@
           </div>
 
           <!-- Clinical History / SOAP Encounters Timeline -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Clinical Notes & Encounters History</h3>
               <span class="text-xs font-mono text-slate-400">SOAP Timeline</span>
@@ -330,7 +330,7 @@
               <div
                 v-for="(note, idx) in clinicalHistoryList"
                 :key="idx"
-                class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs"
+                class="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-xs"
               >
                 <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
                   <div class="flex items-center gap-2">

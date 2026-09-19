@@ -12,9 +12,9 @@
     </div>
 
     <!-- Login Form Card -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl w-full max-w-lg p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl w-full max-w-lg p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
       <!-- Backend Error Alert -->
-      <div v-if="error" class="bg-red-950/80 border border-red-800/80 text-red-200 p-4 rounded-2xl text-xs mb-6 flex items-start gap-3 shadow-lg animate-fadeIn">
+      <div v-if="error" class="bg-red-950/80 border border-red-800/80 text-red-200 p-4 rounded-xl text-xs mb-6 flex items-start gap-3 shadow-lg animate-fadeIn">
         <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
@@ -119,7 +119,7 @@
     </div>
 
     <!-- Security Policy Callout Notice -->
-    <div class="mt-8 bg-slate-900/60 border border-slate-800/60 rounded-2xl p-4 sm:p-5 w-full max-w-lg text-xs text-slate-400 flex items-start gap-3.5 backdrop-blur-md">
+    <div class="mt-8 bg-slate-900/60 border border-slate-800/60 rounded-xl p-4 sm:p-5 w-full max-w-lg text-xs text-slate-400 flex items-start gap-3.5 backdrop-blur-md">
       <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400 shrink-0">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

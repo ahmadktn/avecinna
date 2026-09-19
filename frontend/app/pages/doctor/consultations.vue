@@ -2,15 +2,15 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar
         @openWardSwitcher="showWardSwitcher = true"
         @openBreakGlass="showBreakGlassModal = true"
       />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-6">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -23,7 +23,7 @@
         <!-- Clean Page Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Outpatient Consultation Schedule</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Outpatient Consultation Schedule</h1>
             <p class="text-xs text-slate-500 mt-0.5">
               Consultation queue and clinical encounters for <strong class="text-slate-800">{{ activeWardCode }}</strong>
             </p>
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Filters & Search Bar -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
           <!-- Search Box -->
           <div class="relative flex-1 max-w-sm">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,7 +92,7 @@
         </div>
 
         <!-- Appointments Table -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+        <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
           <div v-if="loading && appointmentsList.length === 0" class="p-12 text-center text-xs text-slate-400">
             <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             Loading consultation appointments...

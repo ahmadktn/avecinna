@@ -2,17 +2,17 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar @openWardSwitcher="showWardSwitcher = true" />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-8 space-y-5">
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Pharmacy Dispensing & Medication Safety Queue</h1>
+          <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Pharmacy Dispensing & Medication Safety Queue</h1>
           <p class="text-xs text-slate-500 mt-1">Verify active prescription orders, screen contraindication alerts, and review patient allergy profiles</p>
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xs">
           <!-- Search input -->
           <div class="relative w-full sm:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
               v-for="filter in ['all', 'PENDING', 'DISPENSED', 'FLAGGED']"
               :key="filter"
               @click="statusFilter = filter"
-              class="px-3.5 py-1.5 rounded-lg capitalize transition-all shrink-0"
+              class="px-3.5 py-1.5 rounded-lg capitalize transition-all shrink-0 cursor-pointer"
               :class="statusFilter === filter ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'"
             >
               {{ filter === 'all' ? 'All Orders' : filter }}
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Prescription Queue Table -->
-        <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
           <table class="w-full text-left text-xs">
             <thead>
               <tr class="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
@@ -126,11 +126,11 @@
       @click.self="selectedOrderForDispense = null"
       class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Confirm Prescription Dispense</h3>
         <p class="text-xs text-slate-500 mb-6">Verify medication dosage and complete pharmacy handoff</p>
 
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 mb-6 text-xs">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3 mb-6 text-xs">
           <div class="flex justify-between">
             <span class="text-slate-500">Patient:</span>
             <span class="font-bold text-slate-900">{{ selectedOrderForDispense.patientName }} ({{ selectedOrderForDispense.mrn }})</span>

@@ -2,14 +2,14 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-8 space-y-5">
         <!-- Header Title -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Patient Registration & Ward Admission</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Patient Registration & Ward Admission</h1>
             <p class="text-xs text-slate-500 mt-1">Register new inpatient or outpatient record and allocate bed space assignment</p>
           </div>
 
@@ -33,9 +33,9 @@
         </div>
 
         <!-- Success Toast -->
-        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-5 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
               </svg>
@@ -49,7 +49,7 @@
         </div>
 
         <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-5 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Form Panel -->
-        <div class="bg-white border border-slate-200/90 rounded-3xl p-8 lg:p-10 shadow-xs">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-6 lg:p-8 shadow-2xs">
           <form @submit.prevent="handleRegister" class="space-y-8">
             <!-- Demographics Section -->
             <div class="space-y-4">
@@ -205,7 +205,7 @@
               <button
                 type="submit"
                 :disabled="loading"
-                class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white text-xs font-bold px-7 py-3 rounded-2xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <span v-if="loading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 <span>{{ loading ? 'Processing Intake...' : 'Register & Admit Patient' }}</span>

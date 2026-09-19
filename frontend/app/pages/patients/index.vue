@@ -2,15 +2,15 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar
         @openWardSwitcher="showWardSwitcher = true"
         @openBreakGlass="showBreakGlassModal = true"
       />
 
-      <main class="flex-1 w-full px-8 py-6 space-y-6">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -23,11 +23,11 @@
         <!-- Admin Privacy Banner if Admin role -->
         <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
-        <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+        <!-- Clean Page Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2.5">
-              <h1 class="text-xl font-bold text-slate-900 tracking-tight">Patients Directory & Clinical Records</h1>
+              <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Patients Directory</h1>
               <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">
                 Ward: {{ activeWardCode }}
               </span>
@@ -42,7 +42,7 @@
               v-if="role === 'NURSE' || role === 'PARAMEDIC' || role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
               type="button"
               @click="openVitalsModal()"
-              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -53,33 +53,22 @@
             <NuxtLink
               v-if="role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
               to="/doctor/encounter"
-              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <span>New Encounter</span>
             </NuxtLink>
-
-            <button
-              type="button"
-              @click="showWardSwitcher = true"
-              class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
-            >
-              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              <span>Switch Ward</span>
-            </button>
           </div>
         </div>
 
-        <!-- 3 KPI Telemetry Summary Cards -->
+        <!-- 4 KPI Telemetry Summary Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Authorized Inpatients</span>
-              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -89,48 +78,48 @@
             <p class="text-[11px] text-slate-400 mt-1">In {{ activeWardName }} ({{ activeWardCode }})</p>
           </div>
 
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Care Team Consults</span>
-              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Care Team Consults</span>
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
             </div>
-            <p class="text-2xl font-bold text-purple-700 font-mono">{{ careTeamCount }}</p>
-            <p class="text-[11px] text-purple-600/80 mt-1">Cross-ward grants</p>
+            <p class="text-2xl font-bold text-slate-900 font-mono">{{ careTeamCount }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Cross-ward grants</p>
           </div>
 
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Monitoring</span>
-              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Monitoring</span>
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <p class="text-2xl font-bold text-amber-600 font-mono">{{ monitoringCount }}</p>
-            <p class="text-[11px] text-amber-700/80 mt-1">Telemetry watch protocol</p>
+            <p class="text-2xl font-bold text-slate-900 font-mono">{{ monitoringCount }}</p>
+            <p class="text-[11px] text-slate-400 mt-1">Telemetry watch protocol</p>
           </div>
 
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-red-700">Critical Acuity</span>
-              <div class="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Critical Acuity</span>
+              <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
             </div>
             <p class="text-2xl font-bold text-red-600 font-mono">{{ criticalCount }}</p>
-            <p class="text-[11px] text-red-700/80 mt-1">High vigilance care</p>
+            <p class="text-[11px] text-red-600/80 mt-1">High vigilance care</p>
           </div>
         </div>
 
         <!-- Search & Filter Controls -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xs">
           <!-- Search Input -->
           <div class="relative w-full md:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +181,7 @@
         </div>
 
         <!-- Patients List / Table -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+        <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
           <div v-if="loading && patientsList.length === 0" class="p-12 text-center text-xs text-slate-400">
             <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
             Loading patient records...

@@ -2,14 +2,14 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-8 space-y-5">
         <!-- Header & Quick Action -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Admissions & Reception Desk</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Admissions & Reception Desk</h1>
             <p class="text-xs text-slate-500 mt-1">Real-time hospital census, patient intake, clinic queue, and bed space telemetry</p>
           </div>
 
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Error State -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -52,10 +52,10 @@
         <!-- 4 Clean Stat KPI Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Total Patients -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Registered</span>
-              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -66,10 +66,10 @@
           </div>
 
           <!-- Today's Queue -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Today's Clinic Queue</span>
-              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Today's Clinic Queue</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -82,10 +82,10 @@
           </div>
 
           <!-- Inpatient Ward Beds -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Admitted Inpatients</span>
-              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Admitted Inpatients</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -96,24 +96,24 @@
           </div>
 
           <!-- Active Doctors -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Attending Clinicians</span>
-              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Attending Clinicians</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
             </div>
             <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.activeDoctorsCount ?? '-' }}</p>
-            <p class="text-xs text-emerald-700 font-medium mt-1">Available for Outpatient Scheduling</p>
+            <p class="text-xs text-slate-500 font-medium mt-1">Available for Outpatient Scheduling</p>
           </div>
         </div>
 
         <!-- 2 Column Section: Ward Bed Space & Today's Clinic Queue -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Ward Inpatient Census Breakdown -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-sm font-bold text-slate-900">Ward Inpatient Bed Census</h3>
@@ -159,7 +159,7 @@
           </div>
 
           <!-- Today's Live Consultation Queue -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
+          <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-sm font-bold text-slate-900">Today's Consultation Schedule</h3>
@@ -209,7 +209,7 @@
         </div>
 
         <!-- Recent Patient Registrations Table -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs space-y-5">
+        <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 class="text-sm font-bold text-slate-900">Recent Patient Intakes</h3>

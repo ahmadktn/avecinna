@@ -2,14 +2,14 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-6 space-y-5">
         <!-- Header & Add Ward Button -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Hospital Wards & Clinical Units</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Hospital Wards & Clinical Units</h1>
             <p class="text-xs text-slate-500 mt-1 font-medium">Departmental structure, active inpatient capacity, Head of Unit supervision, and staff assignments</p>
           </div>
 
@@ -18,7 +18,7 @@
               type="button"
               @click="loadData"
               :disabled="loading"
-              class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
+              class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <svg class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -29,7 +29,7 @@
             <button
               type="button"
               @click="openCreateWardModal"
-              class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-all cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Error Banner -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-5 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-red-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs flex items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex items-center justify-between gap-4">
           <div class="relative w-full max-w-md">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -74,7 +74,7 @@
           <div
             v-for="w in filteredWards"
             :key="w.id"
-            class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-5"
+            class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-5"
           >
             <div class="space-y-4">
               <!-- Top Row: Code & Dept -->
@@ -86,7 +86,7 @@
                   <h3 class="text-base font-bold text-slate-900">{{ w.name }}</h3>
                   <p class="text-xs text-slate-400 mt-0.5">Department: <span class="text-slate-600 font-medium">{{ w.department }}</span></p>
                 </div>
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>

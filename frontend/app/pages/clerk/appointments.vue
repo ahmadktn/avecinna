@@ -2,14 +2,14 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-6">
+      <main class="flex-1 w-full px-8 py-8 space-y-5">
         <!-- Header Title & Action -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Outpatient Consultation Queue</h1>
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Outpatient Consultation Queue</h1>
             <p class="text-xs text-slate-500 mt-1">Schedule clinic appointments, manage queue check-ins, and grant outpatient CAAC permits</p>
           </div>
 
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Success Toast -->
-        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
           <!-- Search input -->
           <div class="relative w-full md:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,13 +98,13 @@
         </div>
 
         <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <span>{{ error }}</span>
           <button @click="loadAppointments" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
         </div>
 
         <!-- Schedule Appointments Table -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
+        <div class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -226,7 +226,7 @@
       @click.self="showBookingModal = false"
       class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Schedule Outpatient Consultation</h3>
         <p class="text-xs text-slate-500 mb-6">Allocate specialist slot and grant same-day outpatient CAAC permit</p>
 

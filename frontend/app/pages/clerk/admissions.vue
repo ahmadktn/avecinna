@@ -2,15 +2,15 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-6">
+      <main class="flex-1 w-full px-8 py-8 space-y-5">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Inpatient Bed Space Allocation</h1>
-            <p class="text-xs text-slate-500 mt-1 font-medium">
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Inpatient Bed Space Allocation</h1>
+            <p class="text-xs text-slate-500 mt-1">
               Manage inpatient ward assignments, bed reallocation, transfers, and bed occupancy telemetry
             </p>
           </div>
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Success Toast -->
-        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <div class="flex items-center gap-2.5">
             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -53,10 +53,10 @@
 
         <!-- Summary KPI Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs">
             <div class="flex items-center justify-between text-slate-400 mb-2">
               <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Inpatients</span>
-              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -66,10 +66,10 @@
             <p class="text-xs text-slate-400 mt-1">Currently admitted across all units</p>
           </div>
 
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Allocated Beds</span>
-              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Allocated Beds</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -79,10 +79,10 @@
             <p class="text-xs text-slate-400 mt-1">{{ unallocatedCount }} awaiting specific bed number</p>
           </div>
 
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs">
+          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Hospital Wards</span>
-              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital Wards</span>
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -94,7 +94,7 @@
         </div>
 
         <!-- Search & Filter Toolbar -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="relative w-full md:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -130,13 +130,13 @@
         </div>
 
         <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <span>{{ error }}</span>
           <button @click="loadData" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
         </div>
 
         <!-- Inpatient Bed Allocation Table -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
+        <div class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -251,7 +251,7 @@
       @click.self="showTransferModal = false"
       class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Inpatient Bed Transfer & Ward Assignment</h3>
         <p class="text-xs text-slate-500 mb-6">Update ward location or assign new bed space for <strong class="text-slate-800">{{ activePatient.fullName }}</strong> ({{ activePatient.mrn }}).</p>
 

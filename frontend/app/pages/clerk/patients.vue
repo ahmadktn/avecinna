@@ -2,15 +2,15 @@
   <div class="min-h-screen bg-slate-50 font-sans">
     <AppSidebar />
 
-    <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
+    <div class="pl-56 flex flex-col min-h-screen">
       <AppNavbar />
 
       <main class="flex-1 w-full px-8 py-8 space-y-6">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Hospital Patient Directory</h1>
-            <p class="text-xs text-slate-500 mt-1 font-medium">
+            <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">Hospital Patient Directory</h1>
+            <p class="text-xs text-slate-500 mt-1">
               Administrative patient census, bed allocation, and clinic intake registry
             </p>
           </div>
@@ -41,7 +41,7 @@
         </div>
 
         <!-- Search & Filter Toolbar -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="relative w-full md:w-80">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -90,13 +90,13 @@
         </div>
 
         <!-- Error Alert -->
-        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs flex items-center justify-between shadow-2xs">
+        <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-xs flex items-center justify-between shadow-2xs">
           <span>{{ error }}</span>
           <button @click="loadPatients" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
         </div>
 
         <!-- Patients Table -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs">
+        <div class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -162,7 +162,7 @@
                     <button
                       type="button"
                       @click="openQueueModal(p)"
-                      class="border border-purple-200 text-purple-700 hover:bg-purple-50 bg-white px-2.5 py-1 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
+                      class="border border-blue-200 text-blue-700 hover:bg-blue-50 bg-white px-2.5 py-1 rounded-xl text-xs font-semibold transition-all shadow-2xs cursor-pointer"
                     >
                       + Queue
                     </button>
@@ -224,7 +224,7 @@
       @click.self="showBedModal = false"
       class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Update Bed & Ward Assignment</h3>
         <p class="text-xs text-slate-500 mb-6">Allocate bed space or transfer <strong class="text-slate-800">{{ activePatient.fullName }}</strong> ({{ activePatient.mrn }}).</p>
 
@@ -291,7 +291,7 @@
       @click.self="showQueueModal = false"
       class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Add to Consultation Queue</h3>
         <p class="text-xs text-slate-500 mb-6">Schedule consultation slot for <strong class="text-slate-800">{{ activePatient.fullName }}</strong> ({{ activePatient.mrn }}).</p>
 
