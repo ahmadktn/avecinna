@@ -104,6 +104,8 @@ export function filterPatientRecordByRole(
         dateOfBirth: record.dateOfBirth,
         gender: record.gender,
         patientType: record.patientType,
+        genotype: record.genotype,
+        bloodGroup: record.bloodGroup,
         primaryWardId: record.primaryWardId,
         assignedBed: record.assignedBed,
       };

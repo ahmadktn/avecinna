@@ -158,7 +158,7 @@ export async function patientRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const newPatientId = `p-${crypto.randomUUID()}`;
+      const newPatientId = crypto.randomUUID();
 
       const [newPatient] = await dbPrimary
         .insert(patients)

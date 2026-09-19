@@ -3,23 +3,33 @@
     <AppSidebar />
 
     <div class="pl-64 lg:pl-72 flex flex-col min-h-screen">
-      <AppNavbar @openWardSwitcher="showWardSwitcher = true" />
+      <AppNavbar />
 
       <main class="flex-1 w-full px-8 py-8 space-y-8">
         <!-- Header Title -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Patient Registration & Ward Admission</h1>
-            <p class="text-xs text-slate-500 mt-1">Register new inpatient or outpatient record and allocate bed assignment</p>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Patient Registration & Ward Admission</h1>
+            <p class="text-xs text-slate-500 mt-1">Register new inpatient or outpatient record and allocate bed space assignment</p>
           </div>
 
-          <button
-            type="button"
-            @click="fillDemoData"
-            class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2 rounded-xl transition-colors shrink-0 cursor-pointer"
-          >
-            Auto-fill Sample Data
-          </button>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              @click="generateMrn"
+              class="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 px-4 py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer"
+            >
+              Generate MRN
+            </button>
+
+            <button
+              type="button"
+              @click="fillDemoData"
+              class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-4 py-2.5 rounded-xl transition-colors shrink-0 cursor-pointer"
+            >
+              Sample Data
+            </button>
+          </div>
         </div>
 
         <!-- Success Toast -->
@@ -32,7 +42,10 @@
             </div>
             <span class="font-medium">{{ successMessage }}</span>
           </div>
-          <button type="button" @click="successMessage = null" class="text-emerald-700 font-bold hover:text-emerald-900 cursor-pointer">Dismiss</button>
+          <div class="flex items-center gap-3">
+            <NuxtLink to="/clerk/patients" class="underline font-bold hover:text-emerald-950">View in Directory</NuxtLink>
+            <button type="button" @click="successMessage = null" class="text-emerald-700 font-bold hover:text-emerald-900 cursor-pointer">Dismiss</button>
+          </div>
         </div>
 
         <!-- Error Alert -->
@@ -107,22 +120,33 @@
 
                 <div>
                   <label class="block font-bold text-slate-700 mb-1.5">Blood Group</label>
-                  <input
+                  <select
                     v-model="form.bloodGroup"
-                    type="text"
-                    placeholder="e.g. O+"
                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
-                  />
+                  >
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
                 </div>
 
                 <div>
                   <label class="block font-bold text-slate-700 mb-1.5">Genotype</label>
-                  <input
+                  <select
                     v-model="form.genotype"
-                    type="text"
-                    placeholder="e.g. AA"
                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono"
-                  />
+                  >
+                    <option value="AA">AA</option>
+                    <option value="AS">AS</option>
+                    <option value="SS">SS</option>
+                    <option value="AC">AC</option>
+                    <option value="SC">SC</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -158,10 +182,9 @@
                     required
                     class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   >
-                    <option value="w-cardio">Cardiology Ward (3W)</option>
-                    <option value="w-icu">Intensive Care Unit (6C)</option>
-                    <option value="w-oncol">Oncology Ward (5N)</option>
-                    <option value="w-emerg">Emergency Department (1E)</option>
+                    <option v-for="w in wardsList" :key="w.id" :value="w.id">
+                      {{ w.name }} ({{ w.code }}) - {{ w.department }}
+                    </option>
                   </select>
                 </div>
 
@@ -185,51 +208,64 @@
                 class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white text-xs font-bold px-7 py-3 rounded-2xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <span v-if="loading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>{{ loading ? 'Processing Admission...' : 'Register & Admit Patient' }}</span>
+                <span>{{ loading ? 'Processing Intake...' : 'Register & Admit Patient' }}</span>
               </button>
             </div>
           </form>
         </div>
       </main>
     </div>
-
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePatients } from '~/composables/usePatients'
+import { useClerk } from '~/composables/useClerk'
 
 const patientsApi = usePatients()
-const showWardSwitcher = ref(false)
+const clerk = useClerk()
+const wardsList = clerk.wards
+
 const loading = ref(false)
 const error = ref<string | null>(null)
 const successMessage = ref<string | null>(null)
 
+const generateMrn = () => {
+  const rand = Math.floor(100000 + Math.random() * 900000)
+  form.value.mrn = `MRN-2026-${rand}`
+}
+
 const form = ref({
-  mrn: 'MRN-2026-9090',
+  mrn: `MRN-2026-${Math.floor(100000 + Math.random() * 900000)}`,
   fullName: '',
-  dateOfBirth: '1985-06-15',
+  dateOfBirth: '1990-01-01',
   gender: 'MALE',
   patientType: 'INPATIENT' as 'INPATIENT' | 'OUTPATIENT',
   genotype: 'AA',
   bloodGroup: 'O+',
-  primaryWardId: 'w-cardio',
-  assignedBed: 'CARD-BED-12',
+  primaryWardId: '',
+  assignedBed: 'BED-01',
+})
+
+onMounted(async () => {
+  await clerk.fetchWards()
+  if (wardsList.value.length > 0 && !form.value.primaryWardId) {
+    form.value.primaryWardId = wardsList.value[0].id
+  }
 })
 
 const fillDemoData = () => {
   form.value = {
-    mrn: `MRN-${Math.floor(100000 + Math.random() * 900000)}`,
-    fullName: 'Emmanuel Adebayo',
-    dateOfBirth: '1988-11-20',
+    mrn: `MRN-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+    fullName: 'Olumide Adeleke',
+    dateOfBirth: '1989-08-24',
     gender: 'MALE',
     patientType: 'INPATIENT',
     genotype: 'AA',
     bloodGroup: 'O+',
-    primaryWardId: 'w-cardio',
-    assignedBed: 'CARD-BED-08',
+    primaryWardId: wardsList.value[0]?.id || 'w-cardio',
+    assignedBed: 'CARD-BED-09',
   }
 }
 
@@ -241,6 +277,7 @@ const handleRegister = async () => {
     const p = await patientsApi.registerPatient(form.value)
     successMessage.value = `Patient ${p.fullName} (${p.mrn}) registered and admitted successfully!`
     form.value.fullName = ''
+    generateMrn()
   } catch (err: any) {
     error.value = err.message || 'Failed to register patient'
   } finally {

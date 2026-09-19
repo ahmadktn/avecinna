@@ -97,7 +97,7 @@ export const useAuth = () => {
           router.push('/admin/dashboard')
           break
         case 'CLERK':
-          router.push('/clerk/register')
+          router.push('/clerk')
           break
         case 'PHARMACIST':
           router.push('/pharmacy/prescriptions')

@@ -21,7 +21,7 @@ export interface AlertInput {
  * Automatically records security alerts in avecinna_primary_db for administrative review.
  */
 export async function createSecurityAlert(input: AlertInput): Promise<string> {
-  const alertId = `alt-${crypto.randomUUID()}`;
+  const alertId = crypto.randomUUID();
 
   await dbPrimary.insert(securityAlerts).values({
     id: alertId,

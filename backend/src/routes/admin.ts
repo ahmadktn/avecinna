@@ -95,7 +95,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
       }
 
       const passwordHash = await argon2.hash(password);
-      const newUserId = `u-${crypto.randomUUID()}`;
+      const newUserId = crypto.randomUUID();
 
       await dbPrimary.insert(users).values({
         id: newUserId,

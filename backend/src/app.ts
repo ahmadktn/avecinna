@@ -9,6 +9,8 @@ import { breakGlassRoutes } from './routes/breakGlass';
 import { documentsRoutes } from './routes/documents';
 import { auditRoutes } from './routes/audit';
 import { healthRoutes } from './routes/health';
+import appointmentsRoutes from './routes/appointments';
+import clerkRoutes from './routes/clerk';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -134,6 +136,8 @@ export async function buildApp() {
   await fastify.register(breakGlassRoutes, { prefix: '/api/v1' });
   await fastify.register(documentsRoutes, { prefix: '/api/v1' });
   await fastify.register(auditRoutes, { prefix: '/api/v1' });
+  await fastify.register(appointmentsRoutes, { prefix: '/api/v1' });
+  await fastify.register(clerkRoutes, { prefix: '/api/v1' });
 
   return fastify;
 }
