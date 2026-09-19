@@ -497,9 +497,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useAuth } from '~/composables/useAuth'
 import { useNurse } from '~/composables/useNurse'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
+const auth = useAuth()
 const nurse = useNurse()
 
 const showVitalsModal = ref(false)
@@ -513,7 +516,7 @@ const loading = computed(() => nurse.loading.value)
 const error = computed(() => nurse.error.value)
 const overview = computed(() => nurse.overview.value)
 
-const activeWard = computed(() => overview.value?.activeWard)
+const activeWard = computed(() => auth.activeWard.value || overview.value?.activeWard)
 const activeWardName = computed(() => activeWard.value?.name || 'Cardiology Ward')
 const activeWardCode = computed(() => activeWard.value?.code || 'CARD')
 
@@ -612,6 +615,7 @@ const handleSaveVitals = async () => {
     successMsg.value = 'Vital signs observation recorded and appended to patient chart!'
     showVitalsModal.value = false
     await loadOverview()
+    triggerGlobalRefresh()
   } catch (err: any) {
     // Error is set in composable
   } finally {
@@ -619,7 +623,6 @@ const handleSaveVitals = async () => {
   }
 }
 
-onMounted(() => {
-  loadOverview()
-})
+// Auto-refresh when ward changes, vitals saved globally, or every 15s in background
+useAutoRefresh(() => loadOverview(), { interval: 15000 })
 </script>

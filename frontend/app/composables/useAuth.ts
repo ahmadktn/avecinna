@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from './useApi'
+import { triggerGlobalRefresh } from './useAutoRefresh'
 
 export interface Ward {
   id: string
@@ -139,6 +140,7 @@ export const useAuth = () => {
       }>('/auth/switch-ward', { targetWardId })
 
       activeWard.value = res.activeWard
+      triggerGlobalRefresh()
       return res
     } catch (err: any) {
       error.value = err.message || 'Failed to switch working ward'

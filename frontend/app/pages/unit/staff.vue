@@ -383,9 +383,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import RoleBadge from '~/components/RoleBadge.vue'
 import { useUnit, type UnitStaffMember, type UnitCandidateMember } from '~/composables/useUnit'
+import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const unit = useUnit()
 const showReassignModal = ref(false)

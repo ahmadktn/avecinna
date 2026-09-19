@@ -47,12 +47,14 @@
     <BreakGlassModal
       :isOpen="showBreakGlass"
       @close="showBreakGlass = false"
+      @unlocked="onBreakGlassUnlocked"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
 const isMobileSidebarOpen = ref(false)
 const showWardSwitcher = ref(false)
@@ -60,5 +62,11 @@ const showBreakGlass = ref(false)
 
 const onWardSwitched = () => {
   showWardSwitcher.value = false
+  triggerGlobalRefresh()
+}
+
+const onBreakGlassUnlocked = () => {
+  showBreakGlass.value = false
+  triggerGlobalRefresh()
 }
 </script>

@@ -347,9 +347,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { useAuth } from '~/composables/useAuth'
 import { useUnit } from '~/composables/useUnit'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
+const auth = useAuth()
 const unitApi = useUnit()
 
 const successMessage = ref<string | null>(null)
@@ -358,8 +361,8 @@ const loading = computed(() => unitApi.loading.value)
 const error = computed(() => unitApi.error.value)
 const overview = computed(() => unitApi.overview.value)
 
-const wardName = computed(() => overview.value?.ward?.name || 'Cardiology Ward')
-const wardCode = computed(() => overview.value?.ward?.code || 'CARD')
+const wardName = computed(() => auth.activeWard.value?.name || overview.value?.ward?.name || 'Cardiology Ward')
+const wardCode = computed(() => auth.activeWard.value?.code || overview.value?.ward?.code || 'CARD')
 
 const metrics = computed(() => {
   return (
@@ -416,7 +419,6 @@ const formatDateTime = (iso: string) => {
   })
 }
 
-onMounted(() => {
-  loadOverview()
-})
+// Auto-refresh when ward changes, security alerts resolved, or every 15s in background
+useAutoRefresh(() => loadOverview(), { interval: 15000 })
 </script>

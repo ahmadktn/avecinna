@@ -284,9 +284,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useDoctor } from '~/composables/useDoctor'
+import { useAutoRefresh } from '~/composables/useAutoRefresh'
 import type { Patient } from '~/composables/usePatients'
 
 const auth = useAuth()
@@ -331,13 +332,8 @@ const loadOverview = async () => {
   }
 }
 
-onMounted(() => {
-  loadOverview()
-})
-
-const onWardSwitched = () => {
-  loadOverview()
-}
+// Auto-refresh when ward changes, global refresh triggers, or every 15s in background
+useAutoRefresh(() => loadOverview(), { interval: 15000 })
 
 const openCareTeam = (patient: Patient) => {
   selectedPatientId.value = patient.id
