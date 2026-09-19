@@ -94,7 +94,7 @@
     - [x] Backend Endpoints: `GET /api/v1/nurse/overview`, `POST /api/v1/nurse/vitals`, `GET /api/v1/care-teams/my-assignments`, `scope` query on `GET /api/v1/patients`, role DTO masking with `nursingCarePlan`
   - [x] **Complete Clinical UI/UX Overhaul & Standardization**:
     - [x] Unified layout rhythm: Standardized sidebar width to `w-56`, main content padding offset to `pl-56`, and spacing to `space-y-5`.
-    - [x] Clinical typography hierarchy: Inter (`font-sans`), Fraunces (`font-brand` for headings and wordmarks), IBM Plex Mono (`font-mono` for IDs, MRNs, vitals, timestamps).
+    - [x] Clinical typography hierarchy: Space Grotesk (`font-brand` for display & headings), Lato (`font-body` for subtitles, narratives & alerts), Inter (`font-sans` for UI controls & tables), IBM Plex Mono (`font-mono` for MRNs, vitals & hashes).
     - [x] Color de-escalation: Neutralized KPI stat card icons to `bg-slate-100 text-slate-500`, softened Break-Glass action to subtle ghost outline, removed loud multi-color clutter.
     - [x] Refactored all 25+ views across Doctor, Head of Unit, Nurse, Clerk, Pharmacy, and Admin personas.
   - [x] **Nuxt 4 Native Layout Engine & Reusable Component Library Refactoring**:

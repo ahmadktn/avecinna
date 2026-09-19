@@ -5,7 +5,7 @@
         <h1 class="font-brand text-xl font-semibold text-slate-900 tracking-tight">{{ title }}</h1>
         <slot name="badge" />
       </div>
-      <p v-if="subtitle || description" class="text-xs text-slate-500 mt-1">{{ subtitle || description }}</p>
+      <p v-if="subtitle || description" class="font-body text-xs text-slate-500 mt-1 leading-relaxed">{{ subtitle || description }}</p>
     </div>
 
     <div v-if="$slots.actions" class="flex items-center gap-3">

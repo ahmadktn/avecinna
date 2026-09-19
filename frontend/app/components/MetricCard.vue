@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
     <div class="flex items-center justify-between text-slate-400 mb-2">
-      <span class="text-xs font-bold uppercase tracking-wider text-slate-500">{{ label }}</span>
+      <span class="font-body text-xs font-bold uppercase tracking-wider text-slate-500">{{ label }}</span>
       <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
         <slot name="icon" />
       </div>
@@ -14,7 +14,7 @@
       {{ value }}
     </p>
 
-    <p v-if="subtext" class="text-xs text-slate-400 mt-1">
+    <p v-if="subtext" class="font-body text-xs text-slate-400 mt-1">
       {{ subtext }}
     </p>
   </div>

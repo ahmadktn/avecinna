@@ -14,8 +14,8 @@
         <!-- Modal Header -->
         <div class="flex items-start justify-between gap-4 mb-5">
           <div>
-            <h3 class="text-lg font-bold text-slate-900 tracking-tight">{{ title }}</h3>
-            <p v-if="description" class="text-xs text-slate-500 mt-1 leading-relaxed">{{ description }}</p>
+            <h3 class="font-brand text-lg font-bold text-slate-900 tracking-tight">{{ title }}</h3>
+            <p v-if="description" class="font-body text-xs text-slate-500 mt-1 leading-relaxed">{{ description }}</p>
           </div>
           <button
             type="button"
