@@ -46,7 +46,7 @@
         </div>
 
         <!-- KPI Telemetry Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
             <div class="flex items-center justify-between text-slate-500 mb-2">
               <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Shifts</span>
@@ -121,7 +121,7 @@
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           <div class="relative w-full md:w-72">
             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -402,9 +402,10 @@
     <!-- Assign Duty Shift Modal -->
     <div
       v-if="showCreateShiftModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+      @click.self="showCreateShiftModal = false"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/60 backdrop-blur-xs overflow-y-auto"
     >
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5">
+      <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-7 space-y-5 max-h-[90vh] overflow-y-auto my-6 sm:my-8">
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900 tracking-tight">Assign Ward Duty Shift</h3>
@@ -533,18 +534,18 @@
           </div>
 
           <!-- Form Actions -->
-          <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100">
             <button
               type="button"
               @click="showCreateShiftModal = false"
-              class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+              class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors cursor-pointer text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="submitLoading"
-              class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
             >
               <span v-if="submitLoading" class="animate-pulse">Assigning...</span>
               <span v-else>Assign Duty Shift</span>

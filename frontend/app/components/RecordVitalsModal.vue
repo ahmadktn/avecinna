@@ -3,7 +3,7 @@
     v-if="isOpen"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
   >
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-7 space-y-5">
+    <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 sm:p-7 space-y-5 max-h-[90vh] overflow-y-auto my-6 sm:my-8">
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4">
         <div>

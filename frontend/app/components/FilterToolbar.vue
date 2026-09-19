@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+  <div class="bg-white border border-slate-200/90 rounded-xl p-3.5 sm:p-4 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
     <!-- Search Bar -->
     <div v-if="searchable" class="relative w-full md:w-80">
       <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,7 +15,7 @@
     </div>
 
     <!-- Filters & Tabs Slot -->
-    <div class="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap">
+    <div class="flex items-center gap-2.5 sm:gap-3 w-full md:w-auto justify-start md:justify-end flex-wrap">
       <slot name="filters" />
 
       <!-- Count Badge -->

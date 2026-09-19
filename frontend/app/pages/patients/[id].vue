@@ -172,7 +172,7 @@
                 </button>
               </div>
 
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
                   <p class="text-slate-500 text-[11px] font-semibold">Blood Pressure</p>
                   <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.bp || '120/80' }}</p>

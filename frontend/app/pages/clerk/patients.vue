@@ -201,9 +201,9 @@
     <div
       v-if="showBedModal && activePatient"
       @click.self="showBedModal = false"
-      class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
     >
-      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto my-6 sm:my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Update Bed & Ward Assignment</h3>
         <p class="text-xs text-slate-500 mb-6">Allocate bed space or transfer <strong class="text-slate-800">{{ activePatient.fullName }}</strong> ({{ activePatient.mrn }}).</p>
 
@@ -243,18 +243,18 @@
             />
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               @click="showBedModal = false"
-              class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold"
+              class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-center cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="actionLoading"
-              class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs flex items-center gap-2 cursor-pointer"
+              class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <span v-if="actionLoading" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               <span>Save Bed Assignment</span>
@@ -268,9 +268,9 @@
     <div
       v-if="showQueueModal && activePatient"
       @click.self="showQueueModal = false"
-      class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
     >
-      <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 relative my-8">
+      <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto my-6 sm:my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Add to Consultation Queue</h3>
         <p class="text-xs text-slate-500 mb-6">Schedule consultation slot for <strong class="text-slate-800">{{ activePatient.fullName }}</strong> ({{ activePatient.mrn }}).</p>
 
@@ -321,21 +321,21 @@
             />
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               @click="showQueueModal = false"
-              class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold"
+              class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-center cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="actionLoading"
-              class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs flex items-center gap-2 cursor-pointer"
+              class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs flex items-center justify-center gap-2 cursor-pointer"
             >
               <span v-if="actionLoading" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <span>Confirm Consultation Slot</span>
+              <span>Confirm Queue Slot</span>
             </button>
           </div>
         </form>

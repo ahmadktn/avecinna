@@ -50,7 +50,7 @@
     </PageHeader>
 
     <!-- 4 KPI Telemetry Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         label="Authorized Inpatients"
         :value="wardCount"

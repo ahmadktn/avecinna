@@ -104,7 +104,7 @@
                 <span class="text-[11px] text-slate-400 font-mono">Clinical Observations</span>
               </div>
 
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
                 <div>
                   <label class="block text-[11px] font-semibold text-slate-600 mb-1">Blood Pressure</label>
                   <input
@@ -328,10 +328,12 @@
                       <button
                         type="button"
                         @click="removePrescriptionRow(index)"
-                        class="px-2.5 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors shrink-0 font-bold"
+                        class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors shrink-0 flex items-center justify-center cursor-pointer"
                         title="Remove medication"
                       >
-                        ✕
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -422,10 +424,12 @@
                     <button
                       type="button"
                       @click="removeLabOrderRow(index)"
-                      class="px-2.5 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors shrink-0 font-bold self-end"
+                      class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg border border-red-200 transition-colors shrink-0 self-end flex items-center justify-center cursor-pointer"
                       title="Remove lab order"
                     >
-                      ✕
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     </button>
                   </div>
                 </div>

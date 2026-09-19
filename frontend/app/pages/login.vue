@@ -13,7 +13,7 @@
     </div>
 
     <!-- Login Form Card -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl w-full max-w-lg p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl w-full max-w-lg p-5 sm:p-8 md:p-10 shadow-2xl backdrop-blur-xl">
       <!-- Backend Error Alert -->
       <div v-if="error" class="bg-red-950/80 border border-red-800/80 text-red-200 p-4 rounded-xl text-xs mb-6 flex items-start gap-3 shadow-lg animate-fadeIn">
         <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

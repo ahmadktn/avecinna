@@ -81,11 +81,11 @@
         <div class="space-y-4">
           <!-- Clean Tabs Header -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
               <button
                 type="button"
                 @click="activeTab = 'inpatients'"
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0"
                 :class="activeTab === 'inpatients' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'"
               >
                 <span>Inpatient Roster ({{ activeWardCode }})</span>
@@ -100,7 +100,7 @@
               <button
                 type="button"
                 @click="activeTab = 'consultations'"
-                class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2"
+                class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0"
                 :class="activeTab === 'consultations' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'"
               >
                 <span>Today's Consultations</span>

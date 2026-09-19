@@ -53,12 +53,11 @@ profile-*
 *code-workspace
 
 # clinic
-profile*
+.clinic/
 *clinic*
 *flamegraph*
 
-
 dev-docs/
-screens
-components
-design-system
+screens/
+/components/
+design-system/

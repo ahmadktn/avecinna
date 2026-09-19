@@ -1,18 +1,32 @@
 <template>
-  <aside class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-white h-screen flex flex-col justify-between z-40 border-r border-slate-900/80 select-none">
+  <aside
+    class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-white h-screen flex flex-col justify-between z-50 lg:z-30 border-r border-slate-900/80 select-none transition-transform duration-300 ease-in-out"
+    :class="isMobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'"
+  >
     <div class="flex flex-col min-h-0 flex-1">
       <!-- Brand Header -->
-      <div class="px-5 py-5 flex items-center gap-3 border-b border-slate-900/80">
-        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 text-white">
-       		<img src="/avecinna icon.png">
-          <!--<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-          </svg>-->
+      <div class="px-5 py-4 sm:py-5 flex items-center justify-between border-b border-slate-900/80">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 p-1">
+            <img src="/avecinna icon.png" alt="Avecinna" class="w-full h-full object-contain" />
+          </div>
+          <div class="min-w-0">
+            <span class="font-brand text-base font-semibold tracking-tight text-white block leading-none">Avecinna</span>
+            <span class="text-[10px] text-slate-500 font-mono tracking-wider uppercase mt-0.5 block truncate">Context-Aware EMR</span>
+          </div>
         </div>
-        <div>
-          <span class="font-brand text-base font-semibold tracking-tight text-white block leading-none">Avecinna</span>
-          <span class="text-[10px] text-slate-500 font-mono tracking-wider uppercase mt-0.5 block">Context-Aware EMR</span>
-        </div>
+
+        <!-- Mobile Close Button -->
+        <button
+          type="button"
+          @click="$emit('close')"
+          class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer shrink-0"
+          aria-label="Close navigation sidebar"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <!-- Navigation Links -->
@@ -394,12 +408,28 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 
+defineProps<{
+  isMobileOpen?: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const auth = useAuth()
 const route = useRoute()
+
+// Auto-close sidebar on route change on mobile devices
+watch(
+  () => route.path,
+  () => {
+    emit('close')
+  }
+)
 
 const user = computed(() => auth.user.value)
 const role = computed(() => auth.role.value)

@@ -2,11 +2,11 @@
   <div
     v-if="isOpen"
     @click.self="$emit('close')"
-    class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+    class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
     role="dialog"
     aria-modal="true"
   >
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative my-8 max-h-[90vh] overflow-y-auto space-y-6">
+    <div class="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full p-5 sm:p-8 shadow-2xl border border-slate-200 relative my-6 sm:my-8 max-h-[90vh] overflow-y-auto space-y-6">
       <!-- Close Button -->
       <button
         type="button"
@@ -36,12 +36,20 @@
       <!-- Feedback Alerts -->
       <div v-if="successMsg" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-xl text-xs flex items-center justify-between">
         <span>{{ successMsg }}</span>
-        <button type="button" @click="successMsg = null" class="font-bold cursor-pointer">✕</button>
+        <button type="button" @click="successMsg = null" class="text-emerald-700 hover:text-emerald-900 cursor-pointer p-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <div v-if="errorMsg" class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs flex items-center justify-between">
         <span>{{ errorMsg }}</span>
-        <button type="button" @click="errorMsg = null" class="font-bold cursor-pointer">✕</button>
+        <button type="button" @click="errorMsg = null" class="text-red-700 hover:text-red-900 cursor-pointer p-0.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <!-- Current Active Care Team Section -->
