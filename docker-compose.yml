@@ -1,46 +1,108 @@
-version: '3.8'
-
 services:
-  # 1. Primary PostgreSQL Database Container (Operational Clinical Data)
+  # =========================================================================
+  # 1. Primary PostgreSQL Database (Operational Clinical Data)
+  # =========================================================================
   primary_db:
     image: postgres:16-alpine
     container_name: avecinna_primary_postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgresPassword123!
-      POSTGRES_DB: avecinna_primary_db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${PRIMARY_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${PRIMARY_DB_PASSWORD:-postgresPassword123!}
+      POSTGRES_DB: ${PRIMARY_DB_NAME:-avecinna_primary_db}
     volumes:
       - primary_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d avecinna_primary_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${PRIMARY_DB_USER:-postgres} -d ${PRIMARY_DB_NAME:-avecinna_primary_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - avecinna_net
 
-  # 2. Isolated Audit PostgreSQL Database Container (Append-Only Merkle Audit Ledger)
+  # =========================================================================
+  # 2. Isolated Audit PostgreSQL Database (Append-Only SHA-256 Merkle Ledger)
+  # =========================================================================
   audit_db:
     image: postgres:16-alpine
     container_name: avecinna_audit_postgres
     restart: always
     environment:
-      POSTGRES_USER: audit_admin
-      POSTGRES_PASSWORD: auditPassword123!
-      POSTGRES_DB: avecinna_audit_db
-    ports:
-      - "5433:5432"
+      POSTGRES_USER: ${AUDIT_DB_USER:-audit_admin}
+      POSTGRES_PASSWORD: ${AUDIT_DB_PASSWORD:-auditPassword123!}
+      POSTGRES_DB: ${AUDIT_DB_NAME:-avecinna_audit_db}
     volumes:
       - audit_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U audit_admin -d avecinna_audit_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${AUDIT_DB_USER:-audit_admin} -d ${AUDIT_DB_NAME:-avecinna_audit_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - avecinna_net
 
+  # =========================================================================
+  # 3. Fastify Backend API
+  # =========================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: avecinna_backend
+    restart: always
+    depends_on:
+      primary_db:
+        condition: service_healthy
+      audit_db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      DATABASE_URL_PRIMARY: postgres://${PRIMARY_DB_USER:-postgres}:${PRIMARY_DB_PASSWORD:-postgresPassword123!}@primary_db:5432/${PRIMARY_DB_NAME:-avecinna_primary_db}
+      DATABASE_URL_AUDIT: postgres://${AUDIT_DB_USER:-audit_admin}:${AUDIT_DB_PASSWORD:-auditPassword123!}@audit_db:5432/${AUDIT_DB_NAME:-avecinna_audit_db}
+      JWT_SECRET: ${JWT_SECRET:-avecinna_super_secret_jwt_key_icsc_2026_hackathon}
+      SEED_DATABASE: ${SEED_DATABASE:-false}
+    expose:
+      - "4000"
+    networks:
+      - avecinna_net
+
+  # =========================================================================
+  # 4. Nuxt 4 Frontend
+  # =========================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE_URL: ${NUXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    container_name: avecinna_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      NUXT_PUBLIC_API_BASE_URL: ${NUXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    expose:
+      - "3000"
+    networks:
+      - avecinna_net
+
+# ===========================================================================
+# Persistent Storage Volumes
+# ===========================================================================
 volumes:
   primary_db_data:
     driver: local
   audit_db_data:
     driver: local
+
+# ===========================================================================
+# Internal Isolated Network
+# ===========================================================================
+networks:
+  avecinna_net:
+    driver: bridge
