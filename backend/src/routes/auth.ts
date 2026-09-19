@@ -49,7 +49,9 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body: any = request.body || {};
-      const { username, password, deviceId = 'default-workstation' } = body;
+      const { username, password } = body;
+      const rawDeviceId = body.deviceId || request.headers['user-agent'] || 'default-workstation';
+      const deviceId = String(rawDeviceId).slice(0, 500);
 
       if (!username || !password) {
         return reply.status(400).send({ error: 'Bad Request', message: 'Username and password are required.' });

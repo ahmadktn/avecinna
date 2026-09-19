@@ -80,7 +80,7 @@ export const useAuth = () => {
       }>('/auth/login', {
         username: usernameVal,
         password: passwordVal,
-        deviceId: typeof window !== 'undefined' ? window.navigator.userAgent : 'workstation-default',
+        deviceId: typeof window !== 'undefined' ? window.navigator.userAgent.slice(0, 150) : 'workstation-default',
       })
 
       token.value = res.token

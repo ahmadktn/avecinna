@@ -198,7 +198,7 @@ export const sessions = pgTable(
     shiftStart: timestamp('shift_start').notNull(),
     shiftEnd: timestamp('shift_end').notNull(),
     ipAddress: varchar('ip_address', { length: 45 }),
-    deviceId: varchar('device_id', { length: 100 }).notNull(),
+    deviceId: varchar('device_id', { length: 500 }).notNull(),
     expiresAt: timestamp('expires_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

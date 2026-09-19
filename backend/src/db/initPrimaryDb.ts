@@ -158,10 +158,11 @@ export async function initPrimaryDb() {
       shift_start TIMESTAMP NOT NULL,
       shift_end TIMESTAMP NOT NULL,
       ip_address VARCHAR(45),
-      device_id VARCHAR(100) NOT NULL,
+      device_id VARCHAR(500) NOT NULL,
       expires_at TIMESTAMP NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
+    ALTER TABLE sessions ALTER COLUMN device_id TYPE VARCHAR(500);
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(auth_token);
 
     -- Security Alerts
