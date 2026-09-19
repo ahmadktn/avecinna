@@ -1,20 +1,23 @@
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
-# Enable corepack and activate pnpm (project has pnpm-lock.yaml)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack and pin pnpm to version 9 (matches pnpm-lock.yaml version 9.0)
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
-# Install curl for container healthchecks and CA certificates
+# Install curl (healthchecks), ca-certificates, and build tools (python3, make, g++ for argon2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json pnpm-lock.yaml* ./
 
-# Install using pnpm lockfile (avoids npm arborizer edgesOut bug)
-RUN pnpm install --frozen-lockfile || npm install --legacy-peer-deps
+# Install exact dependencies using matching pnpm 9
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 

@@ -1,14 +1,14 @@
 # 1. Build Stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Enable corepack and activate pnpm (project has pnpm-lock.yaml)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Enable corepack and pin pnpm to version 9 (matches pnpm-lock.yaml version 9.0)
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 COPY package.json pnpm-lock.yaml* ./
 
-RUN pnpm install --frozen-lockfile || npm install --legacy-peer-deps
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -16,10 +16,10 @@ COPY . .
 ARG NUXT_PUBLIC_API_BASE_URL
 ENV NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL}
 
-RUN pnpm run build || npm run build
+RUN pnpm run build
 
-# 2. Production Runner Stage (Minimal Alpine footprint)
-FROM node:20-alpine AS runner
+# 2. Production Runner Stage (Minimal Alpine footprint on Node 22)
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
