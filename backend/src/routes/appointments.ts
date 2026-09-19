@@ -213,6 +213,7 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
           clinicWardId,
           appointmentDate,
         },
+        request,
       });
 
       return reply.status(201).send({
@@ -222,43 +223,37 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 3. PATCH /appointments/:id/status (Update appointment status e.g. IN_CONSULTATION, COMPLETED, CANCELLED)
+  // 4. PATCH /appointments/:id/status (Doctor / Clerk Updates Appointment Status)
   fastify.patch(
     '/appointments/:id/status',
     {
       preHandler: [fastify.authenticate],
       schema: {
-        tags: ['Outpatient Appointments & Clinic Scheduling'],
+        tags: ['Outpatient Appointments & Encounters'],
         summary: 'Update Appointment Status',
-        description: 'Updates consultation status (SCHEDULED, IN_CONSULTATION, COMPLETED, CANCELLED).',
+        description: 'Allows a doctor or clerk to mark an appointment as IN_CONSULTATION, COMPLETED, NO_SHOW, or CANCELLED.',
         security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+        },
         body: {
           type: 'object',
           required: ['status'],
           properties: {
-            status: {
-              type: 'string',
-              enum: ['SCHEDULED', 'IN_CONSULTATION', 'COMPLETED', 'CANCELLED'],
-            },
-            notes: { type: 'string' },
+            status: { type: 'string', enum: ['SCHEDULED', 'IN_CONSULTATION', 'COMPLETED', 'CANCELLED', 'NO_SHOW'] },
           },
         },
       },
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
       const { id } = request.params;
-      const body: any = request.body || {};
-      const { status, notes } = body;
-      const session = request.userSession || request.user;
+      const { status } = request.body as any;
+      const session = (request as any).userSession || (request as any).user;
 
-      if (!status) {
-        return reply.status(400).send({ error: 'Bad Request', message: 'Status is required.' });
-      }
-
-      const updateData: any = { status };
-      if (typeof notes === 'string') {
-        updateData.notes = notes;
-      }
+      const updateData: any = { status, updatedAt: new Date() };
 
       const [updated] = await dbPrimary
         .update(outpatientAppointments)
@@ -280,6 +275,7 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
           appointmentId: id,
           newStatus: status,
         },
+        request,
       });
 
       return reply.send({

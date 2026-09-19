@@ -174,6 +174,21 @@
                 </select>
               </div>
 
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-500 font-semibold">Device:</span>
+                <select
+                  v-model="selectedDeviceType"
+                  @change="onFilterChange"
+                  class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="ALL">All Devices</option>
+                  <option value="DESKTOP">Desktop / PC</option>
+                  <option value="TABLET">Tablet / Ward iPad</option>
+                  <option value="MOBILE">Mobile</option>
+                  <option value="PROXY_GATEWAY">Proxy Gateway (Sidecar)</option>
+                </select>
+              </div>
+
               <span class="text-xs font-bold text-slate-500 font-mono">
                 {{ pagination.total }} Chained Blocks
               </span>
@@ -190,6 +205,7 @@
                     <th class="px-6 py-4">Action</th>
                     <th class="px-6 py-4">Actor</th>
                     <th class="px-6 py-4">Ward</th>
+                    <th class="px-6 py-4">IP &amp; Device</th>
                     <th class="px-6 py-4 font-mono">Current Hash</th>
                     <th class="px-6 py-4 font-mono">Previous Hash</th>
                     <th class="px-6 py-4">Timestamp</th>
@@ -211,6 +227,22 @@
                     </td>
                     <td class="px-6 py-4.5 font-semibold text-slate-800">{{ b.userId }}</td>
                     <td class="px-6 py-4.5 font-mono text-slate-600">{{ b.activeWard }}</td>
+                    <td class="px-6 py-4.5">
+                      <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-1.5">
+                          <span class="font-mono text-slate-800 text-[11px] font-semibold">{{ b.ipAddress || '127.0.0.1' }}</span>
+                          <span
+                            v-if="b.deviceType"
+                            class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200"
+                          >
+                            {{ b.deviceType }}
+                          </span>
+                        </div>
+                        <span v-if="b.deviceInfo" class="text-[10px] text-slate-400 truncate max-w-[130px]" :title="b.deviceInfo">
+                          {{ b.deviceInfo }}
+                        </span>
+                      </div>
+                    </td>
                     <td class="px-6 py-4.5 font-mono text-[11px] text-slate-500 select-all">
                       {{ b.blockHash.slice(0, 10) }}...{{ b.blockHash.slice(-6) }}
                     </td>
@@ -226,7 +258,7 @@
                   </tr>
 
                   <tr v-if="!loading && blocksList.length === 0">
-                    <td colspan="8" class="py-16 text-center text-slate-400">
+                    <td colspan="9" class="py-16 text-center text-slate-400">
                       No audit blocks found matching search criteria.
                     </td>
                   </tr>
@@ -265,7 +297,7 @@
 
         <!-- Tab 2: Dedicated Ledger Analysis -->
         <div v-else-if="activeTab === 'analytics'" class="space-y-8">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Action Distribution Breakdown -->
             <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6">
               <div>
@@ -313,6 +345,33 @@
                   <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                     <div
                       class="bg-purple-600 h-full rounded-full transition-all duration-500"
+                      :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, analytics?.metrics.totalBlocks || 1)) * 100))}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Device & Channel Breakdown -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Client Device Distribution</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Audit logging events categorized by originating client hardware &amp; interface</p>
+              </div>
+
+              <div class="space-y-4">
+                <div
+                  v-for="(count, deviceName) in (analytics?.deviceDistribution || { DESKTOP: analytics?.metrics?.totalBlocks || 0 })"
+                  :key="deviceName"
+                  class="space-y-1.5"
+                >
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-800 uppercase tracking-wider text-[11px]">{{ deviceName }}</span>
+                    <span class="font-mono text-slate-600 font-bold">{{ count }} Events</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      class="bg-emerald-600 h-full rounded-full transition-all duration-500"
                       :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, analytics?.metrics.totalBlocks || 1)) * 100))}%` }"
                     ></div>
                   </div>
@@ -384,7 +443,11 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                     {{ flag }}
                   </p>
-                  <p class="text-slate-500 text-[11px] font-mono">Actor: {{ item.userId }} · Active Ward: {{ item.activeWard }}</p>
+                  <p class="text-slate-500 text-[11px] font-mono">
+                    Actor: {{ item.userId }} &middot; Active Ward: {{ item.activeWard }}
+                    <span v-if="item.ipAddress" class="ml-2 text-slate-700 font-semibold">&middot; Origin IP: {{ item.ipAddress }}</span>
+                    <span v-if="item.deviceInfo" class="ml-1 text-slate-400">({{ item.deviceInfo }})</span>
+                  </p>
                 </div>
               </div>
 
@@ -822,6 +885,17 @@
                     </div>
                   </div>
 
+                  <div v-if="selectedMerkleNode.ipAddress" class="p-3 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-xs flex items-center justify-between">
+                    <div>
+                      <span class="text-slate-500 block text-[10px]">Client Origin IP &amp; Device</span>
+                      <span class="text-blue-300 font-bold select-all">{{ selectedMerkleNode.ipAddress }}</span>
+                      <span v-if="selectedMerkleNode.deviceInfo" class="text-slate-400 ml-2 text-[11px] font-sans">({{ selectedMerkleNode.deviceInfo }})</span>
+                    </div>
+                    <span v-if="selectedMerkleNode.deviceType" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-bold">
+                      {{ selectedMerkleNode.deviceType }}
+                    </span>
+                  </div>
+
                   <div v-if="selectedMerkleNode.prevHash" class="p-3 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-xs">
                     <span class="text-slate-500 block text-[10px] mb-0.5">Previous Chained Block Link (prev_hash):</span>
                     <span class="text-slate-300 select-all break-all">{{ selectedMerkleNode.prevHash }}</span>
@@ -886,6 +960,67 @@
             <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
               <span class="text-slate-400 block text-[11px]">Active Working Ward</span>
               <span class="font-bold text-slate-900">{{ selectedLog.activeWard }}</span>
+            </div>
+          </div>
+
+          <!-- Network & Device Forensics -->
+          <div class="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3 font-sans">
+            <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span class="text-slate-700 font-bold text-xs uppercase tracking-wider">Network &amp; Device Forensics</span>
+              </div>
+              <span
+                v-if="selectedLog.deviceType"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200/80 text-slate-700 font-mono"
+              >
+                {{ selectedLog.deviceType }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200/70">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Origin Client IP</span>
+                <span class="font-mono font-bold text-slate-900 text-[11px] select-all">{{ selectedLog.ipAddress || '127.0.0.1' }}</span>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200/70">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Client Environment</span>
+                <span class="font-medium text-slate-800 text-[11px] truncate block" :title="selectedLog.deviceInfo || 'Desktop Browser'">
+                  {{ selectedLog.deviceInfo || 'Desktop Browser' }}
+                </span>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200/70">
+                <span class="text-slate-400 block text-[10px] uppercase font-semibold">Execution Mode</span>
+                <span class="font-mono font-bold text-blue-600 text-[11px]">
+                  {{ selectedLog.executionMode || 'MODE_A' }}
+                </span>
+              </div>
+            </div>
+
+            <div v-if="selectedLog.httpMethod || selectedLog.requestPath" class="bg-white p-2.5 rounded-xl border border-slate-200/70 flex items-center justify-between gap-2">
+              <span class="text-slate-400 text-[10px] uppercase font-semibold shrink-0">Request Endpoint</span>
+              <div class="flex items-center gap-1.5 font-mono text-[11px] overflow-hidden text-right">
+                <span v-if="selectedLog.httpMethod" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 shrink-0">
+                  {{ selectedLog.httpMethod }}
+                </span>
+                <span class="text-slate-700 truncate select-all">{{ selectedLog.requestPath || '/api/v1' }}</span>
+              </div>
+            </div>
+
+            <div v-if="selectedLog.requestId" class="bg-white p-2.5 rounded-xl border border-slate-200/70 flex items-center justify-between gap-2">
+              <span class="text-slate-400 text-[10px] uppercase font-semibold shrink-0">Correlation Request ID</span>
+              <span class="font-mono text-[11px] text-slate-600 truncate select-all">{{ selectedLog.requestId }}</span>
+            </div>
+
+            <div v-if="selectedLog.userAgent" class="bg-white p-2.5 rounded-xl border border-slate-200/70 space-y-1">
+              <span class="text-slate-400 text-[10px] uppercase font-semibold block">User Agent</span>
+              <span class="font-mono text-[10px] text-slate-500 break-all block leading-relaxed select-all">
+                {{ selectedLog.userAgent }}
+              </span>
             </div>
           </div>
 
@@ -962,6 +1097,7 @@ const activeTab = ref<'ledger' | 'analytics' | 'flags' | 'tree'>('ledger')
 
 const searchQuery = ref('')
 const selectedAction = ref('ALL')
+const selectedDeviceType = ref('ALL')
 let searchTimeout: any = null
 
 const blocksList = audit.blocks
@@ -1187,6 +1323,14 @@ const openLogDrawerFromLeafNode = (node: MerkleNode) => {
     action: node.action || 'AUDIT_EVENT',
     activeWard: node.activeWard || 'N/A',
     payloadHash: node.payloadHash || '',
+    ipAddress: node.ipAddress || null,
+    userAgent: node.userAgent || null,
+    deviceType: node.deviceType || null,
+    deviceInfo: node.deviceInfo || null,
+    httpMethod: node.httpMethod || null,
+    requestPath: node.requestPath || null,
+    executionMode: (node.executionMode as any) || null,
+    requestId: node.requestId || null,
     isOfflineSync: false,
     createdAt: node.timestamp || new Date().toISOString(),
   }
@@ -1212,6 +1356,7 @@ const loadBlocks = async (page = 1) => {
       limit: 20,
       search: searchQuery.value,
       action: selectedAction.value,
+      deviceType: selectedDeviceType.value,
     })
   } catch (err) {
     // Handled in composable
@@ -1257,6 +1402,14 @@ const openLogDrawerFromFlag = (flaggedItem: any) => {
     action: flaggedItem.action,
     activeWard: flaggedItem.activeWard,
     payloadHash: flaggedItem.payloadHash,
+    ipAddress: flaggedItem.ipAddress || null,
+    userAgent: flaggedItem.userAgent || null,
+    deviceType: flaggedItem.deviceType || null,
+    deviceInfo: flaggedItem.deviceInfo || null,
+    httpMethod: flaggedItem.httpMethod || null,
+    requestPath: flaggedItem.requestPath || null,
+    executionMode: flaggedItem.executionMode || null,
+    requestId: flaggedItem.requestId || null,
     isOfflineSync: false,
     createdAt: flaggedItem.createdAt,
   }

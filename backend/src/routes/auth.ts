@@ -111,6 +111,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         action: 'USER_LOGIN_SUCCESS',
         activeWard: user.homeWardId,
         payload: { username: user.username, role: user.role, deviceId },
+        request,
       });
 
       return reply.send({
@@ -182,6 +183,7 @@ export async function authRoutes(fastify: FastifyInstance) {
           newWardId: targetWardId,
           newWardCode: targetWard.code,
         },
+        request,
       });
 
       return reply.send({
@@ -277,6 +279,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         action: 'USER_PROFILE_UPDATE',
         activeWard: session.activeWardId,
         payload: { updatedFields: Object.keys(updateData) },
+        request,
       });
 
       return reply.send({

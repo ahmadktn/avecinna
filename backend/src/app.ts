@@ -1,5 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { sql } from 'drizzle-orm';
+import { dbAudit } from './db/clientAudit';
 import authPlugin from './plugins/authPlugin';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -144,6 +146,50 @@ export async function buildApp() {
   await fastify.register(careTeamsRoutes, { prefix: '/api/v1' });
   await fastify.register(doctorRoutes, { prefix: '/api/v1' });
   await fastify.register(nurseRoutes, { prefix: '/api/v1' });
+
+  // 6. Ensure audit_blocks table and forensic metadata columns exist
+  try {
+    await dbAudit.execute(sql`
+      CREATE TABLE IF NOT EXISTS audit_blocks (
+        index_num BIGSERIAL PRIMARY KEY,
+        block_hash VARCHAR(64) NOT NULL UNIQUE,
+        prev_hash VARCHAR(64) NOT NULL,
+        user_id VARCHAR(36) NOT NULL,
+        patient_id VARCHAR(36),
+        action VARCHAR(50) NOT NULL,
+        active_ward VARCHAR(36) NOT NULL,
+        relationship_type VARCHAR(20),
+        payload_hash VARCHAR(64) NOT NULL,
+        ip_address VARCHAR(45),
+        user_agent VARCHAR(500),
+        device_type VARCHAR(30),
+        device_info VARCHAR(150),
+        http_method VARCHAR(10),
+        request_path VARCHAR(255),
+        execution_mode VARCHAR(20) DEFAULT 'MODE_A' NOT NULL,
+        request_id VARCHAR(64),
+        merkle_root VARCHAR(64),
+        signature VARCHAR(256),
+        is_offline_sync BOOLEAN DEFAULT FALSE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+      );
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS ip_address VARCHAR(45);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS user_agent VARCHAR(500);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS device_type VARCHAR(30);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS device_info VARCHAR(150);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS http_method VARCHAR(10);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS request_path VARCHAR(255);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS execution_mode VARCHAR(20) DEFAULT 'MODE_A';
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS request_id VARCHAR(64);
+      CREATE INDEX IF NOT EXISTS idx_audit_blocks_hash ON audit_blocks(block_hash);
+      CREATE INDEX IF NOT EXISTS idx_audit_blocks_user ON audit_blocks(user_id);
+      CREATE INDEX IF NOT EXISTS idx_audit_blocks_ip ON audit_blocks(ip_address);
+      CREATE INDEX IF NOT EXISTS idx_audit_blocks_action ON audit_blocks(action);
+    `);
+    fastify.log.info('🛡️  Audit database forensic schema verified.');
+  } catch (err: any) {
+    fastify.log.warn(`Audit database schema initialization skipped or failed: ${err.message}`);
+  }
 
   return fastify;
 }

@@ -15,14 +15,115 @@ export interface AuditEventInput {
   payload?: any;
   payloadHash?: string;
   ipAddress?: string;
+  userAgent?: string;
+  deviceType?: string;
+  deviceInfo?: string;
+  httpMethod?: string;
+  requestPath?: string;
+  requestId?: string;
   executionMode?: string;
+  request?: any; // FastifyRequest instance
 }
 
 const GENESIS_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
 
 /**
+ * Parses client network and device metadata from FastifyRequest or explicit overrides
+ */
+export function parseDeviceMetadata(
+  req?: any,
+  explicitIp?: string,
+  explicitUserAgent?: string,
+  explicitDeviceType?: string
+) {
+  let ipAddress = explicitIp;
+  let userAgent = explicitUserAgent;
+  let httpMethod = '';
+  let requestPath = '';
+  let requestId = '';
+
+  if (req) {
+    if (!ipAddress) {
+      ipAddress =
+        req.ip ||
+        (req.headers && req.headers['x-forwarded-for']
+          ? String(req.headers['x-forwarded-for']).split(',')[0].trim()
+          : '') ||
+        (req.socket && req.socket.remoteAddress) ||
+        '127.0.0.1';
+    }
+    if (!userAgent) {
+      userAgent = (req.headers && req.headers['user-agent']) || 'Unknown Client';
+    }
+    httpMethod = req.method || '';
+    requestPath = req.url || '';
+    requestId = req.id || '';
+  }
+
+  ipAddress = ipAddress || '127.0.0.1';
+  userAgent = userAgent || 'System Internal Process';
+
+  // Normalize IPv6 loopback
+  if (ipAddress === '::1' || ipAddress === '::ffff:127.0.0.1') {
+    ipAddress = '127.0.0.1';
+  }
+
+  // Parse device type & simplified device info from User-Agent
+  let deviceType = explicitDeviceType || 'DESKTOP';
+  let deviceInfo = 'Desktop Workstation';
+
+  const ua = userAgent.toLowerCase();
+  if (ua.includes('ipad') || ua.includes('tablet') || (ua.includes('android') && !ua.includes('mobi'))) {
+    deviceType = 'TABLET';
+    deviceInfo = 'Clinical Tablet';
+  } else if (ua.includes('mobi') || ua.includes('iphone') || ua.includes('android')) {
+    deviceType = 'MOBILE';
+    deviceInfo = 'Mobile Device';
+  } else if (ua.includes('postman') || ua.includes('curl') || ua.includes('node-fetch') || ua.includes('supertest')) {
+    deviceType = 'API_CLIENT';
+    deviceInfo = 'Automated / API Client';
+  } else if (ua.includes('proxy') || ua.includes('gateway')) {
+    deviceType = 'PROXY_GATEWAY';
+    deviceInfo = 'Mode B Gateway Sidecar';
+  }
+
+  // Extract browser and OS snippet if available
+  let browser = '';
+  if (ua.includes('firefox')) browser = 'Firefox';
+  else if (ua.includes('edg')) browser = 'Edge';
+  else if (ua.includes('chrome')) browser = 'Chrome';
+  else if (ua.includes('safari')) browser = 'Safari';
+
+  let os = '';
+  if (ua.includes('macintosh') || ua.includes('mac os')) os = 'macOS';
+  else if (ua.includes('windows')) os = 'Windows';
+  else if (ua.includes('linux')) os = 'Linux';
+  else if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ios')) os = 'iOS';
+  else if (ua.includes('android')) os = 'Android';
+
+  if (browser && os) {
+    deviceInfo = `${browser} on ${os}`;
+  } else if (browser) {
+    deviceInfo = `${browser} (${deviceType})`;
+  } else if (os) {
+    deviceInfo = `${os} (${deviceType})`;
+  }
+
+  return {
+    ipAddress: ipAddress.slice(0, 45),
+    userAgent: userAgent.slice(0, 500),
+    deviceType: deviceType.slice(0, 30),
+    deviceInfo: deviceInfo.slice(0, 150),
+    httpMethod: httpMethod.slice(0, 10),
+    requestPath: requestPath.slice(0, 255),
+    requestId: requestId.slice(0, 64),
+  };
+}
+
+/**
  * 1. Appends a new sequential block to the Hash Chain in avecinna_audit_db
  * Automatically called 100% server-side by Fastify route handlers & hooks.
+ * Cryptographically seals Actor, Action, Ward, Payload Hash, and Client IP into blockHash.
  */
 export async function appendAuditBlock(event: AuditEventInput) {
   const uId = event.userId || event.staffId || 'SYSTEM';
@@ -35,6 +136,16 @@ export async function appendAuditBlock(event: AuditEventInput) {
       .update(JSON.stringify(event.payload || {}))
       .digest('hex');
 
+  const meta = parseDeviceMetadata(event.request, event.ipAddress, event.userAgent, event.deviceType);
+  const ip = event.ipAddress || meta.ipAddress;
+  const ua = event.userAgent || meta.userAgent;
+  const devType = event.deviceType || meta.deviceType;
+  const devInfo = event.deviceInfo || meta.deviceInfo;
+  const method = event.httpMethod || meta.httpMethod;
+  const path = event.requestPath || meta.requestPath;
+  const reqId = event.requestId || meta.requestId;
+  const execMode = event.executionMode || 'MODE_A';
+
   // 1. Fetch latest block from isolated audit database (tail of the chain)
   const latestBlock = await dbAudit
     .select()
@@ -45,8 +156,8 @@ export async function appendAuditBlock(event: AuditEventInput) {
   const prevHash = latestBlock.length > 0 ? latestBlock[0].blockHash : GENESIS_HASH;
   const timestamp = new Date().toISOString();
 
-  // 2. Compute current block SHA-256 hash (Hash Chain formula)
-  const blockRawString = `${prevHash}|${uId}|${event.patientId || ''}|${act}|${ward}|${pHash}|${timestamp}`;
+  // 2. Compute current block SHA-256 hash (Hash Chain formula incorporating IP & Device)
+  const blockRawString = `${prevHash}|${uId}|${event.patientId || ''}|${act}|${ward}|${pHash}|${ip}|${timestamp}`;
   const currentBlockHash = crypto.createHash('sha256').update(blockRawString).digest('hex');
 
   // 3. Insert into isolated audit DB
@@ -62,6 +173,14 @@ export async function appendAuditBlock(event: AuditEventInput) {
         activeWard: ward,
         relationshipType: event.relationshipType,
         payloadHash: pHash,
+        ipAddress: ip,
+        userAgent: ua,
+        deviceType: devType,
+        deviceInfo: devInfo,
+        httpMethod: method,
+        requestPath: path,
+        requestId: reqId,
+        executionMode: execMode,
         isOfflineSync: false,
       })
       .returning();
@@ -84,6 +203,14 @@ export async function appendAuditBlock(event: AuditEventInput) {
           activeWard: ward,
           relationshipType: event.relationshipType,
           payloadHash: pHash,
+          ipAddress: ip,
+          userAgent: ua,
+          deviceType: devType,
+          deviceInfo: devInfo,
+          httpMethod: method,
+          requestPath: path,
+          requestId: reqId,
+          executionMode: execMode,
           isOfflineSync: false,
         })
         .returning();
@@ -178,6 +305,14 @@ export interface MerkleNode {
   activeWard?: string;
   payloadHash?: string;
   prevHash?: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  deviceType?: string | null;
+  deviceInfo?: string | null;
+  httpMethod?: string | null;
+  requestPath?: string | null;
+  executionMode?: string | null;
+  requestId?: string | null;
   timestamp?: string;
   children?: string[]; // IDs of child nodes
   parentId?: string;
@@ -226,6 +361,14 @@ export async function getMerkleTreeHierarchy(): Promise<{
       activeWard: b.activeWard,
       payloadHash: b.payloadHash,
       prevHash: b.prevHash,
+      ipAddress: b.ipAddress,
+      userAgent: b.userAgent,
+      deviceType: b.deviceType,
+      deviceInfo: b.deviceInfo,
+      httpMethod: b.httpMethod,
+      requestPath: b.requestPath,
+      executionMode: b.executionMode,
+      requestId: b.requestId,
       timestamp: b.createdAt.toISOString(),
     };
     nodesMap[id] = node;
@@ -273,29 +416,32 @@ export async function getMerkleTreeHierarchy(): Promise<{
   return {
     root: rootHash,
     totalLeaves: blocks.length,
-    levels: allLevels.reverse(), // Top-down: Root at index 0, Leaves at bottom
+    levels: allLevels,
     nodes: nodesMap,
   };
 }
 
 /**
- * 5. Comprehensive Ledger Analysis & Anomaly Detection
+ * 5. Deep Ledger Analytics & Anomaly Detection Summary (GET /api/v1/audit/analytics)
  */
 export async function getAuditLedgerAnalytics() {
   const blocks = await dbAudit.select().from(auditBlocks).orderBy(desc(auditBlocks.indexNum));
-  const verification = await verifyHashChainIntegrity();
+  const verification = await verifyAuditLedgerChain();
   const merkleRoot = await computeMerkleRoot();
 
-  // Action Distribution Breakdown
+  // Action, Ward, User, Device Breakdown
   const actionCounts: Record<string, number> = {};
   const wardCounts: Record<string, number> = {};
   const userCounts: Record<string, number> = {};
+  const deviceCounts: Record<string, number> = {};
   const timelineCounts: Record<string, number> = {}; // YYYY-MM-DD
 
   for (const b of blocks) {
     actionCounts[b.action] = (actionCounts[b.action] || 0) + 1;
     wardCounts[b.activeWard] = (wardCounts[b.activeWard] || 0) + 1;
     userCounts[b.userId] = (userCounts[b.userId] || 0) + 1;
+    const dType = b.deviceType || 'DESKTOP';
+    deviceCounts[dType] = (deviceCounts[dType] || 0) + 1;
 
     const dateKey = b.createdAt.toISOString().split('T')[0];
     timelineCounts[dateKey] = (timelineCounts[dateKey] || 0) + 1;
@@ -331,6 +477,10 @@ export async function getAuditLedgerAnalytics() {
         action: b.action,
         activeWard: b.activeWard,
         payloadHash: b.payloadHash,
+        ipAddress: b.ipAddress,
+        deviceType: b.deviceType,
+        deviceInfo: b.deviceInfo,
+        requestPath: b.requestPath,
         createdAt: b.createdAt.toISOString(),
         flags,
         severity,
@@ -354,6 +504,7 @@ export async function getAuditLedgerAnalytics() {
     },
     actionDistribution: actionCounts,
     wardDistribution: wardCounts,
+    deviceDistribution: deviceCounts,
     topActors: Object.entries(userCounts)
       .map(([userId, count]) => ({ userId, count }))
       .sort((a, b) => b.count - a.count)

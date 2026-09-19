@@ -75,6 +75,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
           action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
           activeWard: user.activeWardId,
           payload: { action: 'UPLOAD_DOCUMENT', reason: caacResult.denialReason },
+          request,
         });
         return reply.status(403).send({ error: caacResult.denialReason });
       }
@@ -105,6 +106,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         action: 'DOCUMENT_UPLOAD',
         activeWard: user.activeWardId,
         payloadHash: documentHash,
+        request,
       });
 
       return reply.status(201).send({
@@ -150,6 +152,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
           action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
           activeWard: user.activeWardId,
           payload: { action: 'GET_DOCUMENTS', reason: caacResult.denialReason },
+          request,
         });
         return reply.status(403).send({ error: caacResult.denialReason });
       }
@@ -166,6 +169,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         action: 'VIEW_DOCUMENTS',
         activeWard: user.activeWardId,
         payload: { count: docs.length },
+        request,
       });
 
       return reply.send({ documents: docs });
@@ -228,6 +232,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
           action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
           activeWard: user.activeWardId,
           payload: { action: 'CREATE_LAB_RESULT', reason: caacResult.denialReason },
+          request,
         });
         return reply.status(403).send({ error: caacResult.denialReason });
       }
@@ -260,6 +265,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         action: 'LAB_RESULT_UPLOAD',
         activeWard: user.activeWardId,
         payloadHash: documentHash,
+        request,
       });
 
       return reply.status(201).send({
@@ -305,6 +311,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
           action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
           activeWard: user.activeWardId,
           payload: { action: 'GET_LAB_RESULTS', reason: caacResult.denialReason },
+          request,
         });
         return reply.status(403).send({ error: caacResult.denialReason });
       }
@@ -321,6 +328,7 @@ export async function documentsRoutes(fastify: FastifyInstance) {
         action: 'VIEW_LAB_RESULTS',
         activeWard: user.activeWardId,
         payload: { count: labs.length },
+        request,
       });
 
       return reply.send({ labResults: labs });

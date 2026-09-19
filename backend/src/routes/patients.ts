@@ -49,6 +49,7 @@ export async function patientRoutes(fastify: FastifyInstance) {
           action: 'PATIENT_VIEW_BLOCKED',
           activeWard: session.activeWardId,
           payload: { reason: caacResult.denialReason },
+          request,
         });
 
         return reply.status(403).send({
@@ -69,6 +70,7 @@ export async function patientRoutes(fastify: FastifyInstance) {
         activeWard: session.activeWardId,
         relationshipType: caacResult.relationshipType || undefined,
         payload: { relationshipType: caacResult.relationshipType },
+        request,
       });
 
       return reply.send({
@@ -262,6 +264,7 @@ export async function patientRoutes(fastify: FastifyInstance) {
         action: 'PATIENT_CREATE',
         activeWard: session.activeWardId,
         payload: { mrn, fullName, primaryWardId },
+        request,
       });
 
       return reply.status(201).send({

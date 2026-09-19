@@ -151,6 +151,7 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
           grantReason,
           expiresAt: expiresAt ? expiresAt.toISOString() : null,
         },
+        request,
       });
 
       return reply.status(201).send({
@@ -206,6 +207,7 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
           revokedStaffId: deleted.staffId,
           relationshipType: deleted.relationshipType,
         },
+        request,
       });
 
       return reply.send({

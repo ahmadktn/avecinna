@@ -327,6 +327,7 @@ export async function doctorRoutes(fastify: FastifyInstance) {
           labOrdersCount: labOrders.length,
           appointmentId,
         },
+        request,
       });
 
       return reply.status(201).send({

@@ -55,6 +55,7 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         activeWard: session.activeWardId,
         relationshipType: 'BREAK_GLASS',
         payload: { tier: 1, action: 'EMERGENCY_SUMMARY_VIEW' },
+        request,
       });
 
       return reply.send({
@@ -131,6 +132,7 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
           tier: 2,
           justificationReason,
         },
+        request,
       });
 
       // D. AUTOMATIC High-Priority Security Alert in avecinna_primary_db

@@ -31,6 +31,14 @@ export interface AuditBlock {
   activeWard: string
   relationshipType?: string | null
   payloadHash: string
+  ipAddress?: string | null
+  userAgent?: string | null
+  deviceType?: string | null
+  deviceInfo?: string | null
+  httpMethod?: string | null
+  requestPath?: string | null
+  executionMode?: 'MODE_A' | 'MODE_B' | 'MODE_C' | string | null
+  requestId?: string | null
   merkleRoot?: string | null
   signature?: string | null
   isOfflineSync: boolean
@@ -52,6 +60,14 @@ export interface MerkleNode {
   payloadHash?: string
   prevHash?: string
   timestamp?: string
+  ipAddress?: string | null
+  userAgent?: string | null
+  deviceType?: string | null
+  deviceInfo?: string | null
+  httpMethod?: string | null
+  requestPath?: string | null
+  executionMode?: string | null
+  requestId?: string | null
   children?: string[]
   parentId?: string
 }
@@ -79,6 +95,7 @@ export interface AuditLedgerAnalytics {
   }
   actionDistribution: Record<string, number>
   wardDistribution: Record<string, number>
+  deviceDistribution?: Record<string, number>
   topActors: Array<{ userId: string; count: number }>
   timeline: Array<{ date: string; count: number }>
   flaggedEvents: Array<{
@@ -91,6 +108,10 @@ export interface AuditLedgerAnalytics {
     activeWard: string
     payloadHash: string
     createdAt: string
+    ipAddress?: string | null
+    deviceInfo?: string | null
+    deviceType?: string | null
+    requestPath?: string | null
     flags: string[]
     severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
   }>
@@ -122,7 +143,15 @@ export const useAudit = () => {
     }
   }
 
-  const fetchAuditBlocks = async (params?: { page?: number; limit?: number; search?: string; action?: string; ward?: string }) => {
+  const fetchAuditBlocks = async (params?: {
+    page?: number
+    limit?: number
+    search?: string
+    action?: string
+    ward?: string
+    deviceType?: string
+    ip?: string
+  }) => {
     loading.value = true
     error.value = null
     try {
@@ -132,6 +161,8 @@ export const useAudit = () => {
       if (params?.search) q.append('search', params.search)
       if (params?.action && params.action !== 'ALL') q.append('action', params.action)
       if (params?.ward && params.ward !== 'ALL') q.append('ward', params.ward)
+      if (params?.deviceType && params.deviceType !== 'ALL') q.append('deviceType', params.deviceType)
+      if (params?.ip) q.append('ip', params.ip)
 
       const endpoint = `/audit/blocks?${q.toString()}`
       const res = await api.get<{ blocks: AuditBlock[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(endpoint)

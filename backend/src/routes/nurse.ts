@@ -188,6 +188,7 @@ export async function nurseRoutes(fastify: FastifyInstance) {
           action: 'VITALS_RECORD_BLOCKED',
           activeWard: session.activeWardId,
           payload: { reason: caac.denialReason },
+          request,
         });
 
         return reply.status(403).send({
@@ -254,6 +255,7 @@ export async function nurseRoutes(fastify: FastifyInstance) {
           vitals: newVitalsObj,
           relationshipType: caac.relationshipType,
         },
+        request,
       });
 
       return reply.send({

@@ -1,5 +1,5 @@
 <template>
-  <aside class="fixed inset-y-0 left-0 w-60 bg-slate-950 text-white h-screen flex flex-col justify-between z-40 border-r border-slate-900/80 select-none">
+  <aside class="fixed inset-y-0 left-0 w-64 bg-slate-950 text-white h-screen flex flex-col justify-between z-40 border-r border-slate-900/80 select-none">
     <div class="flex flex-col min-h-0 flex-1">
       <!-- Brand Header -->
       <div class="px-5 py-5 flex items-center gap-3 border-b border-slate-900/80">

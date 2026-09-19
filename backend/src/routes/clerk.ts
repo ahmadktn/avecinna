@@ -292,6 +292,7 @@ export async function clerkRoutes(fastify: FastifyInstance) {
           assignedBed: updatedPatient.assignedBed,
           patientType: updatedPatient.patientType,
         },
+        request,
       });
 
       return reply.send({

@@ -369,6 +369,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
         action: 'STAFF_STATUS_UPDATE',
         activeWard: wardId,
         payload: { targetUserId: id, newStatus: isActive ? 'ACTIVE' : 'SUSPENDED' },
+        request,
       });
 
       return reply.send({
@@ -437,30 +438,29 @@ export async function unitRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 4. POST /unit/staff/reassign (Reassign Staff to Supervisor's Ward)
+  // 5. POST /unit/staff/reassign (Reassign staff member to this unit)
   fastify.post(
     '/unit/staff/reassign',
     {
       preHandler: [fastify.authenticate, requireHeadOfUnitRole],
       schema: {
         tags: ['Head of Unit Supervision'],
-        summary: 'Reassign Staff to Ward Unit',
+        summary: 'Reassign Staff Member to Unit',
+        description: 'Transfers a staff member from another ward into this unit supervisor\'s ward.',
         security: [{ bearerAuth: [] }],
         body: {
           type: 'object',
           required: ['staffId'],
           properties: {
             staffId: { type: 'string' },
-            wardId: { type: 'string' },
           },
         },
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
+      const { staffId } = request.body as any;
       const session = (request as any).userSession || (request as any).user;
-      const body = (request.body || {}) as any;
-      const targetWardId = body.wardId || session.activeWardId || session.homeWardId;
-      const { staffId } = body;
+      const targetWardId = session.activeWardId || session.homeWardId;
 
       const [updatedUser] = await dbPrimary
         .update(users)
@@ -477,6 +477,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
         action: 'STAFF_WARD_REASSIGN',
         activeWard: targetWardId,
         payload: { staffId, newWardId: targetWardId },
+        request,
       });
 
       return reply.send({
@@ -647,6 +648,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
           shiftType: body.shiftType,
           shiftDate: body.shiftDate,
         },
+        request,
       });
 
       return reply.status(201).send({
@@ -669,16 +671,14 @@ export async function unitRoutes(fastify: FastifyInstance) {
           type: 'object',
           required: ['status'],
           properties: {
-            status: { type: 'string', enum: ['SCHEDULED', 'ON_DUTY', 'COMPLETED', 'ABSENT'] },
+            status: { type: 'string', enum: ['SCHEDULED', 'ACTIVE', 'COMPLETED', 'ABSENT', 'SWAPPED'] },
           },
         },
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const params = request.params as any;
-      const body = (request.body || {}) as any;
-      const { id } = params;
-      const { status } = body;
+      const { id } = request.params as any;
+      const { status } = request.body as any;
       const session = (request as any).userSession || (request as any).user;
       const wardId = session.activeWardId || session.homeWardId;
 
@@ -697,6 +697,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
         action: 'STAFF_ROSTER_STATUS_UPDATE',
         activeWard: wardId,
         payload: { rosterId: id, newStatus: status },
+        request,
       });
 
       return reply.send({
@@ -736,6 +737,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
         action: 'STAFF_ROSTER_DELETED',
         activeWard: wardId,
         payload: { rosterId: id, staffId: deleted.staffId, shiftDate: deleted.shiftDate },
+        request,
       });
 
       return reply.send({
@@ -797,6 +799,7 @@ export async function unitRoutes(fastify: FastifyInstance) {
         action: 'SECURITY_ALERT_RESOLVED',
         activeWard: wardId,
         payload: { alertId: id },
+        request,
       });
 
       return reply.send({

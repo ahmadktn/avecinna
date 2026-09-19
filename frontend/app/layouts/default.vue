@@ -12,7 +12,7 @@
       />
 
       <!-- Page Content View -->
-      <main class="flex-1 w-full px-12 py-8 space-y-5">
+      <main class="flex-1 w-full px-14 py-8 space-y-5">
         <slot />
       </main>
     </div>

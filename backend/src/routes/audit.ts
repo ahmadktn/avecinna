@@ -100,7 +100,11 @@ export async function auditRoutes(fastify: FastifyInstance) {
             ilike(auditBlocks.userId, s),
             ilike(auditBlocks.patientId, s),
             ilike(auditBlocks.action, s),
-            ilike(auditBlocks.activeWard, s)
+            ilike(auditBlocks.activeWard, s),
+            ilike(auditBlocks.ipAddress, s),
+            ilike(auditBlocks.deviceInfo, s),
+            ilike(auditBlocks.deviceType, s),
+            ilike(auditBlocks.requestPath, s)
           )
         );
       }

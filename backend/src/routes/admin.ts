@@ -113,6 +113,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_USER_CREATE',
         activeWard: session.activeWardId,
         payload: { newUserId, username, role, homeWardId },
+        request,
       });
 
       return reply.status(201).send({
@@ -212,6 +213,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_USER_UPDATE',
         activeWard: session.activeWardId,
         payload: { targetUserId: id, updatedFields: Object.keys(updateData) },
+        request,
       });
 
       return reply.send({
@@ -267,6 +269,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_USER_STATUS_TOGGLE',
         activeWard: session.activeWardId,
         payload: { targetUserId: id, isActive },
+        request,
       });
 
       return reply.send({
@@ -346,6 +349,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_WARD_CREATE',
         activeWard: session.activeWardId,
         payload: { wardId, code, name },
+        request,
       });
 
       return reply.status(201).send({ message: 'Ward created successfully.', ward: newWard });
@@ -398,6 +402,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_WARD_UPDATE',
         activeWard: session.activeWardId,
         payload: { wardId: id, updateData },
+        request,
       });
 
       return reply.send({ message: 'Ward updated successfully.', ward: updatedWard });
@@ -447,6 +452,7 @@ export async function adminRoutes(fastify: FastifyInstance) {
         action: 'ADMIN_STAFF_WARD_ASSIGN',
         activeWard: session.activeWardId,
         payload: { targetUserId: userId, newWardId: targetWardId },
+        request,
       });
 
       return reply.send({ message: 'Staff member assigned to ward successfully.', user: updatedUser });
