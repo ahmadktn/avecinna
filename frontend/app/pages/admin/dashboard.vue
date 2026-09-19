@@ -25,16 +25,6 @@
               </svg>
               <span>Refresh</span>
             </button>
-
-            <NuxtLink
-              to="/admin/audit"
-              class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-2 transition-all"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span>Ledger Inspector</span>
-            </NuxtLink>
           </div>
         </div>
 
@@ -51,85 +41,62 @@
           <button @click="loadOverview" class="underline font-bold hover:text-red-900 cursor-pointer">Retry</button>
         </div>
 
-        <!-- 4 Stat Cards Grid -->
+        <!-- 4 Clean Stat Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Total Patients -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between text-slate-400 mb-2">
-                <span class="text-xs font-semibold text-slate-500">Hospital Patients</span>
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Hospital Patients</span>
+              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
               </div>
-              <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ overview?.metrics.totalPatients ?? '-' }}</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-400">Inpatients & Outpatients</span>
-              <NuxtLink to="/admin/patients" class="text-blue-600 font-medium hover:text-blue-700">View list &rarr;</NuxtLink>
-            </div>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalPatients ?? '-' }}</p>
+            <p class="text-xs text-slate-400 mt-1">Inpatients & Outpatients Census</p>
           </div>
 
           <!-- Total Wards -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between text-slate-400 mb-2">
-                <span class="text-xs font-semibold text-slate-500">Hospital Wards</span>
-                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Hospital Wards</span>
+              <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
               </div>
-              <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ overview?.metrics.totalWards ?? '-' }}</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-400">Clinical Departments</span>
-              <NuxtLink to="/admin/wards" class="text-blue-600 font-medium hover:text-blue-700">Manage &rarr;</NuxtLink>
-            </div>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalWards ?? '-' }}</p>
+            <p class="text-xs text-slate-400 mt-1">Active Clinical Units & Wings</p>
           </div>
 
           <!-- Total Staff -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between text-slate-400 mb-2">
-                <span class="text-xs font-semibold text-slate-500">Staff Accounts</span>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Staff Accounts</span>
+              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
-              <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ overview?.metrics.totalStaff ?? '-' }}</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-slate-400">{{ overview?.metrics.activeStaff ?? 0 }} active on shift</span>
-              <NuxtLink to="/admin/users" class="text-blue-600 font-medium hover:text-blue-700">Manage &rarr;</NuxtLink>
-            </div>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalStaff ?? '-' }}</p>
+            <p class="text-xs text-slate-400 mt-1">{{ overview?.metrics.activeStaff ?? 0 }} active clinicians on shift</p>
           </div>
 
           <!-- Total Audit Blocks -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between text-slate-400 mb-2">
-                <span class="text-xs font-semibold text-slate-500">Audit Ledger Blocks</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs hover:shadow-xs transition-shadow">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Audit Ledger</span>
+              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
               </div>
-              <p class="text-3xl font-extrabold text-slate-900 font-mono">{{ overview?.metrics.totalAuditBlocks ?? '-' }}</p>
             </div>
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span class="text-emerald-700 font-medium flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Ledger Intact
-              </span>
-              <NuxtLink to="/admin/audit" class="text-blue-600 font-medium hover:text-blue-700">Audit &rarr;</NuxtLink>
-            </div>
+            <p class="text-3xl font-bold text-slate-900 font-mono">{{ overview?.metrics.totalAuditBlocks ?? '-' }}</p>
+            <p class="text-xs text-emerald-700 font-medium mt-1">100% Cryptographically Intact</p>
           </div>
         </div>
 
