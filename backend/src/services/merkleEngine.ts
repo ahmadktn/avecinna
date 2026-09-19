@@ -159,3 +159,209 @@ export async function verifyAuditLedgerChain(): Promise<{
 }
 
 export const verifyHashChainIntegrity = verifyAuditLedgerChain;
+
+/**
+ * 4. Merkle Tree Visualizer Data Structure
+ * Builds a multi-level hierarchical tree model for interactive chart rendering in Admin UI.
+ */
+export interface MerkleNode {
+  id: string;
+  hash: string;
+  shortHash: string;
+  level: number;
+  label: string;
+  isLeaf: boolean;
+  blockIndex?: number;
+  action?: string;
+  actor?: string;
+  patientId?: string | null;
+  activeWard?: string;
+  payloadHash?: string;
+  prevHash?: string;
+  timestamp?: string;
+  children?: string[]; // IDs of child nodes
+  parentId?: string;
+}
+
+export async function getMerkleTreeHierarchy(): Promise<{
+  root: string;
+  totalLeaves: number;
+  levels: MerkleNode[][];
+  nodes: Record<string, MerkleNode>;
+}> {
+  const blocks = await dbAudit.select().from(auditBlocks).orderBy(auditBlocks.indexNum);
+  if (blocks.length === 0) {
+    const rootNode: MerkleNode = {
+      id: 'root-0',
+      hash: GENESIS_HASH,
+      shortHash: GENESIS_HASH.slice(0, 10) + '...',
+      level: 0,
+      label: 'Genesis Root',
+      isLeaf: true,
+    };
+    return {
+      root: GENESIS_HASH,
+      totalLeaves: 0,
+      levels: [[rootNode]],
+      nodes: { 'root-0': rootNode },
+    };
+  }
+
+  const nodesMap: Record<string, MerkleNode> = {};
+  
+  // Build Level 0 (Leaves from audit blocks)
+  let currentLevelNodes: MerkleNode[] = blocks.map((b) => {
+    const id = `leaf-${b.indexNum}`;
+    const node: MerkleNode = {
+      id,
+      hash: b.blockHash,
+      shortHash: `${b.blockHash.slice(0, 8)}...${b.blockHash.slice(-6)}`,
+      level: 0,
+      label: `Block #${b.indexNum} [${b.action}]`,
+      isLeaf: true,
+      blockIndex: b.indexNum,
+      action: b.action,
+      actor: b.userId,
+      patientId: b.patientId,
+      activeWard: b.activeWard,
+      payloadHash: b.payloadHash,
+      prevHash: b.prevHash,
+      timestamp: b.createdAt.toISOString(),
+    };
+    nodesMap[id] = node;
+    return node;
+  });
+
+  const allLevels: MerkleNode[][] = [currentLevelNodes];
+  let currentLevelIdx = 1;
+
+  while (currentLevelNodes.length > 1) {
+    const nextLevelNodes: MerkleNode[] = [];
+
+    for (let i = 0; i < currentLevelNodes.length; i += 2) {
+      const left = currentLevelNodes[i];
+      const right = i + 1 < currentLevelNodes.length ? currentLevelNodes[i + 1] : left;
+      const combinedHash = crypto.createHash('sha256').update(left.hash + right.hash).digest('hex');
+      const parentId = `node-L${currentLevelIdx}-${Math.floor(i / 2)}`;
+
+      const parentNode: MerkleNode = {
+        id: parentId,
+        hash: combinedHash,
+        shortHash: `${combinedHash.slice(0, 8)}...${combinedHash.slice(-6)}`,
+        level: currentLevelIdx,
+        label: `Branch L${currentLevelIdx}.${Math.floor(i / 2) + 1}`,
+        isLeaf: false,
+        children: left.id === right.id ? [left.id] : [left.id, right.id],
+      };
+
+      left.parentId = parentId;
+      if (left.id !== right.id) {
+        right.parentId = parentId;
+      }
+
+      nodesMap[parentId] = parentNode;
+      nextLevelNodes.push(parentNode);
+    }
+
+    allLevels.push(nextLevelNodes);
+    currentLevelNodes = nextLevelNodes;
+    currentLevelIdx++;
+  }
+
+  const rootHash = currentLevelNodes.length > 0 ? currentLevelNodes[0].hash : GENESIS_HASH;
+
+  return {
+    root: rootHash,
+    totalLeaves: blocks.length,
+    levels: allLevels.reverse(), // Top-down: Root at index 0, Leaves at bottom
+    nodes: nodesMap,
+  };
+}
+
+/**
+ * 5. Comprehensive Ledger Analysis & Anomaly Detection
+ */
+export async function getAuditLedgerAnalytics() {
+  const blocks = await dbAudit.select().from(auditBlocks).orderBy(desc(auditBlocks.indexNum));
+  const verification = await verifyHashChainIntegrity();
+  const merkleRoot = await computeMerkleRoot();
+
+  // Action Distribution Breakdown
+  const actionCounts: Record<string, number> = {};
+  const wardCounts: Record<string, number> = {};
+  const userCounts: Record<string, number> = {};
+  const timelineCounts: Record<string, number> = {}; // YYYY-MM-DD
+
+  for (const b of blocks) {
+    actionCounts[b.action] = (actionCounts[b.action] || 0) + 1;
+    wardCounts[b.activeWard] = (wardCounts[b.activeWard] || 0) + 1;
+    userCounts[b.userId] = (userCounts[b.userId] || 0) + 1;
+
+    const dateKey = b.createdAt.toISOString().split('T')[0];
+    timelineCounts[dateKey] = (timelineCounts[dateKey] || 0) + 1;
+  }
+
+  // Automated Anomaly Detection / Smart Flagging
+  const flaggedEvents = [];
+  for (const b of blocks) {
+    const flags: string[] = [];
+    let severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
+
+    if (b.action.includes('BREAK_GLASS_TIER2') || b.action.includes('EMERGENCY_OVERRIDE')) {
+      flags.push('Emergency Tier-2 full chart unlock activated');
+      severity = 'CRITICAL';
+    } else if (b.action.includes('UNAUTHORIZED') || b.action.includes('FORBIDDEN') || b.action.includes('ADMIN_CLINICAL')) {
+      flags.push('Unauthorized cross-ward / admin access attempt');
+      severity = 'HIGH';
+    } else if (b.action.includes('BREAK_GLASS_TIER1')) {
+      flags.push('Tier-1 Instant resuscitation summary accessed');
+      severity = 'MEDIUM';
+    } else if (b.action.includes('USER_STATUS_TOGGLE') || b.action.includes('ADMIN_USER_UPDATE')) {
+      flags.push('Administrative privilege modification');
+      severity = 'MEDIUM';
+    }
+
+    if (flags.length > 0) {
+      flaggedEvents.push({
+        blockIndex: b.indexNum,
+        blockHash: b.blockHash,
+        prevHash: b.prevHash,
+        userId: b.userId,
+        patientId: b.patientId,
+        action: b.action,
+        activeWard: b.activeWard,
+        payloadHash: b.payloadHash,
+        createdAt: b.createdAt.toISOString(),
+        flags,
+        severity,
+      });
+    }
+  }
+
+  return {
+    verification: {
+      valid: verification.valid,
+      status: verification.status,
+      totalBlocks: blocks.length,
+      merkleRoot,
+      brokenBlockId: verification.brokenBlockId,
+    },
+    metrics: {
+      totalBlocks: blocks.length,
+      flaggedCount: flaggedEvents.length,
+      uniqueUsersCount: Object.keys(userCounts).length,
+      uniqueWardsCount: Object.keys(wardCounts).length,
+    },
+    actionDistribution: actionCounts,
+    wardDistribution: wardCounts,
+    topActors: Object.entries(userCounts)
+      .map(([userId, count]) => ({ userId, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10),
+    timeline: Object.entries(timelineCounts)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date)),
+    flaggedEvents,
+  };
+}
+

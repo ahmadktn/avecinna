@@ -1,8 +1,15 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { verifyHashChainIntegrity, computeMerkleRoot } from '../services/merkleEngine.js';
+import {
+  verifyHashChainIntegrity,
+  computeMerkleRoot,
+  getMerkleTreeHierarchy,
+  getAuditLedgerAnalytics,
+} from '../services/merkleEngine.js';
 import { dbPrimary } from '../db/clientPrimary.js';
+import { dbAudit } from '../db/clientAudit.js';
 import { securityAlerts } from '../db/schemaPrimary.js';
-import { eq, desc } from 'drizzle-orm';
+import { auditBlocks } from '../db/schemaAudit.js';
+import { eq, desc, ilike, or, and, sql } from 'drizzle-orm';
 
 interface UpdateAlertBody {
   status: 'OPEN' | 'INVESTIGATING' | 'RESOLVED' | 'FALSE_POSITIVE';
@@ -45,7 +52,139 @@ export async function auditRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 2. Get Security Alerts
+  // 2. GET /audit/blocks - Paginated real audit ledger blocks with search & filter
+  fastify.get(
+    '/audit/blocks',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Cryptographic Audit Ledger & Security Alerts'],
+        summary: 'Query Audit Ledger Blocks',
+        description: 'Returns real sequential audit blocks from avecinna_audit_db with pagination and search.',
+        security: [{ bearerAuth: [] }],
+        querystring: {
+          type: 'object',
+          properties: {
+            page: { type: 'integer', default: 1 },
+            limit: { type: 'integer', default: 20 },
+            search: { type: 'string' },
+            action: { type: 'string' },
+            ward: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{
+        Querystring: { page?: number; limit?: number; search?: string; action?: string; ward?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
+      const user = request.userSession || request.user;
+      if (user.role !== 'ADMIN' && user.role !== 'HEAD_OF_UNIT') {
+        return reply.status(403).send({ error: 'Access restricted to ADMIN or HEAD_OF_UNIT' });
+      }
+
+      const page = Math.max(1, Number(request.query.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(request.query.limit) || 20));
+      const offset = (page - 1) * limit;
+
+      const { search, action, ward } = request.query;
+
+      const conditions: any[] = [];
+      if (search && search.trim()) {
+        const s = `%${search.trim()}%`;
+        conditions.push(
+          or(
+            ilike(auditBlocks.blockHash, s),
+            ilike(auditBlocks.userId, s),
+            ilike(auditBlocks.patientId, s),
+            ilike(auditBlocks.action, s),
+            ilike(auditBlocks.activeWard, s)
+          )
+        );
+      }
+      if (action && action.trim() && action !== 'ALL') {
+        conditions.push(eq(auditBlocks.action, action.trim()));
+      }
+      if (ward && ward.trim() && ward !== 'ALL') {
+        conditions.push(eq(auditBlocks.activeWard, ward.trim()));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [countResult] = await dbAudit
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditBlocks)
+        .where(whereClause);
+
+      const total = countResult?.count || 0;
+
+      const blocks = await dbAudit
+        .select()
+        .from(auditBlocks)
+        .where(whereClause)
+        .orderBy(desc(auditBlocks.indexNum))
+        .limit(limit)
+        .offset(offset);
+
+      return reply.send({
+        blocks,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    }
+  );
+
+  // 3. GET /audit/analytics - Dedicated Ledger Analytics & Summary
+  fastify.get(
+    '/audit/analytics',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Cryptographic Audit Ledger & Security Alerts'],
+        summary: 'Ledger Analytics & Anomaly Breakdown',
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user = request.userSession || request.user;
+      if (user.role !== 'ADMIN' && user.role !== 'HEAD_OF_UNIT') {
+        return reply.status(403).send({ error: 'Access restricted to ADMIN or HEAD_OF_UNIT' });
+      }
+
+      const analytics = await getAuditLedgerAnalytics();
+      return reply.send(analytics);
+    }
+  );
+
+  // 4. GET /audit/merkle-tree - Interactive Hierarchical Merkle Tree Graph
+  fastify.get(
+    '/audit/merkle-tree',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Cryptographic Audit Ledger & Security Alerts'],
+        summary: 'Interactive Merkle Tree Hierarchy',
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user = request.userSession || request.user;
+      if (user.role !== 'ADMIN' && user.role !== 'HEAD_OF_UNIT') {
+        return reply.status(403).send({ error: 'Access restricted to ADMIN or HEAD_OF_UNIT' });
+      }
+
+      const hierarchy = await getMerkleTreeHierarchy();
+      return reply.send(hierarchy);
+    }
+  );
+
+  // 5. Get Security Alerts
   fastify.get(
     '/security/alerts',
     {
@@ -73,7 +212,7 @@ export async function auditRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 3. Update Security Alert Status
+  // 6. Update Security Alert Status
   fastify.patch(
     '/security/alerts/:id',
     {
@@ -131,3 +270,4 @@ export async function auditRoutes(fastify: FastifyInstance) {
 }
 
 export default auditRoutes;
+

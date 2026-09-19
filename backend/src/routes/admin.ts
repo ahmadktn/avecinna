@@ -1,7 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { dbPrimary } from '../db/clientPrimary.js';
-import { users, wards } from '../db/schemaPrimary.js';
-import { eq } from 'drizzle-orm';
+import { dbAudit } from '../db/clientAudit.js';
+import { users, wards, patients, securityAlerts } from '../db/schemaPrimary.js';
+import { auditBlocks } from '../db/schemaAudit.js';
+import { eq, desc, ilike, or, and, sql } from 'drizzle-orm';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 import { appendAuditBlock } from '../services/merkleEngine.js';
@@ -349,6 +351,335 @@ export async function adminRoutes(fastify: FastifyInstance) {
       return reply.status(201).send({ message: 'Ward created successfully.', ward: newWard });
     }
   );
+
+  // 8. PUT /admin/wards/:id (Update hospital ward details & assign Head of Unit)
+  fastify.put(
+    '/admin/wards/:id',
+    {
+      preHandler: [fastify.authenticate, requireAdminRole],
+      schema: {
+        tags: ['User & Ward Administration'],
+        summary: 'Update Hospital Ward',
+        description: 'Updates ward name, department, or assigns a Head of Unit clinician.',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            department: { type: 'string' },
+            headOfUnitId: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const { id } = request.params;
+      const body: any = request.body || {};
+      const { name, department, headOfUnitId } = body;
+      const session = request.userSession || request.user;
+
+      const updateData: any = {};
+      if (name) updateData.name = name;
+      if (department) updateData.department = department;
+      if (typeof headOfUnitId !== 'undefined') updateData.headOfUnitId = headOfUnitId || null;
+
+      const [updatedWard] = await dbPrimary
+        .update(wards)
+        .set(updateData)
+        .where(eq(wards.id, id))
+        .returning();
+
+      if (!updatedWard) {
+        return reply.status(404).send({ error: 'Not Found', message: 'Hospital ward not found.' });
+      }
+
+      await appendAuditBlock({
+        userId: session.userId,
+        action: 'ADMIN_WARD_UPDATE',
+        activeWard: session.activeWardId,
+        payload: { wardId: id, updateData },
+      });
+
+      return reply.send({ message: 'Ward updated successfully.', ward: updatedWard });
+    }
+  );
+
+  // 9. POST /admin/wards/:id/assign-staff (Assign staff member to a ward)
+  fastify.post(
+    '/admin/wards/:id/assign-staff',
+    {
+      preHandler: [fastify.authenticate, requireAdminRole],
+      schema: {
+        tags: ['User & Ward Administration'],
+        summary: 'Assign Staff Member to Ward',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          required: ['userId'],
+          properties: {
+            userId: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+      const { id: targetWardId } = request.params;
+      const { userId } = request.body as any;
+      const session = request.userSession || request.user;
+
+      const wardExists = await dbPrimary.select().from(wards).where(eq(wards.id, targetWardId)).limit(1);
+      if (wardExists.length === 0) {
+        return reply.status(404).send({ error: 'Not Found', message: 'Ward not found.' });
+      }
+
+      const [updatedUser] = await dbPrimary
+        .update(users)
+        .set({ homeWardId: targetWardId, updatedAt: new Date() })
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!updatedUser) {
+        return reply.status(404).send({ error: 'Not Found', message: 'User not found.' });
+      }
+
+      await appendAuditBlock({
+        userId: session.userId,
+        action: 'ADMIN_STAFF_WARD_ASSIGN',
+        activeWard: session.activeWardId,
+        payload: { targetUserId: userId, newWardId: targetWardId },
+      });
+
+      return reply.send({ message: 'Staff member assigned to ward successfully.', user: updatedUser });
+    }
+  );
+
+  // 10. GET /admin/overview (Comprehensive System Overview Telemetry)
+  fastify.get(
+    '/admin/overview',
+    {
+      preHandler: [fastify.authenticate, requireAdminRole],
+      schema: {
+        tags: ['User & Ward Administration'],
+        summary: 'System Overview Dashboard Telemetry',
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const allPatients = await dbPrimary.select().from(patients);
+      const allWards = await dbPrimary.select().from(wards);
+      const allUsers = await dbPrimary.select().from(users);
+      const allAlerts = await dbPrimary.select().from(securityAlerts);
+      const recentBlocks = await dbAudit
+        .select()
+        .from(auditBlocks)
+        .orderBy(desc(auditBlocks.indexNum))
+        .limit(10);
+
+      const [totalAuditBlocksCount] = await dbAudit
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditBlocks);
+
+      // Aggregate breakdown by roles
+      const roleBreakdown: Record<string, number> = {};
+      for (const u of allUsers) {
+        roleBreakdown[u.role] = (roleBreakdown[u.role] || 0) + 1;
+      }
+
+      // Aggregate breakdown by ward patient census
+      const wardCensus: Record<string, number> = {};
+      for (const p of allPatients) {
+        const wId = p.primaryWardId || 'Unassigned';
+        wardCensus[wId] = (wardCensus[wId] || 0) + 1;
+      }
+
+      const wardsWithCensus = allWards.map((w) => ({
+        id: w.id,
+        code: w.code,
+        name: w.name,
+        department: w.department,
+        headOfUnitId: w.headOfUnitId,
+        patientCount: wardCensus[w.id] || 0,
+        staffCount: allUsers.filter((u) => u.homeWardId === w.id).length,
+      }));
+
+      return reply.send({
+        metrics: {
+          totalPatients: allPatients.length,
+          totalWards: allWards.length,
+          totalStaff: allUsers.length,
+          activeStaff: allUsers.filter((u) => u.isActive).length,
+          totalAuditBlocks: totalAuditBlocksCount?.count || 0,
+          openSecurityAlerts: allAlerts.filter((a) => a.status === 'OPEN').length,
+          totalSecurityAlerts: allAlerts.length,
+        },
+        roleBreakdown,
+        wardsWithCensus,
+        recentAuditLogs: recentBlocks,
+      });
+    }
+  );
+
+  // 11. GET /admin/patients (Admin Hospital-Wide Patient Directory with Pagination & Filter)
+  fastify.get(
+    '/admin/patients',
+    {
+      preHandler: [fastify.authenticate, requireAdminRole],
+      schema: {
+        tags: ['User & Ward Administration'],
+        summary: 'Admin Hospital-Wide Patient List (Demographics Only - OWASP API3 Redacted)',
+        security: [{ bearerAuth: [] }],
+        querystring: {
+          type: 'object',
+          properties: {
+            page: { type: 'integer', default: 1 },
+            limit: { type: 'integer', default: 15 },
+            search: { type: 'string' },
+            ward: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{
+        Querystring: { page?: number; limit?: number; search?: string; ward?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
+      const page = Math.max(1, Number(request.query.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(request.query.limit) || 15));
+      const offset = (page - 1) * limit;
+      const { search, ward } = request.query;
+
+      const conditions: any[] = [];
+      if (search && search.trim()) {
+        const s = `%${search.trim()}%`;
+        conditions.push(or(ilike(patients.fullName, s), ilike(patients.mrn, s)));
+      }
+      if (ward && ward.trim() && ward !== 'ALL') {
+        conditions.push(eq(patients.primaryWardId, ward.trim()));
+      }
+
+      const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+      const [countResult] = await dbPrimary
+        .select({ count: sql<number>`count(*)::int` })
+        .from(patients)
+        .where(whereClause);
+
+      const total = countResult?.count || 0;
+
+      // Note: As per HIPAA & OWASP API3 Admin Redaction, fullRecordJson & emergencySummaryJson clinical fields are omitted
+      const patientList = await dbPrimary
+        .select({
+          id: patients.id,
+          mrn: patients.mrn,
+          fullName: patients.fullName,
+          dateOfBirth: patients.dateOfBirth,
+          gender: patients.gender,
+          patientType: patients.patientType,
+          genotype: patients.genotype,
+          bloodGroup: patients.bloodGroup,
+          primaryWardId: patients.primaryWardId,
+          assignedBed: patients.assignedBed,
+          createdAt: patients.createdAt,
+        })
+        .from(patients)
+        .where(whereClause)
+        .orderBy(desc(patients.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      return reply.send({
+        patients: patientList,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    }
+  );
+
+  // 12. GET /admin/reports/export (Export Compliance & Audit Reports)
+  fastify.get(
+    '/admin/reports/export',
+    {
+      preHandler: [fastify.authenticate, requireAdminRole],
+      schema: {
+        tags: ['User & Ward Administration'],
+        summary: 'Export System Audit & Compliance Reports',
+        security: [{ bearerAuth: [] }],
+        querystring: {
+          type: 'object',
+          properties: {
+            format: { type: 'string', enum: ['json', 'csv', 'proof'] },
+            type: { type: 'string', enum: ['audit_ledger', 'staff_access', 'security_alerts', 'ward_census'] },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: { format?: string; type?: string } }>,
+      reply: FastifyReply
+    ) => {
+      const format = request.query.format || 'json';
+      const reportType = request.query.type || 'audit_ledger';
+
+      if (reportType === 'audit_ledger') {
+        const blocks = await dbAudit.select().from(auditBlocks).orderBy(desc(auditBlocks.indexNum));
+        if (format === 'csv') {
+          const headers = 'Index,BlockHash,PrevHash,UserId,PatientId,Action,ActiveWard,PayloadHash,Timestamp\n';
+          const rows = blocks
+            .map(
+              (b) =>
+                `"${b.indexNum}","${b.blockHash}","${b.prevHash}","${b.userId}","${b.patientId || ''}","${b.action}","${b.activeWard}","${b.payloadHash}","${b.createdAt.toISOString()}"`
+            )
+            .join('\n');
+          reply.header('Content-Type', 'text/csv');
+          reply.header('Content-Disposition', 'attachment; filename="avecinna_audit_ledger.csv"');
+          return reply.send(headers + rows);
+        }
+        return reply.send({ reportType, totalRecords: blocks.length, generatedAt: new Date().toISOString(), data: blocks });
+      }
+
+      if (reportType === 'security_alerts') {
+        const alerts = await dbPrimary.select().from(securityAlerts).orderBy(desc(securityAlerts.createdAt));
+        if (format === 'csv') {
+          const headers = 'Id,AlertType,Severity,UserId,PatientId,Status,Description,CreatedAt\n';
+          const rows = alerts
+            .map(
+              (a) =>
+                `"${a.id}","${a.alertType}","${a.severity}","${a.userId || ''}","${a.patientId || ''}","${a.status}","${a.description.replace(/"/g, '""')}","${a.createdAt.toISOString()}"`
+            )
+            .join('\n');
+          reply.header('Content-Type', 'text/csv');
+          reply.header('Content-Disposition', 'attachment; filename="avecinna_security_alerts.csv"');
+          return reply.send(headers + rows);
+        }
+        return reply.send({ reportType, totalRecords: alerts.length, generatedAt: new Date().toISOString(), data: alerts });
+      }
+
+      // Default ward census report
+      const allWards = await dbPrimary.select().from(wards);
+      const allPatients = await dbPrimary.select().from(patients);
+      const censusData = allWards.map((w) => ({
+        wardId: w.id,
+        code: w.code,
+        name: w.name,
+        department: w.department,
+        inpatientCount: allPatients.filter((p) => p.primaryWardId === w.id).length,
+      }));
+
+      return reply.send({
+        reportType: 'ward_census',
+        totalWards: allWards.length,
+        generatedAt: new Date().toISOString(),
+        data: censusData,
+      });
+    }
+  );
 }
 
 export default adminRoutes;
+

@@ -8,10 +8,13 @@ export const useApi = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public?.apiBaseUrl || 'http://localhost:4000/api/v1'
 
-  const getHeaders = (extraHeaders: Record<string, string> = {}) => {
+  const getHeaders = (extraHeaders: Record<string, string> = {}, hasBody = false) => {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...extraHeaders,
+    }
+
+    if (hasBody && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json'
     }
 
     if (import.meta.client) {
@@ -25,7 +28,8 @@ export const useApi = () => {
   }
 
   const request = async <T>(endpoint: string, options: any = {}): Promise<T> => {
-    const headers = getHeaders(options.headers || {})
+    const hasBody = options.body !== undefined && options.body !== null
+    const headers = getHeaders(options.headers || {}, hasBody)
     const url = endpoint.startsWith('http') ? endpoint : `${baseURL}${endpoint}`
 
     try {

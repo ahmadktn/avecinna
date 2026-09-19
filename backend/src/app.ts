@@ -25,6 +25,20 @@ export async function buildApp() {
     origin: true,
   });
 
+  // Handle empty JSON bodies gracefully without throwing FST_ERR_CTP_EMPTY_JSON_BODY
+  fastify.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, defaultDone) => {
+    if (typeof body === 'string' && body.trim() === '') {
+      return defaultDone(null, {});
+    }
+    try {
+      const json = JSON.parse(body as string);
+      defaultDone(null, json);
+    } catch (err: any) {
+      err.statusCode = 400;
+      defaultDone(err, undefined);
+    }
+  });
+
   // 2. Register Swagger Documentation (if installed)
   try {
     const swaggerModule: any = await import('@fastify/swagger');
