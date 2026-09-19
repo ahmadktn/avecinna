@@ -27,62 +27,32 @@ export async function unitRoutes(fastify: FastifyInstance) {
       CREATE INDEX IF NOT EXISTS idx_ward_rosters_staff ON ward_rosters(staff_id, shift_date);
     `);
 
-    // Check if empty, seed initial roster for Cardiology
+    // Check if empty, verify ward and users exist before seeding initial roster
     const [existing] = await dbPrimary.select({ count: sql<number>`count(*)::int` }).from(wardRosters);
     if (!existing || existing.count === 0) {
-      const today = new Date().toISOString().slice(0, 10);
-      const initialShifts = [
-        {
-          id: crypto.randomUUID(),
-          wardId: 'w-cardio',
-          staffId: 'u-hou-cardio',
-          shiftType: 'DAY',
-          shiftDate: today,
-          startTime: '08:00',
-          endTime: '20:00',
-          status: 'ON_DUTY',
-          notes: 'Department Supervisor & Clinical Round Lead',
-          assignedBy: 'u-hou-cardio',
-        },
-        {
-          id: crypto.randomUUID(),
-          wardId: 'w-cardio',
-          staffId: 'u-doc-cardio',
-          shiftType: 'DAY',
-          shiftDate: today,
-          startTime: '08:00',
-          endTime: '20:00',
-          status: 'ON_DUTY',
-          notes: 'Inpatient Ward & Outpatient Clinic Attending',
-          assignedBy: 'u-hou-cardio',
-        },
-        {
-          id: crypto.randomUUID(),
-          wardId: 'w-cardio',
-          staffId: 'u-nurse-cardio',
-          shiftType: 'DAY',
-          shiftDate: today,
-          startTime: '07:00',
-          endTime: '19:00',
-          status: 'ON_DUTY',
-          notes: 'Lead Nursing Officer & Telemetry Monitoring',
-          assignedBy: 'u-hou-cardio',
-        },
-        {
-          id: crypto.randomUUID(),
-          wardId: 'w-cardio',
-          staffId: 'u-pharm-01',
-          shiftType: 'ON_CALL',
-          shiftDate: today,
-          startTime: '09:00',
-          endTime: '17:00',
-          status: 'SCHEDULED',
-          notes: 'Clinical Pharmacy Support & Medication Review',
-          assignedBy: 'u-hou-cardio',
-        },
-      ];
-      for (const s of initialShifts) {
-        await dbPrimary.insert(wardRosters).values(s);
+      const [ward] = await dbPrimary.select().from(wards).limit(1);
+      if (ward) {
+        const staffList = await dbPrimary.select().from(users).where(eq(users.homeWardId, ward.id)).limit(4);
+        if (staffList.length > 0) {
+          const today = new Date().toISOString().slice(0, 10);
+          const supervisor = staffList.find((u) => u.role === 'HEAD_OF_UNIT') || staffList[0];
+          const initialShifts = staffList.map((s, idx) => ({
+            id: crypto.randomUUID(),
+            wardId: ward.id,
+            staffId: s.id,
+            shiftType: idx === 0 ? 'DAY' : idx === 1 ? 'DAY' : 'ON_CALL',
+            shiftDate: today,
+            startTime: '08:00',
+            endTime: '20:00',
+            status: 'ON_DUTY',
+            notes: `${s.fullName} - ${s.role}`,
+            assignedBy: supervisor.id,
+          }));
+
+          for (const s of initialShifts) {
+            await dbPrimary.insert(wardRosters).values(s);
+          }
+        }
       }
     }
   } catch (initErr) {
@@ -406,6 +376,8 @@ export async function unitRoutes(fastify: FastifyInstance) {
         staff: updatedUser,
       });
     }
+  );
+
   // 3.5 GET /unit/staff/candidates (Search hospital clinicians to reassign to unit)
   fastify.get(
     '/unit/staff/candidates',
