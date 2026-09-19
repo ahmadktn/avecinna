@@ -2,10 +2,11 @@
   <div class="w-full flex flex-col items-center">
     <!-- Brand Header -->
     <div class="text-center mb-8 flex flex-col items-center">
-      <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-blue-500 flex items-center justify-center text-white shadow-xl shadow-blue-500/20 mb-4 ring-4 ring-blue-500/10">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-white shadow-xl shadow-blue-500/20 mb-4 ring-4 ring-blue-500/10">
+      <img src="/avecinna icon.png">
+        <!--<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-        </svg>
+        </svg>-->
       </div>
       <h1 class="font-brand text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Avecinna EMR</h1>
       <p class="text-slate-400 text-sm mt-1.5 font-medium">Context-Aware Secure Clinical Record System</p>

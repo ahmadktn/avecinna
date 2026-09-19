@@ -1,12 +1,13 @@
 <template>
-  <aside class="fixed inset-y-0 left-0 w-56 bg-slate-950 text-white h-screen flex flex-col justify-between z-40 border-r border-slate-900/80 select-none">
+  <aside class="fixed inset-y-0 left-0 w-60 bg-slate-950 text-white h-screen flex flex-col justify-between z-40 border-r border-slate-900/80 select-none">
     <div class="flex flex-col min-h-0 flex-1">
       <!-- Brand Header -->
       <div class="px-5 py-5 flex items-center gap-3 border-b border-slate-900/80">
-        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0 text-white">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 text-white">
+       		<img src="/avecinna icon.png">
+          <!--<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
-          </svg>
+          </svg>-->
         </div>
         <div>
           <span class="font-brand text-base font-semibold tracking-tight text-white block leading-none">Avecinna</span>

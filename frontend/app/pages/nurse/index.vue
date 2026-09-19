@@ -346,8 +346,6 @@
             </table>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Bedside Vitals Observation Modal -->
     <div

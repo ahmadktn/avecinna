@@ -398,8 +398,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Assign Duty Shift Modal -->
     <div

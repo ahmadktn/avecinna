@@ -278,8 +278,6 @@
             </div>
           </div>
         </div>
-      </main>
-    </div>
 
     <!-- Reassign / Add Clinician Modal -->
     <div

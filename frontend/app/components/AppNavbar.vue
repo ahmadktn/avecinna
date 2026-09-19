@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-30 bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+  <header class="sticky top-0 z-30 bg-white border-b border-slate-200 px-6 py-6 flex items-center justify-between">
     <!-- Left: Context badge -->
     <div class="flex items-center gap-3 min-w-0">
       <!-- Admin Badge -->

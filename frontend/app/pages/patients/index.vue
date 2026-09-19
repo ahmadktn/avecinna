@@ -326,7 +326,6 @@
             </div>
           </div>
         </div>
-      </div>
 
     <!-- Modals -->
     <CareTeamModal
