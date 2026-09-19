@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { sql } from 'drizzle-orm';
 import { dbAudit } from './db/clientAudit';
+import { initPrimaryDb } from './db/initPrimaryDb.js';
 import authPlugin from './plugins/authPlugin';
 import authRoutes from './routes/auth';
 import adminRoutes from './routes/admin';
@@ -147,7 +148,15 @@ export async function buildApp() {
   await fastify.register(doctorRoutes, { prefix: '/api/v1' });
   await fastify.register(nurseRoutes, { prefix: '/api/v1' });
 
-  // 6. Ensure audit_blocks table and forensic metadata columns exist
+  // 6. Ensure Primary clinical tables exist and default users are provisioned
+  try {
+    await initPrimaryDb();
+    fastify.log.info('🏥 Primary clinical database schema & initial users verified.');
+  } catch (err: any) {
+    fastify.log.warn(`Primary database schema initialization skipped or failed: ${err.message}`);
+  }
+
+  // 7. Ensure audit_blocks table and forensic metadata columns exist
   try {
     await dbAudit.execute(sql`
       CREATE TABLE IF NOT EXISTS audit_blocks (
