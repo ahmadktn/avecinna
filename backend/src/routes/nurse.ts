@@ -41,6 +41,12 @@ export async function nurseRoutes(fastify: FastifyInstance) {
 
       // A. Active Ward Info
       const [activeWard] = await dbPrimary.select().from(wards).where(eq(wards.id, wardId)).limit(1);
+      if (!activeWard) {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: `Ward with ID "${wardId}" was not found in the database.`,
+        });
+      }
 
       // B. Inpatients admitted to active ward
       const activeWardPatients = await dbPrimary
@@ -80,27 +86,30 @@ export async function nurseRoutes(fastify: FastifyInstance) {
       let stableCount = 0;
 
       const formattedWardPatients = activeWardPatients.map((p) => {
-        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals || {};
-        const hr = Number(vitals.hr) || 72;
-        const spo2 = Number(vitals.spo2) || 98;
-        let acuity: 'stable' | 'monitoring' | 'critical' = 'stable';
+        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals || null;
+        let acuity: 'stable' | 'monitoring' | 'critical' | 'unassessed' = 'unassessed';
 
-        if (hr > 120 || spo2 < 90) {
-          criticalCount++;
-          acuity = 'critical';
-        } else if (hr > 100 || spo2 < 95) {
-          monitoringCount++;
-          acuity = 'monitoring';
-        } else {
-          stableCount++;
-          acuity = 'stable';
+        if (vitals && (vitals.hr != null || vitals.spo2 != null)) {
+          const hr = vitals.hr != null ? Number(vitals.hr) : null;
+          const spo2 = vitals.spo2 != null ? Number(vitals.spo2) : null;
+
+          if ((hr !== null && hr > 120) || (spo2 !== null && spo2 < 90)) {
+            criticalCount++;
+            acuity = 'critical';
+          } else if ((hr !== null && hr > 100) || (spo2 !== null && spo2 < 95)) {
+            monitoringCount++;
+            acuity = 'monitoring';
+          } else {
+            stableCount++;
+            acuity = 'stable';
+          }
         }
 
         const masked = filterPatientRecordByRole(p, session.role, false);
         return {
           ...masked,
           acuity,
-          diagnosis: (p.fullRecordJson as any)?.diagnosis || 'Clinical Inpatient Surveillance',
+          diagnosis: (p.fullRecordJson as any)?.diagnosis || null,
         };
       });
 
@@ -117,7 +126,7 @@ export async function nurseRoutes(fastify: FastifyInstance) {
         .limit(1);
 
       return reply.send({
-        activeWard: activeWard || { id: wardId, code: 'WARD', name: 'Clinical Ward', department: 'Inpatient Care' },
+        activeWard,
         metrics: {
           wardInpatientsCount: activeWardPatients.length,
           myCareTeamCount: myCareTeams.length,
@@ -125,15 +134,9 @@ export async function nurseRoutes(fastify: FastifyInstance) {
           monitoringCount,
           stableCount,
           bedOccupancyRate: Math.min(100, Math.round((activeWardPatients.length / Math.max(1, 15)) * 100)),
-          isShiftActive: !!todayShift ? todayShift.status === 'ON_DUTY' : true,
+          isShiftActive: todayShift ? todayShift.status === 'ON_DUTY' : false,
         },
-        todayShift: todayShift || {
-          shiftType: 'DAY',
-          startTime: '07:00',
-          endTime: '19:00',
-          status: 'ON_DUTY',
-          notes: 'Ward Nursing & Telemetry Watch',
-        },
+        todayShift: todayShift || null,
         wardPatients: formattedWardPatients.slice(0, 8),
         careTeamPatients: myCareTeams,
       });

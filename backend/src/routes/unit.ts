@@ -89,6 +89,12 @@ export async function unitRoutes(fastify: FastifyInstance) {
 
       // Ward info
       const [ward] = await dbPrimary.select().from(wards).where(eq(wards.id, wardId)).limit(1);
+      if (!ward) {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: `Ward with ID "${wardId}" was not found in the database.`,
+        });
+      }
 
       // Inpatients in this ward
       const wardPatients = await dbPrimary
@@ -113,20 +119,23 @@ export async function unitRoutes(fastify: FastifyInstance) {
       let stableCount = 0;
 
       const formattedPatients = wardPatients.map((p) => {
-        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals || {};
-        const hr = Number(vitals.hr) || 72;
-        const spo2 = Number(vitals.spo2) || 98;
-        let acuity: 'stable' | 'monitoring' | 'critical' = 'stable';
+        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals || null;
+        let acuity: 'stable' | 'monitoring' | 'critical' | 'unassessed' = 'unassessed';
 
-        if (hr > 120 || spo2 < 90) {
-          criticalCount++;
-          acuity = 'critical';
-        } else if (hr > 100 || spo2 < 95) {
-          monitoringCount++;
-          acuity = 'monitoring';
-        } else {
-          stableCount++;
-          acuity = 'stable';
+        if (vitals && (vitals.hr != null || vitals.spo2 != null)) {
+          const hr = vitals.hr != null ? Number(vitals.hr) : null;
+          const spo2 = vitals.spo2 != null ? Number(vitals.spo2) : null;
+
+          if ((hr !== null && hr > 120) || (spo2 !== null && spo2 < 90)) {
+            criticalCount++;
+            acuity = 'critical';
+          } else if ((hr !== null && hr > 100) || (spo2 !== null && spo2 < 95)) {
+            monitoringCount++;
+            acuity = 'monitoring';
+          } else {
+            stableCount++;
+            acuity = 'stable';
+          }
         }
 
         return {
@@ -135,10 +144,10 @@ export async function unitRoutes(fastify: FastifyInstance) {
           fullName: p.fullName,
           gender: p.gender,
           dateOfBirth: p.dateOfBirth,
-          assignedBed: p.assignedBed || 'Bed 01',
+          assignedBed: p.assignedBed || null,
           acuity,
-          vitals,
-          diagnosis: (p.fullRecordJson as any)?.diagnosis || 'Clinical Inpatient Surveillance',
+          vitals: vitals || null,
+          diagnosis: (p.fullRecordJson as any)?.diagnosis || null,
         };
       });
 

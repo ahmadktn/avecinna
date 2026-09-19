@@ -78,6 +78,12 @@ export async function doctorRoutes(fastify: FastifyInstance) {
 
       // D. Active Ward Information
       const wardRows = await dbPrimary.select().from(wards).where(eq(wards.id, session.activeWardId)).limit(1);
+      if (wardRows.length === 0) {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: `Active ward (${session.activeWardId}) was not found in the database.`,
+        });
+      }
       const activeWard = wardRows[0];
 
       // E. Condition Breakdown (Stable, Monitoring, Critical)
@@ -86,12 +92,15 @@ export async function doctorRoutes(fastify: FastifyInstance) {
       let criticalCount = 0;
 
       for (const p of activeWardPatients) {
-        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals || {};
-        const hr = Number(vitals.hr) || 72;
-        const spo2 = Number(vitals.spo2) || 98;
-        if (hr > 120 || spo2 < 90) {
+        const vitals = (p.fullRecordJson as any)?.vitals || (p.emergencySummaryJson as any)?.vitals;
+        if (!vitals || (vitals.hr == null && vitals.spo2 == null)) {
+          continue;
+        }
+        const hr = vitals.hr != null ? Number(vitals.hr) : null;
+        const spo2 = vitals.spo2 != null ? Number(vitals.spo2) : null;
+        if ((hr !== null && hr > 120) || (spo2 !== null && spo2 < 90)) {
           criticalCount++;
-        } else if (hr > 100 || spo2 < 95) {
+        } else if ((hr !== null && hr > 100) || (spo2 !== null && spo2 < 95)) {
           monitoringCount++;
         } else {
           stableCount++;

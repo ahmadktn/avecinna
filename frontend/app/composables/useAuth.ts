@@ -71,6 +71,10 @@ export const useAuth = () => {
     loading.value = true
     error.value = null
 
+    if (typeof window === 'undefined' || !window.navigator?.userAgent) {
+      throw new Error('Client browser environment or User-Agent is not available.')
+    }
+
     try {
       const res = await api.post<{
         token: string
@@ -80,7 +84,7 @@ export const useAuth = () => {
       }>('/auth/login', {
         username: usernameVal,
         password: passwordVal,
-        deviceId: typeof window !== 'undefined' ? window.navigator.userAgent.slice(0, 150) : 'workstation-default',
+        deviceId: window.navigator.userAgent.slice(0, 150),
       })
 
       token.value = res.token

@@ -50,12 +50,20 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body: any = request.body || {};
       const { username, password } = body;
-      const rawDeviceId = body.deviceId || request.headers['user-agent'] || 'default-workstation';
-      const deviceId = String(rawDeviceId).slice(0, 500);
+      const rawDeviceId = body.deviceId || request.headers['user-agent'];
 
       if (!username || !password) {
         return reply.status(400).send({ error: 'Bad Request', message: 'Username and password are required.' });
       }
+
+      if (!rawDeviceId) {
+        return reply.status(400).send({
+          error: 'Bad Request',
+          message: 'Device identifier or User-Agent header is required for session tracking.',
+        });
+      }
+
+      const deviceId = String(rawDeviceId).slice(0, 500);
 
       // A. Fetch User from Primary DB
       const userRows = await dbPrimary.select().from(users).where(eq(users.username, username)).limit(1);
@@ -84,7 +92,13 @@ export async function authRoutes(fastify: FastifyInstance) {
 
       // D. Fetch Home Ward details
       const homeWardRows = await dbPrimary.select().from(wards).where(eq(wards.id, user.homeWardId)).limit(1);
-      const homeWard = homeWardRows[0] || { id: user.homeWardId, code: 'UNKNOWN', name: 'Unknown Ward' };
+      if (homeWardRows.length === 0) {
+        return reply.status(500).send({
+          error: 'Configuration Error',
+          message: `User assigned home ward with ID "${user.homeWardId}" was not found in the database.`,
+        });
+      }
+      const homeWard = homeWardRows[0];
 
       // E. Issue JWT & Create Session in Primary DB
       const token = fastify.jwt.sign({
@@ -213,18 +227,30 @@ export async function authRoutes(fastify: FastifyInstance) {
       const session = request.userSession || request.user;
 
       const activeWardRows = await dbPrimary.select().from(wards).where(eq(wards.id, session.activeWardId)).limit(1);
+      if (activeWardRows.length === 0) {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: `Active ward with ID "${session.activeWardId}" was not found in the database.`,
+        });
+      }
       const activeWard = activeWardRows[0];
 
       const userRows = await dbPrimary.select().from(users).where(eq(users.id, session.userId)).limit(1);
+      if (userRows.length === 0) {
+        return reply.status(404).send({
+          error: 'Not Found',
+          message: `User with ID "${session.userId}" was not found in the database.`,
+        });
+      }
       const user = userRows[0];
 
       return reply.send({
         user: {
-          id: session.userId,
-          username: session.username,
-          fullName: user ? user.fullName : session.username,
-          role: session.role,
-          homeWardId: session.homeWardId,
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          role: user.role,
+          homeWardId: user.homeWardId,
         },
         activeWard,
         shiftStart: session.shiftStart,
