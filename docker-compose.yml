@@ -10,8 +10,9 @@ services:
       POSTGRES_USER: ${PRIMARY_DB_USER:-postgres}
       POSTGRES_PASSWORD: ${PRIMARY_DB_PASSWORD:-postgresPassword123}
       POSTGRES_DB: ${PRIMARY_DB_NAME:-avecinna_primary_db}
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      - primary_db_data:/var/lib/postgresql/data
+      - primary_db_data_v2:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${PRIMARY_DB_USER:-postgres} -d ${PRIMARY_DB_NAME:-avecinna_primary_db}"]
       interval: 5s
@@ -31,8 +32,9 @@ services:
       POSTGRES_USER: ${AUDIT_DB_USER:-audit_admin}
       POSTGRES_PASSWORD: ${AUDIT_DB_PASSWORD:-auditPassword123}
       POSTGRES_DB: ${AUDIT_DB_NAME:-avecinna_audit_db}
+      POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
-      - audit_db_data:/var/lib/postgresql/data
+      - audit_db_data_v2:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${AUDIT_DB_USER:-audit_admin} -d ${AUDIT_DB_NAME:-avecinna_audit_db}"]
       interval: 5s
@@ -95,9 +97,9 @@ services:
 # Persistent Storage Volumes
 # ===========================================================================
 volumes:
-  primary_db_data:
+  primary_db_data_v2:
     driver: local
-  audit_db_data:
+  audit_db_data_v2:
     driver: local
 
 # ===========================================================================
