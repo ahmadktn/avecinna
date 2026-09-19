@@ -2,16 +2,19 @@ FROM node:20-bookworm-slim
 
 WORKDIR /app
 
+# Enable corepack and activate pnpm (project has pnpm-lock.yaml)
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Install curl for container healthchecks and CA certificates
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml* ./
 
-# Install all dependencies (tsx & drizzle-kit needed for startup schema push)
-RUN npm install
+# Install using pnpm lockfile (avoids npm arborizer edgesOut bug)
+RUN pnpm install --frozen-lockfile || npm install --legacy-peer-deps
 
 COPY . .
 

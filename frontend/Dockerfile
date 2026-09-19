@@ -3,8 +3,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+# Enable corepack and activate pnpm (project has pnpm-lock.yaml)
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY package.json pnpm-lock.yaml* ./
+
+RUN pnpm install --frozen-lockfile || npm install --legacy-peer-deps
 
 COPY . .
 
@@ -12,7 +16,7 @@ COPY . .
 ARG NUXT_PUBLIC_API_BASE_URL
 ENV NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL}
 
-RUN npm run build
+RUN pnpm run build || npm run build
 
 # 2. Production Runner Stage (Minimal Alpine footprint)
 FROM node:20-alpine AS runner
