@@ -93,6 +93,12 @@ export const useAuth = () => {
 
       // Redirect based on role default
       switch (res.user.role) {
+        case 'DOCTOR':
+          router.push('/doctor')
+          break
+        case 'HEAD_OF_UNIT':
+          router.push('/unit')
+          break
         case 'ADMIN':
           router.push('/admin/dashboard')
           break

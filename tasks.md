@@ -82,7 +82,11 @@
   - [x] Patient Directory (`/patients` - dynamic ward patient dashboard)
   - [x] Patient Detail View (`/patients/:id`) rendering role-appropriate fields dynamically (with Redacted notice for Admin).
   - [x] Admin Control Panel (`/admin/dashboard`, `/admin/audit`, `/admin/users`)
-  - [x] Head of Unit Dashboard (`/unit/manage`)
+  - [x] Head of Unit Supervisory Portal:
+    - [x] Unit Overview (`/unit`): Real census telemetry, acuity breakdown, duty roster cards, security alerts stream
+    - [x] Staff Directory (`/unit/staff`): Paginated staff table, multi-attribute filtering, suspend/restore toggling, clinician reassignment modal
+    - [x] Duty Roster (`/unit/roster`): Paginated shifts table, status/date/type filtering, shift assignment modal, status transition updates
+    - [x] Doctor Dual-Role Integration: Unified sidebar navigation, full clinical encounters, SOAP notes, and care team consult grants
 
 - [ ] Automated Tests:
   - [ ] Vue Component tests with Vitest & `@vue/test-utils`.

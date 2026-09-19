@@ -8,12 +8,12 @@
         @openBreakGlass="showBreakGlassModal = true"
       />
 
-      <main class="flex-1 w-full px-8 py-8 space-y-8">
+      <main class="flex-1 w-full px-8 py-6 space-y-6">
         <!-- Back Link & Action Bar -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <NuxtLink
             to="/patients"
-            class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-2xs"
+            class="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-2xs w-fit"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -21,33 +21,58 @@
             <span>Back to Patients Directory</span>
           </NuxtLink>
 
-          <button
-            v-if="error"
-            @click="showBreakGlassModal = true"
-            class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm"
-          >
-            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>Break-Glass Emergency Unlock</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              v-if="patient && !error"
+              type="button"
+              @click="showCareTeamModal = true"
+              class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-2xs cursor-pointer"
+            >
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>Care Team & Consults</span>
+            </button>
+
+            <NuxtLink
+              v-if="patient && !error && (role === 'DOCTOR' || role === 'HEAD_OF_UNIT')"
+              :to="`/doctor/encounter?patientId=${patient.id}`"
+              class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span>Record Encounter</span>
+            </NuxtLink>
+
+            <button
+              v-if="error"
+              @click="showBreakGlassModal = true"
+              class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm cursor-pointer"
+            >
+              <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Emergency Break-Glass Unlock</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Error State (Access Denied / CAAC Blocked) -->
-        <div v-if="error" class="bg-red-50/80 border border-red-200 rounded-3xl p-10 text-center space-y-5 shadow-2xs">
+        <!-- Error / CAAC Access Denied State -->
+        <div v-if="error" class="bg-red-50 border border-red-200 rounded-3xl p-10 text-center space-y-5 shadow-2xs">
           <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 mx-auto flex items-center justify-center shadow-xs">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div class="space-y-1">
-            <h3 class="text-lg font-bold text-red-950">Context-Aware Access Control (CAAC) Restriction</h3>
+            <h3 class="text-lg font-bold text-red-950">Context-Aware Access Control (CAAC) Authorization Denied</h3>
             <p class="text-xs text-red-800 max-w-lg mx-auto leading-relaxed">{{ error }}</p>
           </div>
           <div>
             <button
               @click="showBreakGlassModal = true"
-              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-6 py-3 rounded-2xl transition-all shadow-sm"
+              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-6 py-3 rounded-2xl transition-all shadow-sm cursor-pointer"
             >
               <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -57,77 +82,236 @@
           </div>
         </div>
 
-        <!-- Admin Privacy Redaction Notice -->
+        <!-- Admin Privacy Banner if Admin role -->
         <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
-        <!-- Patient Full Record -->
-        <div v-if="patient && !error" class="bg-white border border-slate-200/90 rounded-3xl p-8 shadow-xs space-y-8">
-          <!-- Header Profile -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
-            <div class="flex items-center gap-4">
-              <div class="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl font-mono shadow-sm">
-                {{ initials }}
-              </div>
-              <div class="space-y-1">
-                <div class="flex items-center gap-3">
-                  <h2 class="text-2xl font-bold text-slate-900 tracking-tight">{{ patient.fullName }}</h2>
-                  <StatusBadge type="stable" />
+        <!-- Patient Full Chart Record -->
+        <div v-if="patient && !error" class="space-y-6">
+          <!-- Profile Header Card -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-2xs space-y-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-xl font-mono shadow-xs">
+                  {{ initials }}
                 </div>
-                <p class="text-xs text-slate-500 font-mono">
-                  MRN: <span class="font-bold text-slate-700">{{ patient.mrn }}</span> · Bed: <span class="font-bold text-slate-700">{{ patient.assignedBed || 'Bed 12B' }}</span> · DOB: {{ patient.dateOfBirth }}
-                </p>
+                <div class="space-y-1">
+                  <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">{{ patient.fullName }}</h2>
+                    <span
+                      class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full"
+                      :class="getAcuityBadge(patientAcuity)"
+                    >
+                      {{ patientAcuity }}
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 font-mono">
+                    <span>MRN: <strong class="text-slate-800">{{ patient.mrn }}</strong></span>
+                    <span>·</span>
+                    <span>Bed: <strong class="text-slate-800">{{ patient.assignedBed || 'Bed 01' }}</strong></span>
+                    <span>·</span>
+                    <span>DOB: {{ patient.dateOfBirth }}</span>
+                    <span>·</span>
+                    <span>Gender: {{ patient.gender }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 rounded-xl text-xs font-bold font-mono">
+                  {{ patient.patientType || 'INPATIENT' }}
+                </span>
+                <span v-if="patient.genotype" class="bg-slate-100 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold font-mono">
+                  Genotype: {{ patient.genotype }}
+                </span>
+                <span v-if="patient.bloodGroup" class="bg-slate-100 text-slate-700 px-3 py-1 rounded-xl text-xs font-bold font-mono">
+                  Blood: {{ patient.bloodGroup }}
+                </span>
               </div>
             </div>
 
-            <div class="flex items-center gap-2">
-              <span class="bg-blue-50 text-blue-700 border border-blue-200 px-3.5 py-1.5 rounded-xl text-xs font-bold font-mono">
-                {{ patient.patientType || 'INPATIENT' }}
-              </span>
+            <!-- Vitals Telemetry Grid -->
+            <div class="space-y-3">
+              <h3 class="font-bold text-slate-500 text-xs uppercase tracking-wider">Live Physiological Telemetry</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <p class="text-slate-500 text-[11px] font-semibold">Blood Pressure</p>
+                  <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.bp || '120/80' }}</p>
+                  <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">mmHg</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <p class="text-slate-500 text-[11px] font-semibold">Heart Rate</p>
+                  <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.hr || 72 }}</p>
+                  <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">bpm</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <p class="text-slate-500 text-[11px] font-semibold">SpO2 Oxygen</p>
+                  <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.spo2 || 98 }}%</p>
+                  <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Room Air</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <p class="text-slate-500 text-[11px] font-semibold">Temperature</p>
+                  <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.temp || '36.8' }}°C</p>
+                  <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Normothermic</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                  <p class="text-slate-500 text-[11px] font-semibold">Resp. Rate</p>
+                  <p class="text-xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.rr || 16 }}</p>
+                  <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">/min</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Section 1: Clinical Vitals Grid -->
-          <div class="space-y-4">
-            <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-500">Live Vitals & Physiological Telemetry</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 text-center">
-                <p class="text-slate-500 text-xs font-semibold">Blood Pressure</p>
-                <p class="text-2xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.bp || '120/80' }}</p>
-                <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Normal Range</span>
-              </div>
-              <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 text-center">
-                <p class="text-slate-500 text-xs font-semibold">Heart Rate</p>
-                <p class="text-2xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.hr || 72 }} <span class="text-sm font-normal text-slate-500">bpm</span></p>
-                <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Sinus Rhythm</span>
-              </div>
-              <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 text-center">
-                <p class="text-slate-500 text-xs font-semibold">SpO2 Oxygen</p>
-                <p class="text-2xl font-bold text-slate-900 font-mono mt-1">{{ patient.vitals?.spo2 || 98 }}%</p>
-                <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Room Air</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Clinical Diagnosis & Allergies -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
-            <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-6 space-y-3">
-              <h4 class="font-bold text-slate-900 uppercase tracking-wider text-slate-500">Clinical Diagnosis</h4>
+          <!-- Clinical Diagnosis & Allergies -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            <!-- Diagnosis Card -->
+            <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+              <h4 class="font-bold text-slate-700 uppercase tracking-wider">Clinical Diagnosis & Findings</h4>
               <p class="text-slate-800 leading-relaxed text-sm">
-                {{ patient.fullRecord?.diagnosis || 'Inpatient clinical surveillance and telemetry monitoring in active ward.' }}
+                {{ patient.fullRecord?.diagnosis || 'Inpatient clinical surveillance and vital signs monitoring.' }}
               </p>
             </div>
 
-            <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-6 space-y-3">
-              <h4 class="font-bold text-slate-900 uppercase tracking-wider text-slate-500">Known Allergies & Contraindications</h4>
-              <div class="flex flex-wrap gap-2">
-                <span class="bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Allergies Card -->
+            <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+              <h4 class="font-bold text-slate-700 uppercase tracking-wider">Known Allergies & Adverse Reactions</h4>
+              <div v-if="allergyList.length === 0" class="text-slate-400 italic">
+                No known drug allergies or contraindications recorded (NKDA).
+              </div>
+              <div v-else class="flex flex-wrap gap-2">
+                <span
+                  v-for="(al, i) in allergyList"
+                  :key="i"
+                  class="bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                >
+                  <svg class="w-3.5 h-3.5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                  Penicillin (Anaphylaxis)
+                  <span>{{ al }}</span>
                 </span>
-                <span class="bg-red-50 text-red-700 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-semibold">
-                  Sulfa Drugs
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Prescriptions / Medication Regimen -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Active Prescriptions & Pharmacotherapy</h3>
+              <span class="text-xs font-mono text-slate-400">{{ activeMedicationsList.length }} Medications</span>
+            </div>
+
+            <div v-if="activeMedicationsList.length === 0" class="py-6 text-center text-xs text-slate-400">
+              No active prescriptions currently on file for this patient.
+            </div>
+
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div
+                v-for="(med, idx) in activeMedicationsList"
+                :key="idx"
+                class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-slate-900 text-sm">{{ med.medicationName || med.name }}</span>
+                  <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded font-mono">
+                    {{ med.dosage }} · {{ med.frequency }}
+                  </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 font-mono">
+                  <span v-if="med.route">Route: {{ med.route }}</span>
+                  <span v-if="med.duration">· Duration: {{ med.duration }}</span>
+                </div>
+                <p v-if="med.instructions" class="text-[11px] text-slate-600 italic">
+                  "{{ med.instructions }}"
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinical History / SOAP Encounters Timeline -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Clinical Notes & Encounters History</h3>
+              <span class="text-xs font-mono text-slate-400">SOAP Timeline</span>
+            </div>
+
+            <div v-if="clinicalHistoryList.length === 0" class="py-6 text-center text-xs text-slate-400">
+              No previous clinical SOAP encounters recorded.
+            </div>
+
+            <div v-else class="space-y-4">
+              <div
+                v-for="(note, idx) in clinicalHistoryList"
+                :key="idx"
+                class="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-xs"
+              >
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-900">{{ note.doctorName || 'Attending Physician' }}</span>
+                    <span v-if="note.diagnosis" class="bg-slate-200 text-slate-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                      {{ note.diagnosis }}
+                    </span>
+                  </div>
+                  <span class="text-slate-400 font-mono text-[11px]">{{ formatTimestamp(note.timestamp) }}</span>
+                </div>
+
+                <!-- Structured SOAP Box -->
+                <div v-if="note.soap" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div v-if="note.soap.subjective" class="space-y-0.5">
+                    <span class="font-bold text-slate-700 uppercase text-[10px]">Subjective:</span>
+                    <p class="text-slate-600 leading-relaxed">{{ note.soap.subjective }}</p>
+                  </div>
+                  <div v-if="note.soap.objective" class="space-y-0.5">
+                    <span class="font-bold text-slate-700 uppercase text-[10px]">Objective:</span>
+                    <p class="text-slate-600 leading-relaxed">{{ note.soap.objective }}</p>
+                  </div>
+                  <div v-if="note.soap.assessment" class="space-y-0.5">
+                    <span class="font-bold text-slate-700 uppercase text-[10px]">Assessment:</span>
+                    <p class="text-slate-600 leading-relaxed">{{ note.soap.assessment }}</p>
+                  </div>
+                  <div v-if="note.soap.plan" class="space-y-0.5">
+                    <span class="font-bold text-slate-700 uppercase text-[10px]">Plan:</span>
+                    <p class="text-slate-600 leading-relaxed">{{ note.soap.plan }}</p>
+                  </div>
+                </div>
+                <div v-else-if="note.note" class="text-slate-700 leading-relaxed">
+                  {{ note.note }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagnostic Lab Results & Documents Section -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Laboratory Investigations & Reports</h3>
+              <span class="text-xs font-mono text-slate-400">{{ labResults.length }} Lab Tests</span>
+            </div>
+
+            <div v-if="labResults.length === 0" class="py-6 text-center text-xs text-slate-400">
+              No lab results on file.
+            </div>
+
+            <div v-else class="divide-y divide-slate-100">
+              <div
+                v-for="lab in labResults"
+                :key="lab.id"
+                class="py-3.5 flex items-center justify-between gap-4 text-xs"
+              >
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-slate-900">{{ lab.testName }}</span>
+                    <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded font-mono">
+                      {{ lab.category }}
+                    </span>
+                  </div>
+                  <p class="text-[11px] font-mono text-slate-400">Hash: {{ lab.documentHash.slice(0, 16) }}... · {{ formatTimestamp(lab.createdAt) }}</p>
+                </div>
+
+                <span
+                  class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full"
+                  :class="lab.status === 'FINAL' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                >
+                  {{ lab.status }}
                 </span>
               </div>
             </div>
@@ -137,8 +321,15 @@
     </div>
 
     <!-- Modals -->
-    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" />
-    <BreakGlassModal :isOpen="showBreakGlassModal" :patientId="patientId" @close="showBreakGlassModal = false" />
+    <WardSwitcherModal :isOpen="showWardSwitcher" @close="showWardSwitcher = false" @switched="loadPatientData" />
+    <BreakGlassModal :isOpen="showBreakGlassModal" :patientId="patientId" @close="showBreakGlassModal = false" @unlocked="loadPatientData" />
+    <CareTeamModal
+      :isOpen="showCareTeamModal"
+      :patientId="patientId"
+      :patientName="patient?.fullName"
+      @close="showCareTeamModal = false"
+      @updated="loadPatientData"
+    />
   </div>
 </template>
 
@@ -146,7 +337,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
-import { usePatients, type Patient } from '~/composables/usePatients'
+import { usePatients } from '~/composables/usePatients'
 
 const route = useRoute()
 const auth = useAuth()
@@ -156,9 +347,11 @@ const patientId = computed(() => route.params.id as string)
 const role = computed(() => auth.role.value)
 const patient = computed(() => patientsApi.currentPatient.value)
 const error = computed(() => patientsApi.error.value)
+const labResults = computed(() => patientsApi.labResults.value)
 
 const showWardSwitcher = ref(false)
 const showBreakGlassModal = ref(false)
+const showCareTeamModal = ref(false)
 
 const initials = computed(() => {
   if (!patient.value) return 'PT'
@@ -169,11 +362,70 @@ const initials = computed(() => {
   return patient.value.fullName.slice(0, 2).toUpperCase()
 })
 
-onMounted(async () => {
+const patientAcuity = computed<'stable' | 'monitoring' | 'critical'>(() => {
+  if (!patient.value) return 'stable'
+  const hr = patient.value.vitals?.hr
+  const spo2 = patient.value.vitals?.spo2
+  if ((hr && (hr > 110 || hr < 50)) || (spo2 && spo2 < 92)) {
+    return 'critical'
+  }
+  if ((hr && (hr > 95 || hr < 60)) || (spo2 && spo2 < 95)) {
+    return 'monitoring'
+  }
+  return 'stable'
+})
+
+const allergyList = computed<string[]>(() => {
+  if (!patient.value) return []
+  if (Array.isArray(patient.value.allergies)) return patient.value.allergies
+  if (patient.value.allergies?.allergies) return patient.value.allergies.allergies
+  return []
+})
+
+const activeMedicationsList = computed<any[]>(() => {
+  if (!patient.value) return []
+  if (Array.isArray(patient.value.activeMedications)) return patient.value.activeMedications
+  if (patient.value.fullRecord?.activeMedications) return patient.value.fullRecord.activeMedications
+  return []
+})
+
+const clinicalHistoryList = computed<any[]>(() => {
+  if (!patient.value) return []
+  if (Array.isArray(patient.value.clinicalNotes)) return patient.value.clinicalNotes
+  if (patient.value.fullRecord?.clinicalHistory) return patient.value.fullRecord.clinicalHistory
+  return []
+})
+
+const loadPatientData = async () => {
   try {
-    await patientsApi.fetchPatientById(patientId.value)
+    await Promise.all([
+      patientsApi.fetchPatientById(patientId.value),
+      patientsApi.fetchLabResults(patientId.value).catch(() => []),
+    ])
   } catch (err) {
     // Handled in composable
   }
+}
+
+const getAcuityBadge = (acuity: string) => {
+  if (acuity === 'critical') return 'bg-red-100 text-red-700'
+  if (acuity === 'monitoring') return 'bg-amber-100 text-amber-700'
+  return 'bg-emerald-100 text-emerald-700'
+}
+
+const formatTimestamp = (iso: string) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+onMounted(() => {
+  loadPatientData()
 })
 </script>

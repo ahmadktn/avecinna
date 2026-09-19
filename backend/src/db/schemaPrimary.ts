@@ -217,3 +217,30 @@ export const securityAlerts = pgTable('security_alerts', {
   status: alertStatusEnum('status').default('OPEN').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// 10. Ward Staff Rosters Table
+export const wardRosters = pgTable(
+  'ward_rosters',
+  {
+    id: varchar('id', { length: 36 }).primaryKey(),
+    wardId: varchar('ward_id', { length: 36 })
+      .notNull()
+      .references(() => wards.id),
+    staffId: varchar('staff_id', { length: 36 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    shiftType: varchar('shift_type', { length: 20 }).notNull().default('DAY'),
+    shiftDate: varchar('shift_date', { length: 15 }).notNull(),
+    startTime: varchar('start_time', { length: 10 }).notNull().default('08:00'),
+    endTime: varchar('end_time', { length: 10 }).notNull().default('20:00'),
+    status: varchar('status', { length: 20 }).notNull().default('SCHEDULED'),
+    notes: text('notes'),
+    assignedBy: varchar('assigned_by', { length: 36 }).references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_ward_rosters_ward').on(table.wardId, table.shiftDate),
+    index('idx_ward_rosters_staff').on(table.staffId, table.shiftDate),
+  ]
+);
