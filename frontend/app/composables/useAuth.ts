@@ -108,6 +108,10 @@ export const useAuth = () => {
         case 'PHARMACIST':
           router.push('/pharmacy/prescriptions')
           break
+        case 'NURSE':
+        case 'PARAMEDIC':
+          router.push('/nurse')
+          break
         default:
           router.push('/patients')
           break

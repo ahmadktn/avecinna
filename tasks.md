@@ -87,6 +87,12 @@
     - [x] Staff Directory (`/unit/staff`): Paginated staff table, multi-attribute filtering, suspend/restore toggling, clinician reassignment modal
     - [x] Duty Roster (`/unit/roster`): Paginated shifts table, status/date/type filtering, shift assignment modal, status transition updates
     - [x] Doctor Dual-Role Integration: Unified sidebar navigation, full clinical encounters, SOAP notes, and care team consult grants
+  - [x] Nurse Account & Clinical Station Portal:
+    - [x] Station Overview (`/nurse`): Ward census, active care team consults, acuity monitoring, shift details, bedside vitals recording
+    - [x] Patients Directory Integration (`/patients`): Scope filters (All Permitted, Ward Inpatients, Care Team Consults), care team consult badges, bedside observation triggers
+    - [x] Patient Chart View (`/patients/:id`): Nursing care plan, live physiological telemetry, allergy profiles, active medications, bedside observation modal, OWASP API3 clinical notes redaction notice
+    - [x] Nurse Profile & Credentials (`/nurse/profile`): Active nursing shift window, update clinical display name, Argon2id password management
+    - [x] Backend Endpoints: `GET /api/v1/nurse/overview`, `POST /api/v1/nurse/vitals`, `GET /api/v1/care-teams/my-assignments`, `scope` query on `GET /api/v1/patients`, role DTO masking with `nursingCarePlan`
 
 - [ ] Automated Tests:
   - [ ] Vue Component tests with Vitest & `@vue/test-utils`.

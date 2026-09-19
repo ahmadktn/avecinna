@@ -21,6 +21,9 @@ export interface Patient {
   medicationHistory?: any
   adminPrivacyNotice?: string
   isTier1BreakGlass?: boolean
+  relationshipType?: string
+  isCareTeam?: boolean
+  careTeamGrant?: any
 }
 
 export interface MedicalDocument {
@@ -58,11 +61,16 @@ export const usePatients = () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const fetchPatients = async () => {
+  const fetchPatients = async (params: { scope?: string } = {}) => {
     loading.value = true
     error.value = null
     try {
-      const res = await api.get<{ activeWardId: string; count: number; patients: Patient[] }>('/patients')
+      const query = new URLSearchParams()
+      if (params.scope && params.scope !== 'all') {
+        query.append('scope', params.scope)
+      }
+      const qs = query.toString() ? `?${query.toString()}` : ''
+      const res = await api.get<{ activeWardId: string; count: number; patients: Patient[] }>(`/patients${qs}`)
       patients.value = res.patients
       return res.patients
     } catch (err: any) {

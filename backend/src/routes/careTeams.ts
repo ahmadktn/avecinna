@@ -214,6 +214,55 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
       });
     }
   );
+
+  // 4. GET /care-teams/my-assignments (List all care team assignments for calling clinician)
+  fastify.get(
+    '/care-teams/my-assignments',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Care Team & Clinical Consultations'],
+        summary: 'List Current User Care Team & Consult Assignments',
+        description: 'Retrieves all active, non-expired care team assignments for the authenticated staff member.',
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const session = (request as any).userSession || (request as any).user;
+      const now = new Date();
+
+      const assignments = await dbPrimary
+        .select({
+          id: careTeams.id,
+          patientId: careTeams.patientId,
+          patientName: patients.fullName,
+          patientMrn: patients.mrn,
+          assignedBed: patients.assignedBed,
+          patientWardId: patients.primaryWardId,
+          patientWardName: wards.name,
+          patientWardCode: wards.code,
+          relationshipType: careTeams.relationshipType,
+          grantReason: careTeams.grantReason,
+          expiresAt: careTeams.expiresAt,
+          createdAt: careTeams.createdAt,
+        })
+        .from(careTeams)
+        .innerJoin(patients, eq(careTeams.patientId, patients.id))
+        .leftJoin(wards, eq(patients.primaryWardId, wards.id))
+        .where(
+          and(
+            eq(careTeams.staffId, session.userId),
+            or(isNull(careTeams.expiresAt), gte(careTeams.expiresAt, now))
+          )
+        )
+        .orderBy(desc(careTeams.createdAt));
+
+      return reply.send({
+        count: assignments.length,
+        assignments,
+      });
+    }
+  );
 }
 
 export default careTeamsRoutes;

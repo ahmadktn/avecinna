@@ -13,6 +13,7 @@ import appointmentsRoutes from './routes/appointments';
 import clerkRoutes from './routes/clerk';
 import careTeamsRoutes from './routes/careTeams';
 import doctorRoutes from './routes/doctor';
+import nurseRoutes from './routes/nurse';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -142,6 +143,7 @@ export async function buildApp() {
   await fastify.register(clerkRoutes, { prefix: '/api/v1' });
   await fastify.register(careTeamsRoutes, { prefix: '/api/v1' });
   await fastify.register(doctorRoutes, { prefix: '/api/v1' });
+  await fastify.register(nurseRoutes, { prefix: '/api/v1' });
 
   return fastify;
 }

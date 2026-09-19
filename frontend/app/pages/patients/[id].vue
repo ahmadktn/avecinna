@@ -21,7 +21,21 @@
             <span>Back to Patients Directory</span>
           </NuxtLink>
 
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Record Vitals (Nurses & Clinicians) -->
+            <button
+              v-if="patient && !error && (role === 'NURSE' || role === 'PARAMEDIC' || role === 'DOCTOR' || role === 'HEAD_OF_UNIT')"
+              type="button"
+              @click="showVitalsModal = true"
+              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all shadow-xs cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Record Bedside Vitals</span>
+            </button>
+
+            <!-- Care Team Consults -->
             <button
               v-if="patient && !error"
               type="button"
@@ -34,6 +48,7 @@
               <span>Care Team & Consults</span>
             </button>
 
+            <!-- Doctor Encounter Link -->
             <NuxtLink
               v-if="patient && !error && (role === 'DOCTOR' || role === 'HEAD_OF_UNIT')"
               :to="`/doctor/encounter?patientId=${patient.id}`"
@@ -45,6 +60,7 @@
               <span>Record Encounter</span>
             </NuxtLink>
 
+            <!-- Emergency Break-Glass Unlock -->
             <button
               v-if="error"
               @click="showBreakGlassModal = true"
@@ -95,8 +111,26 @@
                   {{ initials }}
                 </div>
                 <div class="space-y-1">
-                  <div class="flex items-center gap-3">
+                  <div class="flex flex-wrap items-center gap-3">
                     <h2 class="text-2xl font-bold text-slate-900 tracking-tight">{{ patient.fullName }}</h2>
+
+                    <!-- Relationship / Scope Badge -->
+                    <span
+                      v-if="patient.isCareTeam || relationshipType === 'CONSULT' || patient.relationshipType === 'CONSULT'"
+                      class="text-xs font-bold px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5"
+                    >
+                      <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span>Care Team Consult</span>
+                    </span>
+                    <span
+                      v-else
+                      class="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                    >
+                      Primary Ward Inpatient
+                    </span>
+
                     <span
                       class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full"
                       :class="getAcuityBadge(patientAcuity)"
@@ -104,6 +138,7 @@
                       {{ patientAcuity }}
                     </span>
                   </div>
+
                   <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 font-mono">
                     <span>MRN: <strong class="text-slate-800">{{ patient.mrn }}</strong></span>
                     <span>·</span>
@@ -131,7 +166,21 @@
 
             <!-- Vitals Telemetry Grid -->
             <div class="space-y-3">
-              <h3 class="font-bold text-slate-500 text-xs uppercase tracking-wider">Live Physiological Telemetry</h3>
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-500 text-xs uppercase tracking-wider">Live Physiological Telemetry</h3>
+                <button
+                  v-if="role === 'NURSE' || role === 'PARAMEDIC' || role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
+                  type="button"
+                  @click="showVitalsModal = true"
+                  class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Update Bedside Observations</span>
+                </button>
+              </div>
+
               <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
                   <p class="text-slate-500 text-[11px] font-semibold">Blood Pressure</p>
@@ -160,6 +209,29 @@
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Nursing Care Plan Banner (if present or if role is Nurse/Paramedic) -->
+          <div
+            v-if="patient.nursingCarePlan || patient.fullRecord?.nursingCarePlan || role === 'NURSE' || role === 'PARAMEDIC'"
+            class="bg-white border border-purple-200/90 rounded-2xl p-6 shadow-2xs space-y-3"
+          >
+            <div class="flex items-center justify-between pb-2 border-b border-purple-100">
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h4 class="font-bold text-purple-950 uppercase tracking-wider text-xs">Nursing Care Plan & Bedside Orders</h4>
+              </div>
+              <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                Active Nursing Protocol
+              </span>
+            </div>
+            <p class="text-slate-700 leading-relaxed text-xs">
+              {{ patient.nursingCarePlan || patient.fullRecord?.nursingCarePlan || '4-hourly vital signs surveillance, fluid intake/output balance monitoring, pressure ulcer prevention repositioning Q2H, and fall risk precautions.' }}
+            </p>
           </div>
 
           <!-- Clinical Diagnosis & Allergies -->
@@ -234,7 +306,23 @@
               <span class="text-xs font-mono text-slate-400">SOAP Timeline</span>
             </div>
 
-            <div v-if="clinicalHistoryList.length === 0" class="py-6 text-center text-xs text-slate-400">
+            <!-- Role-specific DTO privacy notice for Nurse/Paramedic/Clerk -->
+            <div
+              v-if="role === 'NURSE' || role === 'PARAMEDIC'"
+              class="p-4 bg-purple-50/60 border border-purple-200 rounded-xl text-xs text-purple-900 flex items-start gap-3"
+            >
+              <svg class="w-4 h-4 text-purple-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="space-y-0.5">
+                <p class="font-bold">Clinical Progress Notes Redaction (OWASP API3 Mitigation)</p>
+                <p class="text-[11px] text-purple-800 leading-relaxed">
+                  Physician clinical SOAP progress notes are redacted server-side per role DTO privacy policies. You have authorized access to live physiological telemetry, active medications, allergy profiles, and nursing care plans.
+                </p>
+              </div>
+            </div>
+
+            <div v-else-if="clinicalHistoryList.length === 0" class="py-6 text-center text-xs text-slate-400">
               No previous clinical SOAP encounters recorded.
             </div>
 
@@ -330,6 +418,15 @@
       @close="showCareTeamModal = false"
       @updated="loadPatientData"
     />
+
+    <!-- Bedside Vitals Observation Modal -->
+    <RecordVitalsModal
+      :isOpen="showVitalsModal"
+      :patientId="patientId"
+      :patientName="patient?.fullName"
+      @close="showVitalsModal = false"
+      @saved="loadPatientData"
+    />
   </div>
 </template>
 
@@ -348,10 +445,12 @@ const role = computed(() => auth.role.value)
 const patient = computed(() => patientsApi.currentPatient.value)
 const error = computed(() => patientsApi.error.value)
 const labResults = computed(() => patientsApi.labResults.value)
+const relationshipType = ref<string | null>(null)
 
 const showWardSwitcher = ref(false)
 const showBreakGlassModal = ref(false)
 const showCareTeamModal = ref(false)
+const showVitalsModal = ref(false)
 
 const initials = computed(() => {
   if (!patient.value) return 'PT'
@@ -398,10 +497,13 @@ const clinicalHistoryList = computed<any[]>(() => {
 
 const loadPatientData = async () => {
   try {
-    await Promise.all([
+    const [ptRes] = await Promise.all([
       patientsApi.fetchPatientById(patientId.value),
       patientsApi.fetchLabResults(patientId.value).catch(() => []),
     ])
+    if ((ptRes as any)?.relationshipType) {
+      relationshipType.value = (ptRes as any).relationshipType
+    }
   } catch (err) {
     // Handled in composable
   }

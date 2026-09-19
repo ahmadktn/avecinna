@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { dbPrimary } from '../db/clientPrimary.js';
-import { patients } from '../db/schemaPrimary.js';
+import { patients, careTeams, wards } from '../db/schemaPrimary.js';
 import { evaluateCAAC } from '../services/caacEngine.js';
 import { filterPatientRecordByRole } from '../services/dtoMasker.js';
 import { appendAuditBlock } from '../services/merkleEngine.js';
-import { eq } from 'drizzle-orm';
+import { eq, and, or, isNull, gte, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
 
 export async function patientRoutes(fastify: FastifyInstance) {
@@ -78,33 +78,110 @@ export async function patientRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 2. GET /patients (List Patients in Active Ward or Permitted Scope)
+  // 2. GET /patients (List Patients in Active Ward Scope & Permitted Care Teams)
   fastify.get(
     '/patients',
     {
       preHandler: [fastify.authenticate],
       schema: {
         tags: ['Patient Records (CAAC & DTO)'],
-        summary: 'List Patients in Active Ward Scope',
-        description: 'Retrieves patient directory for clinician active ward context, filtered by role DTO mask.',
+        summary: 'List Patients in Active Ward Scope & Care Teams',
+        description:
+          'Retrieves patient directory for clinician active ward context and active care team assignments, filtered by role DTO mask.',
         security: [{ bearerAuth: [] }],
+        querystring: {
+          type: 'object',
+          properties: {
+            scope: { type: 'string', enum: ['all', 'ward', 'care_team'], default: 'all' },
+          },
+        },
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const session = request.userSession || request.user;
+      const session = (request as any).userSession || (request as any).user;
+      const query = (request.query || {}) as any;
+      const scope = query.scope || 'all';
 
-      // Fetch patients in active ward
-      const activeWardPatients = await dbPrimary
-        .select()
-        .from(patients)
-        .where(eq(patients.primaryWardId, session.activeWardId));
+      const now = new Date();
 
-      const maskedList = activeWardPatients.map((p) => filterPatientRecordByRole(p, session.role, false));
+      // A. Fetch active Care Team grants for calling user
+      const myCareTeams = await dbPrimary
+        .select({
+          careTeamId: careTeams.id,
+          patientId: careTeams.patientId,
+          relationshipType: careTeams.relationshipType,
+          grantReason: careTeams.grantReason,
+          expiresAt: careTeams.expiresAt,
+        })
+        .from(careTeams)
+        .where(
+          and(
+            eq(careTeams.staffId, session.userId),
+            or(isNull(careTeams.expiresAt), gte(careTeams.expiresAt, now))
+          )
+        );
+
+      const careTeamMap = new Map<string, any>();
+      for (const ct of myCareTeams) {
+        careTeamMap.set(ct.patientId, ct);
+      }
+
+      // B. Fetch Ward Inpatients (if scope is 'all' or 'ward')
+      let activeWardPatients: any[] = [];
+      if (scope === 'all' || scope === 'ward') {
+        activeWardPatients = await dbPrimary
+          .select()
+          .from(patients)
+          .where(eq(patients.primaryWardId, session.activeWardId));
+      }
+
+      // C. Fetch Care Team Patients (if scope is 'all' or 'care_team')
+      let careTeamPatients: any[] = [];
+      if (scope === 'all' || scope === 'care_team') {
+        const wardPatientIds = new Set(activeWardPatients.map((p) => p.id));
+        const ctPatientIdsToFetch = Array.from(careTeamMap.keys()).filter((id) =>
+          scope === 'care_team' ? true : !wardPatientIds.has(id)
+        );
+
+        if (ctPatientIdsToFetch.length > 0) {
+          careTeamPatients = await dbPrimary
+            .select()
+            .from(patients)
+            .where(inArray(patients.id, ctPatientIdsToFetch));
+        }
+      }
+
+      // D. Combine and Tag with Relationship Context & Mask DTO
+      const combinedList: any[] = [];
+
+      if (scope !== 'care_team') {
+        for (const p of activeWardPatients) {
+          const ct = careTeamMap.get(p.id);
+          const masked = filterPatientRecordByRole(p, session.role, false);
+          combinedList.push({
+            ...masked,
+            relationshipType: ct?.relationshipType || 'PRIMARY',
+            isCareTeam: !!ct,
+            careTeamGrant: ct || null,
+          });
+        }
+      }
+
+      for (const p of careTeamPatients) {
+        const ct = careTeamMap.get(p.id);
+        const masked = filterPatientRecordByRole(p, session.role, false);
+        combinedList.push({
+          ...masked,
+          relationshipType: ct?.relationshipType || 'CONSULT',
+          isCareTeam: true,
+          careTeamGrant: ct || null,
+        });
+      }
 
       return reply.send({
         activeWardId: session.activeWardId,
-        count: maskedList.length,
-        patients: maskedList,
+        count: combinedList.length,
+        patients: combinedList,
       });
     }
   );

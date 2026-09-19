@@ -69,7 +69,7 @@ export function filterPatientRecordByRole(
 
     case 'NURSE':
     case 'PARAMEDIC':
-      // Nursing Scope: Vitals, Active Meds, Allergies, Bed (No long-term clinical notes/labs)
+      // Nursing Scope: Vitals, Active Meds, Allergies, Bed, Care Plan (No long-term clinical notes/labs)
       return {
         id: record.id,
         mrn: record.mrn,
@@ -77,10 +77,18 @@ export function filterPatientRecordByRole(
         dateOfBirth: record.dateOfBirth,
         gender: record.gender,
         patientType: record.patientType,
+        genotype: record.genotype,
+        bloodGroup: record.bloodGroup,
+        primaryWardId: record.primaryWardId,
         assignedBed: record.assignedBed,
         allergies: record.allergiesJson,
         vitals: record.emergencySummaryJson?.vitals || record.fullRecordJson?.vitals,
         activeMedications: record.emergencySummaryJson?.activeMedications || record.fullRecordJson?.activeMedications,
+        nursingCarePlan: record.fullRecordJson?.nursingCarePlan || record.fullRecordJson?.carePlan || null,
+        fullRecord: {
+          nursingCarePlan: record.fullRecordJson?.nursingCarePlan || record.fullRecordJson?.carePlan || null,
+          diagnosis: record.fullRecordJson?.diagnosis || null,
+        },
       };
 
     case 'PHARMACIST':
