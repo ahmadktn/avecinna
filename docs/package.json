@@ -1,0 +1,19 @@
+{
+  "name": "avecinna-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "generate": "nuxi generate",
+    "preview": "nuxi preview"
+  },
+  "devDependencies": {
+    "@nuxt-themes/docus": "^1.16.1",
+    "@nuxtjs/color-mode": "^3.5.2",
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "@nuxt/icon": "^1.10.3",
+    "lucide-vue-next": "^1.0.0",
+    "nuxt": "^3.15.4"
+  }
+}
