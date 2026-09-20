@@ -35,28 +35,65 @@
       </div>
     </div>
 
-    <!-- Ward Capacity Multi-Segment Progress Bar -->
-    <div class="space-y-1.5">
-      <div class="flex items-center justify-between text-[11px] font-mono">
-        <span class="text-slate-500">Bed Occupancy Rate: <strong class="text-slate-900">{{ occupancyRate }}%</strong></span>
-        <span class="text-slate-500">{{ occupiedCount }} / {{ totalBedsCount }} Total Beds</span>
+    <!-- Acuity Donut Chart + Occupancy -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+      <!-- ApexCharts Donut -->
+      <div class="flex items-center justify-center">
+        <ClientOnly>
+          <apexchart
+            type="donut"
+            height="200"
+            :options="donutOptions"
+            :series="donutSeries"
+          />
+          <template #fallback>
+            <div class="h-[200px] flex items-center justify-center text-xs text-slate-400">Loading chart...</div>
+          </template>
+        </ClientOnly>
       </div>
-      <div class="w-full h-2.5 bg-slate-100 rounded-full flex overflow-hidden">
-        <div
-          class="bg-rose-500 h-full transition-all duration-500"
-          :style="{ width: `${(criticalCount / totalBedsCount) * 100}%` }"
-          title="Critical Patients"
-        ></div>
-        <div
-          class="bg-amber-400 h-full transition-all duration-500"
-          :style="{ width: `${(monitoringCount / totalBedsCount) * 100}%` }"
-          title="Monitoring Patients"
-        ></div>
-        <div
-          class="bg-emerald-500 h-full transition-all duration-500"
-          :style="{ width: `${(stableCount / totalBedsCount) * 100}%` }"
-          title="Stable Patients"
-        ></div>
+
+      <!-- Occupancy Stats -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between text-[11px] font-mono">
+          <span class="text-slate-500">Bed Occupancy Rate: <strong class="text-slate-900">{{ occupancyRate }}%</strong></span>
+          <span class="text-slate-500">{{ occupiedCount }} / {{ totalBedsCount }} Total Beds</span>
+        </div>
+        <!-- Segmented occupancy bar -->
+        <div class="w-full h-3 bg-slate-100 rounded-full flex overflow-hidden">
+          <div
+            class="bg-rose-500 h-full transition-all duration-700"
+            :style="{ width: `${(criticalCount / totalBedsCount) * 100}%` }"
+            :title="`${criticalCount} Critical`"
+          ></div>
+          <div
+            class="bg-amber-400 h-full transition-all duration-700"
+            :style="{ width: `${(monitoringCount / totalBedsCount) * 100}%` }"
+            :title="`${monitoringCount} Monitoring`"
+          ></div>
+          <div
+            class="bg-emerald-500 h-full transition-all duration-700"
+            :style="{ width: `${(stableCount / totalBedsCount) * 100}%` }"
+            :title="`${stableCount} Stable`"
+          ></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+            <span class="text-slate-600">Critical: <strong class="text-slate-900">{{ criticalCount }}</strong></span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+            <span class="text-slate-600">Monitoring: <strong class="text-slate-900">{{ monitoringCount }}</strong></span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="text-slate-600">Stable: <strong class="text-slate-900">{{ stableCount }}</strong></span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-300 shrink-0"></span>
+            <span class="text-slate-600">Available: <strong class="text-slate-900">{{ availableCount }}</strong></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -100,13 +137,13 @@
           <!-- Live Bedside Telemetry Chips -->
           <div class="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
             <span class="px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 text-slate-700">
-              SpO2: <strong :class="bed.patient.vitals?.spo2 && bed.patient.vitals.spo2 < 92 ? 'text-red-600' : 'text-slate-900'">{{ bed.patient.vitals?.spo2 || 98 }}%</strong>
+              SpO2: <strong :class="bed.patient.vitals?.spo2 && bed.patient.vitals.spo2 < 92 ? 'text-red-600' : 'text-slate-900'">{{ bed.patient.vitals?.spo2 ?? '–' }}%</strong>
             </span>
             <span class="px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 text-slate-700">
-              HR: <strong :class="bed.patient.vitals?.hr && bed.patient.vitals.hr > 110 ? 'text-red-600' : 'text-slate-900'">{{ bed.patient.vitals?.hr || 74 }}</strong>
+              HR: <strong :class="bed.patient.vitals?.hr && bed.patient.vitals.hr > 110 ? 'text-red-600' : 'text-slate-900'">{{ bed.patient.vitals?.hr ?? '–' }}</strong>
             </span>
             <span class="px-1.5 py-0.5 rounded bg-white/80 border border-slate-200 text-slate-700">
-              BP: {{ bed.patient.vitals?.bp || '120/80' }}
+              BP: {{ bed.patient.vitals?.bp ?? '–' }}
             </span>
           </div>
         </div>
@@ -207,7 +244,6 @@ const bedSlots = computed(() => {
     const pad = i < 10 ? `0${i}` : `${i}`
     const defaultLabel = `${props.wardCode}-BED-${pad}`
 
-    // Check if patient specifically assigned to this bed label
     const patientIndex = assignedPatients.findIndex(
       (p) => p.assignedBed && p.assignedBed.toLowerCase().includes(pad)
     )
@@ -232,15 +268,67 @@ const bedSlots = computed(() => {
 
 const occupiedCount = computed(() => bedSlots.value.filter((b) => b.patient !== null).length)
 const availableCount = computed(() => totalBedsCount.value - occupiedCount.value)
-
 const criticalCount = computed(() => bedSlots.value.filter((b) => b.acuity === 'critical').length)
 const monitoringCount = computed(() => bedSlots.value.filter((b) => b.acuity === 'monitoring').length)
 const stableCount = computed(() => bedSlots.value.filter((b) => b.acuity === 'stable').length)
-
 const occupancyRate = computed(() => {
   if (totalBedsCount.value === 0) return 0
   return Math.round((occupiedCount.value / totalBedsCount.value) * 100)
 })
+
+// ApexCharts donut for acuity breakdown
+const donutSeries = computed(() => [
+  criticalCount.value || 0,
+  monitoringCount.value || 0,
+  stableCount.value || 0,
+  availableCount.value || 0,
+])
+
+const donutOptions = computed(() => ({
+  chart: {
+    type: 'donut',
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+    background: 'transparent',
+    animations: { enabled: true, easing: 'easeinout', speed: 600 },
+  },
+  labels: ['Critical', 'Monitoring', 'Stable', 'Available'],
+  colors: ['#f43f5e', '#f59e0b', '#10b981', '#cbd5e1'],
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '65%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Beds',
+            fontSize: '11px',
+            fontFamily: 'inherit',
+            color: '#64748b',
+            formatter: () => String(totalBedsCount.value),
+          },
+        },
+      },
+    },
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: (val: number, opts: any) => {
+      const count = opts.w.globals.series[opts.seriesIndex]
+      return count > 0 ? String(count) : ''
+    },
+    style: { fontSize: '11px', fontFamily: 'inherit', fontWeight: '700' },
+    dropShadow: { enabled: false },
+  },
+  legend: {
+    show: false,
+  },
+  stroke: { width: 2, colors: ['#ffffff'] },
+  tooltip: {
+    y: { formatter: (val: number) => `${val} bed${val !== 1 ? 's' : ''}` },
+  },
+}))
 
 const getBedCardClass = (bed: { acuity: string; patient: any }) => {
   if (!bed.patient) {

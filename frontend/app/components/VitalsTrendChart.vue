@@ -101,89 +101,21 @@
       </div>
     </div>
 
-    <!-- SVG Trajectory Sparkline Graph -->
-    <div class="relative bg-slate-50/60 rounded-xl border border-slate-200/80 p-4 overflow-hidden">
-      <!-- Safe Normal Physiological Range Background Strip -->
-      <div
-        class="absolute left-0 right-0 pointer-events-none opacity-40 bg-emerald-100/50 border-y border-emerald-200"
-        :style="safeRangeStyle"
-      ></div>
-
-      <!-- Interactive SVG Line -->
-      <svg
-        class="w-full h-44 overflow-visible"
-        viewBox="0 0 540 140"
-        preserveAspectRatio="none"
-      >
-        <!-- Horizontal Grid Lines -->
-        <line x1="0" y1="20" x2="540" y2="20" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3" />
-        <line x1="0" y1="60" x2="540" y2="60" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3" />
-        <line x1="0" y1="100" x2="540" y2="100" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 3" />
-
-        <!-- Area Fill under path -->
-        <polygon
-          :points="`0,140 ${svgPathPoints} 540,140`"
-          :fill="activeParamConfig.areaFill"
-          opacity="0.15"
+    <!-- ApexCharts Line Chart -->
+    <div class="rounded-xl overflow-hidden border border-slate-100">
+      <ClientOnly>
+        <apexchart
+          type="area"
+          height="200"
+          :options="chartOptions"
+          :series="chartSeries"
         />
-
-        <!-- Main Trend Path -->
-        <path
-          :d="`M ${svgPathPoints}`"
-          fill="none"
-          :stroke="activeParamConfig.lineStroke"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-
-        <!-- Secondary Line for Diastolic BP if viewing Blood Pressure -->
-        <path
-          v-if="selectedParam === 'bp' && svgDiastolicPoints"
-          :d="`M ${svgDiastolicPoints}`"
-          fill="none"
-          stroke="#64748b"
-          stroke-width="2"
-          stroke-dasharray="4 3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-
-        <!-- Data Point Circles & Tooltips -->
-        <g v-for="(pt, idx) in chartPoints" :key="idx">
-          <circle
-            :cx="pt.x"
-            :cy="pt.y"
-            r="4.5"
-            :fill="pt.isAbnormal ? '#ef4444' : activeParamConfig.lineStroke"
-            stroke="#ffffff"
-            stroke-width="2"
-            class="transition-all hover:r-6 cursor-pointer"
-          >
-            <title>{{ pt.time }}: {{ pt.value }} {{ activeParamConfig.unit }} ({{ pt.isAbnormal ? 'ABNORMAL' : 'Within target' }})</title>
-          </circle>
-
-          <!-- Value labels on points -->
-          <text
-            :x="pt.x"
-            :y="pt.y - 8"
-            font-size="9"
-            font-family="monospace"
-            font-weight="bold"
-            text-anchor="middle"
-            :fill="pt.isAbnormal ? '#b91c1c' : '#334155'"
-          >
-            {{ pt.value }}
-          </text>
-        </g>
-      </svg>
-
-      <!-- Time Axis Labels -->
-      <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-3 border-t border-slate-200/60 mt-1">
-        <span v-for="(pt, idx) in chartPoints" :key="idx" class="text-center">
-          {{ pt.time }}
-        </span>
-      </div>
+        <template #fallback>
+          <div class="h-[200px] flex items-center justify-center text-xs text-slate-400">
+            Loading chart...
+          </div>
+        </template>
+      </ClientOnly>
     </div>
 
     <!-- NEWS2 Clinical Action Guidance Notice -->
@@ -210,7 +142,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-
 const props = defineProps<{
   vitals?: {
     bp?: string
@@ -391,8 +322,7 @@ const activeParamConfig = computed(() => {
         maxVal: 140,
         normalMin: 60,
         normalMax: 100,
-        lineStroke: '#2563eb',
-        areaFill: '#3b82f6',
+        color: '#2563eb',
       }
     case 'bp':
       return {
@@ -402,8 +332,7 @@ const activeParamConfig = computed(() => {
         maxVal: 180,
         normalMin: 100,
         normalMax: 130,
-        lineStroke: '#0284c7',
-        areaFill: '#38bdf8',
+        color: '#0284c7',
       }
     case 'spo2':
       return {
@@ -413,8 +342,7 @@ const activeParamConfig = computed(() => {
         maxVal: 100,
         normalMin: 95,
         normalMax: 100,
-        lineStroke: '#7c3aed',
-        areaFill: '#a855f7',
+        color: '#7c3aed',
       }
     case 'temp':
       return {
@@ -424,36 +352,20 @@ const activeParamConfig = computed(() => {
         maxVal: 40.0,
         normalMin: 36.1,
         normalMax: 37.5,
-        lineStroke: '#d97706',
-        areaFill: '#f59e0b',
+        color: '#d97706',
       }
   }
 })
 
-// Background strip showing safe target zone
-const safeRangeStyle = computed(() => {
+// 24-hour 6-point trajectory anchored to current verified reading
+const seriesData = computed(() => {
   const cfg = activeParamConfig.value
-  const topPercent = Math.max(0, Math.min(100, ((cfg.maxVal - cfg.normalMax) / (cfg.maxVal - cfg.minVal)) * 100))
-  const heightPercent = Math.max(0, Math.min(100, ((cfg.normalMax - cfg.normalMin) / (cfg.maxVal - cfg.minVal)) * 100))
-  return {
-    top: `${topPercent}%`,
-    height: `${heightPercent}%`,
-  }
-})
+  let values: number[] = []
 
-// 24-Hour 6-Point Timeline Model (anchored to current verified reading)
-const observationTimes = ['00:00', '04:00', '08:00', '12:00', '16:00', 'Now']
-
-const chartPoints = computed(() => {
-  const cfg = activeParamConfig.value
-  const range = cfg.maxVal - cfg.minVal
-
-  let series: number[] = []
   if (selectedParam.value === 'hr') {
     const curr = currentHr.value
-    // Synthesize clinical trajectory anchored to current reading
     const delta = curr > 100 ? 8 : (curr < 60 ? -6 : 3)
-    series = [
+    values = [
       Math.round(curr - delta * 2.2),
       Math.round(curr - delta * 1.8),
       Math.round(curr - delta * 1.2),
@@ -463,11 +375,11 @@ const chartPoints = computed(() => {
     ]
   } else if (selectedParam.value === 'bp') {
     const curr = currentBp.value.sys
-    series = [curr - 6, curr - 4, curr + 2, curr - 2, curr + 3, curr]
+    values = [curr - 6, curr - 4, curr + 2, curr - 2, curr + 3, curr]
   } else if (selectedParam.value === 'spo2') {
     const curr = currentSpo2.value
     const delta = curr < 95 ? -2 : 0
-    series = [
+    values = [
       Math.min(100, curr + delta * 2),
       Math.min(100, curr + delta * 1.5),
       Math.min(100, curr + delta),
@@ -477,7 +389,7 @@ const chartPoints = computed(() => {
     ]
   } else {
     const curr = currentTemp.value
-    series = [
+    values = [
       Number((curr - 0.3).toFixed(1)),
       Number((curr - 0.2).toFixed(1)),
       Number((curr + 0.1).toFixed(1)),
@@ -487,46 +399,119 @@ const chartPoints = computed(() => {
     ]
   }
 
-  const svgWidth = 540
-  const svgHeight = 140
-  const paddingX = 35
-
-  return series.map((val, idx) => {
-    const x = paddingX + (idx / (series.length - 1)) * (svgWidth - paddingX * 2)
-    const clampedVal = Math.max(cfg.minVal, Math.min(cfg.maxVal, val))
-    const y = svgHeight - ((clampedVal - cfg.minVal) / range) * (svgHeight - 40) - 20
-    const isAbnormal = val < cfg.normalMin || val > cfg.normalMax
-    return {
-      x: Math.round(x),
-      y: Math.round(y),
-      value: val,
-      time: observationTimes[idx],
-      isAbnormal,
-    }
-  })
+  // Clamp to valid range
+  return values.map((v) => Math.max(cfg.minVal, Math.min(cfg.maxVal, v)))
 })
 
-const svgPathPoints = computed(() => {
-  return chartPoints.value.map((p) => `${p.x},${p.y}`).join(' ')
+const chartSeries = computed(() => {
+  const series = [
+    {
+      name: selectedParam.value === 'hr' ? 'Heart Rate' :
+            selectedParam.value === 'bp' ? 'Systolic BP' :
+            selectedParam.value === 'spo2' ? 'SpO2' : 'Temperature',
+      data: seriesData.value,
+    },
+  ]
+
+  // Add diastolic BP series if blood pressure tab
+  if (selectedParam.value === 'bp') {
+    const currDia = currentBp.value.dia
+    const diastolicData = [currDia - 3, currDia - 2, currDia + 1, currDia - 1, currDia + 2, currDia]
+    series.push({ name: 'Diastolic BP', data: diastolicData })
+  }
+
+  return series
 })
 
-const svgDiastolicPoints = computed(() => {
-  if (selectedParam.value !== 'bp') return null
-  const currDia = currentBp.value.dia
+const chartOptions = computed(() => {
   const cfg = activeParamConfig.value
-  const range = cfg.maxVal - cfg.minVal
-  const seriesDia = [currDia - 3, currDia - 2, currDia + 1, currDia - 1, currDia + 2, currDia]
-  const svgWidth = 540
-  const svgHeight = 140
-  const paddingX = 35
+  const colors = selectedParam.value === 'bp'
+    ? [cfg.color, '#64748b']
+    : [cfg.color]
 
-  return seriesDia
-    .map((val, idx) => {
-      const x = paddingX + (idx / (seriesDia.length - 1)) * (svgWidth - paddingX * 2)
-      const clampedVal = Math.max(cfg.minVal, Math.min(cfg.maxVal, val))
-      const y = svgHeight - ((clampedVal - cfg.minVal) / range) * (svgHeight - 40) - 20
-      return `${Math.round(x)},${Math.round(y)}`
-    })
-    .join(' ')
+  return {
+    chart: {
+      type: 'area',
+      toolbar: { show: false },
+      sparkline: { enabled: false },
+      animations: { enabled: true, easing: 'easeinout', speed: 500 },
+      fontFamily: 'inherit',
+      background: 'transparent',
+    },
+    colors,
+    stroke: {
+      curve: 'smooth',
+      width: selectedParam.value === 'bp' ? [2.5, 2] : [2.5],
+      dashArray: selectedParam.value === 'bp' ? [0, 4] : [0],
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'light',
+        type: 'vertical',
+        opacityFrom: 0.25,
+        opacityTo: 0.02,
+        stops: [0, 100],
+      },
+    },
+    markers: {
+      size: 4,
+      strokeWidth: 2,
+      strokeColors: '#ffffff',
+      hover: { size: 6 },
+    },
+    xaxis: {
+      categories: ['00:00', '04:00', '08:00', '12:00', '16:00', 'Now'],
+      labels: {
+        style: { fontSize: '10px', fontFamily: 'monospace', colors: '#94a3b8' },
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      min: cfg.minVal,
+      max: cfg.maxVal,
+      labels: {
+        style: { fontSize: '10px', fontFamily: 'monospace', colors: '#94a3b8' },
+        formatter: (val: number) => `${val}${cfg.unit}`,
+      },
+    },
+    annotations: {
+      yaxis: [
+        {
+          y: cfg.normalMin,
+          y2: cfg.normalMax,
+          fillColor: '#10b981',
+          opacity: 0.07,
+          label: {
+            text: 'Target Range',
+            style: { fontSize: '9px', color: '#10b981', background: 'transparent' },
+          },
+        },
+      ],
+    },
+    tooltip: {
+      enabled: true,
+      theme: 'light',
+      x: { show: true },
+      y: {
+        formatter: (val: number) => `${val} ${cfg.unit}`,
+      },
+    },
+    grid: {
+      borderColor: '#f1f5f9',
+      strokeDashArray: 3,
+      yaxis: { lines: { show: true } },
+      xaxis: { lines: { show: false } },
+    },
+    legend: {
+      show: selectedParam.value === 'bp',
+      position: 'top',
+      horizontalAlign: 'right',
+      fontSize: '11px',
+      fontFamily: 'inherit',
+    },
+    dataLabels: { enabled: false },
+  }
 })
 </script>

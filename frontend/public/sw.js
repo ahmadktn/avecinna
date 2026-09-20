@@ -44,12 +44,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
-  // API Requests Interception (/api/v1/*)
+  // API Requests Interception (/api/v1/*) — only intercept GET requests for offline caching
   if (url.pathname.startsWith('/api/v1/')) {
+    if (event.request.method !== 'GET') {
+      // Pass-through: Do not intercept mutating requests (POST, PATCH, PUT, DELETE)
+      return
+    }
+
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          // Network failure: return structured offline response
+          // Network failure for GET: return structured offline response
           return new Response(
             JSON.stringify({
               error: 'NETWORK_OFFLINE',

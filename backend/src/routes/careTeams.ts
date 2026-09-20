@@ -103,6 +103,15 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
       const { staffId, relationshipType, grantReason = 'Clinical consult requested', durationHours = 24 } = request.body;
       const session = request.userSession || request.user;
 
+      // Role check: Only Doctors, Heads of Unit, or Admins can grant care team access
+      const allowedRoles = ['DOCTOR', 'HEAD_OF_UNIT', 'ADMIN'];
+      if (!allowedRoles.includes(session.role)) {
+        return reply.status(403).send({
+          error: 'Forbidden',
+          message: 'Only Attending Doctors, Heads of Unit, or Admins are authorized to grant care team assignments.',
+        });
+      }
+
       // Verify patient exists
       const patientExists = await dbPrimary.select().from(patients).where(eq(patients.id, patientId)).limit(1);
       if (patientExists.length === 0) {
@@ -187,6 +196,15 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
       const { id: patientId, careTeamId } = request.params;
       const session = request.userSession || request.user;
 
+      // Role check: Only Doctors, Heads of Unit, or Admins can revoke care team access
+      const allowedRoles = ['DOCTOR', 'HEAD_OF_UNIT', 'ADMIN'];
+      if (!allowedRoles.includes(session.role)) {
+        return reply.status(403).send({
+          error: 'Forbidden',
+          message: 'Only Attending Doctors, Heads of Unit, or Admins are authorized to revoke care team assignments.',
+        });
+      }
+
       const [deleted] = await dbPrimary
         .delete(careTeams)
         .where(and(eq(careTeams.id, careTeamId), eq(careTeams.patientId, patientId)))
@@ -262,6 +280,52 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
       return reply.send({
         count: assignments.length,
         assignments,
+      });
+    }
+  );
+
+  // 5. GET /care-teams/available-staff (List all clinical staff for care team assignment: Doctors, Nurses, Unit Heads, Pharmacists)
+  fastify.get(
+    '/care-teams/available-staff',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Care Team & Clinical Consultations'],
+        summary: 'List Available Clinical Staff for Care Team Assignment',
+        description: 'Returns all active clinical staff across wards (Doctors, Nurses, Unit Heads, Pharmacists) eligible for care team assignment.',
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const staffMembers = await dbPrimary
+        .select({
+          id: users.id,
+          username: users.username,
+          fullName: users.fullName,
+          role: users.role,
+          homeWardId: users.homeWardId,
+          homeWardName: wards.name,
+          homeWardCode: wards.code,
+          isActive: users.isActive,
+        })
+        .from(users)
+        .leftJoin(wards, eq(users.homeWardId, wards.id))
+        .where(
+          and(
+            eq(users.isActive, true),
+            or(
+              eq(users.role, 'DOCTOR'),
+              eq(users.role, 'HEAD_OF_UNIT'),
+              eq(users.role, 'NURSE'),
+              eq(users.role, 'PHARMACIST')
+            )
+          )
+        )
+        .orderBy(users.role, users.fullName);
+
+      return reply.send({
+        count: staffMembers.length,
+        staff: staffMembers,
       });
     }
   );

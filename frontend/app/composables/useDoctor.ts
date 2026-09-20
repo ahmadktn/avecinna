@@ -35,8 +35,10 @@ export interface StaffItem {
   username: string
   fullName: string
   role: string
-  homeWardId: string
-  isActive: boolean
+  homeWardId?: string
+  homeWardName?: string
+  homeWardCode?: string
+  isActive?: boolean
 }
 
 export interface ClinicalEncounterPayload {
@@ -183,21 +185,14 @@ export const useDoctor = () => {
 
   const fetchStaffList = async () => {
     try {
-      const res = await api.get<{ users: StaffItem[] }>('/admin/users')
-      staffList.value = res.users
-      return res.users
+      const res = await api.get<{ count: number; staff: StaffItem[] }>('/care-teams/available-staff')
+      staffList.value = res.staff
+      return res.staff
     } catch (err) {
-      // If non-admin, fallback to doctors endpoint
+      // Fallback for admin or clerk endpoints
       try {
-        const docRes = await api.get<{ doctors: any[] }>('/clerk/doctors')
-        staffList.value = docRes.doctors.map((d) => ({
-          id: d.id,
-          username: d.username,
-          fullName: d.fullName,
-          role: d.role,
-          homeWardId: d.homeWardId,
-          isActive: true,
-        }))
+        const adminRes = await api.get<{ users: StaffItem[] }>('/admin/users')
+        staffList.value = adminRes.users.filter((u) => ['DOCTOR', 'HEAD_OF_UNIT', 'NURSE', 'PHARMACIST'].includes(u.role))
         return staffList.value
       } catch (e: any) {
         error.value = e.message || 'Failed to load staff list'

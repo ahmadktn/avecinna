@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { dbPrimary } from '../db/clientPrimary.js';
-import { users, sessions, wards } from '../db/schemaPrimary.js';
-import { eq } from 'drizzle-orm';
+import { users, sessions, wards, wardRosters, careTeams, patients } from '../db/schemaPrimary.js';
+import { eq, and, or, isNull, gte } from 'drizzle-orm';
 import argon2 from 'argon2';
 import crypto from 'crypto';
 import { appendAuditBlock } from '../services/merkleEngine.js';
@@ -184,7 +184,62 @@ export async function authRoutes(fastify: FastifyInstance) {
       const targetWard = targetWardRows[0];
       const previousWardId = session.activeWardId;
 
-      // B. Update Session Active Ward in Primary DB
+      // B. Enforce CAAC Shift & Roster Boundaries for Nursing Staff
+      if (session.role === 'NURSE' || session.role === 'PARAMEDIC') {
+        const isHomeWard = session.homeWardId === targetWardId;
+
+        // Check if nurse has scheduled shift in target ward
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const rosterRows = await dbPrimary
+          .select()
+          .from(wardRosters)
+          .where(
+            and(
+              eq(wardRosters.staffId, session.userId),
+              eq(wardRosters.wardId, targetWardId),
+              eq(wardRosters.shiftDate, todayStr)
+            )
+          )
+          .limit(1);
+
+        // Check if nurse has active care team grant on any patient in target ward
+        const careTeamRows = await dbPrimary
+          .select()
+          .from(careTeams)
+          .innerJoin(patients, eq(careTeams.patientId, patients.id))
+          .where(
+            and(
+              eq(careTeams.staffId, session.userId),
+              eq(patients.primaryWardId, targetWardId),
+              or(isNull(careTeams.expiresAt), gte(careTeams.expiresAt, now))
+            )
+          )
+          .limit(1);
+
+        const isAuthorizedToSwitch = isHomeWard || rosterRows.length > 0 || careTeamRows.length > 0;
+
+        if (!isAuthorizedToSwitch) {
+          await appendAuditBlock({
+            userId: session.userId,
+            action: 'WARD_SWITCH_BLOCKED',
+            activeWard: previousWardId,
+            payload: {
+              attemptedWardId: targetWardId,
+              attemptedWardCode: targetWard.code,
+              reason: 'UNAUTHORIZED_WARD_SWITCH: Nurse is not scheduled on duty roster or care team for this ward.',
+            },
+            request,
+          });
+
+          return reply.status(403).send({
+            error: 'Forbidden',
+            message: `Shift / Station Authorization Denied: You do not have an active roster shift, home assignment, or care team consult in ${targetWard.name}.`,
+          });
+        }
+      }
+
+      // C. Update Session Active Ward in Primary DB
       await dbPrimary
         .update(sessions)
         .set({ activeWardId: targetWardId })

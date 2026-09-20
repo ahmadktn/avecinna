@@ -32,6 +32,32 @@ export async function buildApp() {
   // 1. Register CORS
   await fastify.register(cors, {
     origin: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+      'x-active-ward-id',
+      'x-emergency-intent',
+      'x-emergency-passcode',
+      'x-device-type',
+      'x-device-id',
+      'x-offline-sync',
+      'x-offline-branch-id',
+      'x-forwarded-for',
+    ],
+    exposedHeaders: [
+      'x-audit-block-hash',
+      'x-merkle-root',
+      'x-caac-decision',
+      'x-avecinna-offline',
+      'content-type',
+      'content-length',
+    ],
+    credentials: true,
+    maxAge: 86400,
   });
 
   // Handle empty JSON bodies gracefully without throwing FST_ERR_CTP_EMPTY_JSON_BODY

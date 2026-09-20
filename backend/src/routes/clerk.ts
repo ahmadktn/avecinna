@@ -266,6 +266,15 @@ export async function clerkRoutes(fastify: FastifyInstance) {
       const { primaryWardId, assignedBed, patientType } = body;
       const session = request.userSession || request.user;
 
+      // Role check: Only Clerks, Admins, and Unit Heads can update admissions/bed spaces
+      const allowedRoles = ['CLERK', 'ADMIN', 'HEAD_OF_UNIT'];
+      if (!allowedRoles.includes(session.role)) {
+        return reply.status(403).send({
+          error: 'Forbidden',
+          message: 'Access denied: Only Admissions Clerks and Unit Heads can update patient admissions and bed allocations.',
+        });
+      }
+
       const updateData: any = { updatedAt: new Date() };
       if (primaryWardId) updateData.primaryWardId = primaryWardId;
       if (typeof assignedBed !== 'undefined') updateData.assignedBed = assignedBed;

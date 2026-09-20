@@ -317,86 +317,49 @@
 
         <!-- Tab 2: Dedicated Ledger Analysis -->
         <div v-else-if="activeTab === 'analytics'" class="space-y-8">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Action Distribution Breakdown -->
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6">
-              <div>
-                <h3 class="text-base font-bold text-slate-900">Event Action Distribution</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Categorical volume breakdown across all chained audit records</p>
-              </div>
-
-              <div class="space-y-4">
-                <div
-                  v-for="(count, actionName) in analytics?.actionDistribution"
-                  :key="actionName"
-                  class="space-y-1.5"
-                >
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-800">{{ actionName }}</span>
-                    <span class="font-mono text-slate-600 font-bold">{{ count }} Events</span>
-                  </div>
-                  <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      class="bg-blue-600 h-full rounded-full transition-all duration-500"
-                      :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, analytics?.metrics.totalBlocks || 1)) * 100))}%` }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Ward Activity Breakdown -->
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Ward Access Volume — real horizontal bar chart -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-5">
               <div>
                 <h3 class="text-base font-bold text-slate-900">Ward Access Volume</h3>
                 <p class="text-xs text-slate-500 mt-0.5">Audit logging density across working hospital ward boundaries</p>
               </div>
-
-              <div class="space-y-4">
-                <div
-                  v-for="(count, wardName) in analytics?.wardDistribution"
-                  :key="wardName"
-                  class="space-y-1.5"
-                >
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-800">{{ wardName }}</span>
-                    <span class="font-mono text-slate-600 font-bold">{{ count }} Blocks</span>
-                  </div>
-                  <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      class="bg-purple-600 h-full rounded-full transition-all duration-500"
-                      :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, analytics?.metrics.totalBlocks || 1)) * 100))}%` }"
-                    ></div>
-                  </div>
-                </div>
+              <div v-if="analytics?.wardDistribution && Object.keys(analytics.wardDistribution).length">
+                <ClientOnly>
+                  <apexchart
+                    type="bar"
+                    height="220"
+                    :options="wardChartOptions"
+                    :series="wardChartSeries"
+                  />
+                  <template #fallback>
+                    <div class="h-[220px] flex items-center justify-center text-xs text-slate-400">Loading chart...</div>
+                  </template>
+                </ClientOnly>
               </div>
+              <div v-else class="py-8 text-center text-xs text-slate-400">No ward data available.</div>
             </div>
 
-            <!-- Device & Channel Breakdown -->
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-6">
+            <!-- Device Distribution — real donut chart -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-xs space-y-5">
               <div>
                 <h3 class="text-base font-bold text-slate-900">Client Device Distribution</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Audit logging events categorized by originating client hardware &amp; interface</p>
+                <p class="text-xs text-slate-500 mt-0.5">Audit events categorized by originating client hardware &amp; interface</p>
               </div>
-
-              <div class="space-y-4">
-                <div
-                  v-for="(count, deviceName) in (analytics?.deviceDistribution || { DESKTOP: analytics?.metrics?.totalBlocks || 0 })"
-                  :key="deviceName"
-                  class="space-y-1.5"
-                >
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-800 uppercase tracking-wider text-[11px]">{{ deviceName }}</span>
-                    <span class="font-mono text-slate-600 font-bold">{{ count }} Events</span>
-                  </div>
-                  <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      class="bg-emerald-600 h-full rounded-full transition-all duration-500"
-                      :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, analytics?.metrics.totalBlocks || 1)) * 100))}%` }"
-                    ></div>
-                  </div>
-                </div>
+              <div v-if="deviceChartSeries.length">
+                <ClientOnly>
+                  <apexchart
+                    type="donut"
+                    height="220"
+                    :options="deviceChartOptions"
+                    :series="deviceChartSeries"
+                  />
+                  <template #fallback>
+                    <div class="h-[220px] flex items-center justify-center text-xs text-slate-400">Loading chart...</div>
+                  </template>
+                </ClientOnly>
               </div>
+              <div v-else class="py-8 text-center text-xs text-slate-400">No device data available.</div>
             </div>
           </div>
 
@@ -599,16 +562,18 @@
                 </div>
               </div>
 
+              <!-- Loading & Empty States -->
+              <div v-if="loading && (!merkleTreeData || treeLayout.nodes.length === 0)" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 z-10">
+                <span class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mr-2"></span>
+                Generating cryptographic Merkle tree graph...
+              </div>
+              <div v-else-if="treeLayout.nodes.length === 0" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 z-10">
+                No audit blocks in ledger to construct Merkle tree.
+              </div>
+
               <!-- SVG Network Graph Canvas -->
               <svg
-                class="w-full h-full cursor-grab active:cursor-grabbing origin-top-left"
-                :width="treeLayout.width"
-                :height="treeLayout.height"
-                :viewBox="`0 0 ${treeLayout.width} ${treeLayout.height}`"
-                :style="{
-                  transform: `translate(${panX}px, ${panY}px) scale(${zoom})`,
-                  transformOrigin: '0 0'
-                }"
+                class="w-full h-full cursor-grab active:cursor-grabbing"
               >
                 <defs>
                   <!-- Glow filter for active path and selected nodes -->
@@ -639,23 +604,25 @@
                   </linearGradient>
                 </defs>
 
-                <!-- 1. SVG Edges (Bezier Curved Branch Connectors) -->
-                <g class="edges-layer">
-                  <path
-                    v-for="edge in treeLayout.edges"
-                    :key="edge.id"
-                    :d="edge.path"
-                    fill="none"
-                    :stroke="edge.isActive ? '#c084fc' : '#475569'"
-                    :stroke-width="edge.isActive ? 3.5 : 1.8"
-                    :stroke-dasharray="edge.isActive ? 'none' : '5 4'"
-                    :filter="edge.isActive ? 'url(#purpleGlow)' : 'none'"
-                    class="transition-all duration-300"
-                  />
-                </g>
+                <!-- Transformed Canvas Group -->
+                <g :transform="`translate(${panX}, ${panY}) scale(${zoom})`">
+                  <!-- 1. SVG Edges (Bezier Curved Branch Connectors) -->
+                  <g class="edges-layer">
+                    <path
+                      v-for="edge in treeLayout.edges"
+                      :key="edge.id"
+                      :d="edge.path"
+                      fill="none"
+                      :stroke="edge.isActive ? '#c084fc' : '#475569'"
+                      :stroke-width="edge.isActive ? 3.5 : 1.8"
+                      :stroke-dasharray="edge.isActive ? 'none' : '5 4'"
+                      :filter="edge.isActive ? 'url(#purpleGlow)' : 'none'"
+                      class="transition-all duration-300"
+                    />
+                  </g>
 
-                <!-- 2. SVG Nodes (Git Commit & Merkle Nodes) -->
-                <g class="nodes-layer">
+                  <!-- 2. SVG Nodes (Git Commit & Merkle Nodes) -->
+                  <g class="nodes-layer">
                   <g
                     v-for="item in treeLayout.nodes"
                     :key="item.id"
@@ -745,6 +712,7 @@
                         {{ getNodeDisplayTag(item.node) }}
                       </text>
                     </g>
+                  </g>
                   </g>
                 </g>
               </svg>
@@ -1093,7 +1061,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useAudit, type AuditBlock, type MerkleNode } from '~/composables/useAudit'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
 
@@ -1296,14 +1264,21 @@ const zoomOut = () => {
 }
 
 const resetView = () => {
-  zoom.value = 1
   if (graphContainerRef.value && treeLayout.value.nodes.length > 0) {
+    const cWidth = graphContainerRef.value.clientWidth || 900
+    const cHeight = graphContainerRef.value.clientHeight || 540
+    const scaleX = (cWidth - 80) / treeLayout.value.width
+    const scaleY = (cHeight - 80) / treeLayout.value.height
+    const initialZoom = Math.min(1.0, Math.max(0.4, Math.min(scaleX, scaleY)))
+    zoom.value = Math.round(initialZoom * 100) / 100
+
     const root = getRootNode()
     if (root) {
       centerOnNode(root.id)
       return
     }
   }
+  zoom.value = 1
   panX.value = 60
   panY.value = 40
 }
@@ -1467,6 +1442,90 @@ const formatDate = (iso: string) => {
   })
 }
 
+onMounted(async () => {
+  await loadAllData()
+  if (activeTab.value === 'tree') {
+    await nextTick()
+    resetView()
+  }
+})
+
+watch(
+  () => activeTab.value,
+  async (tab) => {
+    if (tab === 'tree') {
+      if (!merkleTreeData.value) {
+        await audit.fetchMerkleTree()
+      }
+      await nextTick()
+      resetView()
+    }
+  }
+)
+
 useAutoRefresh(() => loadAllData(), { interval: 15000 })
+
+// ─── Analytics Tab Chart Data ───────────────────────────────────────────────
+
+// Ward Access Volume — horizontal bar chart
+const wardChartSeries = computed(() => {
+  const dist = analytics.value?.wardDistribution ?? {}
+  return [{ name: 'Blocks', data: Object.values(dist).map(Number) }]
+})
+
+const wardChartOptions = computed(() => ({
+  chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit', background: 'transparent', animations: { enabled: true, speed: 500 } },
+  plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '60%', distributed: true } },
+  colors: ['#a855f7', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95'],
+  dataLabels: { enabled: true, formatter: (v: number) => v > 0 ? String(v) : '', style: { fontSize: '10px', fontWeight: '700', colors: ['#fff'] } },
+  xaxis: {
+    categories: Object.keys(analytics.value?.wardDistribution ?? {}),
+    labels: { style: { fontSize: '10px', fontFamily: 'monospace', colors: '#94a3b8' } },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: { labels: { style: { fontSize: '10px', fontFamily: 'monospace', colors: '#64748b' } } },
+  grid: { borderColor: '#f1f5f9', strokeDashArray: 3, xaxis: { lines: { show: true } }, yaxis: { lines: { show: false } } },
+  legend: { show: false },
+  tooltip: { y: { formatter: (v: number) => `${v} audit blocks` } },
+}))
+
+// Device Distribution — donut chart
+const deviceDist = computed(() => analytics.value?.deviceDistribution ?? {})
+const deviceChartSeries = computed(() => Object.values(deviceDist.value).map(Number).filter(v => v > 0))
+const deviceChartOptions = computed(() => ({
+  chart: { type: 'donut', toolbar: { show: false }, fontFamily: 'inherit', background: 'transparent', animations: { enabled: true, speed: 600 } },
+  labels: Object.keys(deviceDist.value),
+  colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#64748b'],
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '62%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Total',
+            fontSize: '11px',
+            color: '#64748b',
+            formatter: () => String(analytics.value?.metrics?.totalBlocks ?? 0),
+          },
+        },
+      },
+    },
+  },
+  dataLabels: {
+    enabled: true,
+    formatter: (val: number, opts: any) => {
+      const count = opts.w.globals.series[opts.seriesIndex]
+      return count > 0 ? String(count) : ''
+    },
+    style: { fontSize: '11px', fontWeight: '700' },
+    dropShadow: { enabled: false },
+  },
+  legend: { show: true, position: 'bottom', fontSize: '11px', fontFamily: 'inherit' },
+  stroke: { width: 2, colors: ['#ffffff'] },
+  tooltip: { y: { formatter: (v: number) => `${v} events` } },
+}))
 </script>
 

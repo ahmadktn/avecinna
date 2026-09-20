@@ -39,6 +39,19 @@
         </div>
       </div>
 
+      <!-- Patient ID Input (when opened globally) -->
+      <div v-if="!props.patientId" class="mb-5 space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700">
+          Target Patient ID / MRN <span class="text-red-500">*</span>
+        </label>
+        <input
+          v-model="targetPatientId"
+          type="text"
+          placeholder="e.g. p-cardio-01 or MRN-2024-001"
+          class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-amber-500"
+        />
+      </div>
+
       <!-- Tab Selectors -->
       <div class="flex bg-slate-100 p-1.5 rounded-2xl mb-6">
         <button
@@ -181,15 +194,21 @@ import { ref, watch, onUnmounted } from 'vue'
 import { useBreakGlass, type Tier1BreakGlassResponse, type Tier2BreakGlassResponse } from '~/composables/useBreakGlass'
 import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
-const props = defineProps<{
-  isOpen: boolean
-  patientId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean
+    patientId?: string
+  }>(),
+  {
+    patientId: '',
+  }
+)
 
 const emit = defineEmits(['close', 'unlocked'])
 
 const breakGlass = useBreakGlass()
 const activeTab = ref<'tier1' | 'tier2'>('tier1')
+const targetPatientId = ref(props.patientId || '')
 const justificationReason = ref('')
 const tier1Result = ref<Tier1BreakGlassResponse | null>(null)
 const loading = ref(false)
@@ -202,10 +221,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
 }
 
 watch(
+  () => props.patientId,
+  (val) => {
+    targetPatientId.value = val || ''
+  }
+)
+
+watch(
   () => props.isOpen,
   (open) => {
     if (typeof document !== 'undefined') {
       if (open) {
+        targetPatientId.value = props.patientId || ''
         document.body.style.overflow = 'hidden'
         window.addEventListener('keydown', handleKeyDown)
       } else {
@@ -231,10 +258,15 @@ const close = () => {
 }
 
 const handleTier1 = async () => {
+  const pid = targetPatientId.value || props.patientId
+  if (!pid) {
+    error.value = 'Patient ID or MRN is required for emergency override.'
+    return
+  }
   loading.value = true
   error.value = null
   try {
-    const res = await breakGlass.triggerTier1(props.patientId)
+    const res = await breakGlass.triggerTier1(pid)
     tier1Result.value = res
     triggerGlobalRefresh()
   } catch (err: any) {
@@ -245,10 +277,15 @@ const handleTier1 = async () => {
 }
 
 const handleTier2 = async () => {
+  const pid = targetPatientId.value || props.patientId
+  if (!pid) {
+    error.value = 'Patient ID or MRN is required for emergency override.'
+    return
+  }
   loading.value = true
   error.value = null
   try {
-    const res: Tier2BreakGlassResponse = await breakGlass.triggerTier2(props.patientId, justificationReason.value)
+    const res: Tier2BreakGlassResponse = await breakGlass.triggerTier2(pid, justificationReason.value)
     emit('unlocked', res)
     triggerGlobalRefresh()
     close()

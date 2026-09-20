@@ -89,141 +89,134 @@
     <!-- Zero-Trust Security Posture & Cryptographic Health Meter -->
     <SecurityPostureMeter :overview="overview" />
 
-    <!-- Real Meaningful Analytics Charts -->
+    <!-- Real Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Chart 1: Ward Patient Census -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold text-slate-900">Ward Inpatient Census</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Live patient distribution across hospital units</p>
-              </div>
-              <span class="text-xs text-slate-600 bg-slate-100 font-semibold px-2.5 py-1 rounded-lg">
-                {{ overview?.wardsWithCensus.length ?? 0 }} Wards
-              </span>
-            </div>
-
-            <div class="space-y-4 pt-1">
-              <div
-                v-for="ward in overview?.wardsWithCensus"
-                :key="ward.id"
-                class="space-y-1.5"
-              >
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-medium text-slate-800">{{ ward.name }} <span class="text-slate-400 font-mono">({{ ward.code }})</span></span>
-                  <span class="font-mono text-slate-600">{{ ward.patientCount }} Patients · {{ ward.staffCount }} Staff</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    class="bg-blue-600 h-full rounded-full transition-all duration-500"
-                    :style="{ width: `${Math.max(6, Math.min(100, (ward.patientCount / Math.max(1, overview?.metrics.totalPatients || 1)) * 100))}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div v-if="!overview?.wardsWithCensus?.length" class="py-8 text-center text-xs text-slate-400">
-                No ward census data recorded.
-              </div>
-            </div>
+      <!-- Chart 1: Ward Patient Census — real horizontal bar chart -->
+      <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Ward Inpatient Census</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Live patient distribution across hospital units</p>
           </div>
-
-          <!-- Chart 2: Staff Role Distribution Breakdown -->
-          <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-sm font-bold text-slate-900">Staff Account Allocation</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Clinical and administrative privilege distribution</p>
-              </div>
-              <span class="text-xs text-slate-600 bg-slate-100 font-semibold px-2.5 py-1 rounded-lg">
-                {{ overview?.metrics.totalStaff ?? 0 }} Accounts
-              </span>
-            </div>
-
-            <div class="space-y-4 pt-1">
-              <div
-                v-for="(count, roleName) in overview?.roleBreakdown"
-                :key="roleName"
-                class="space-y-1.5"
-              >
-                <div class="flex items-center justify-between text-xs">
-                  <span class="font-medium text-slate-800 capitalize">{{ String(roleName).replace(/_/g, ' ').toLowerCase() }}</span>
-                  <span class="font-mono text-slate-600">{{ count }} staff</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    class="bg-slate-700 h-full rounded-full transition-all duration-500"
-                    :style="{ width: `${Math.max(6, Math.min(100, (Number(count) / Math.max(1, overview?.metrics.totalStaff || 1)) * 100))}%` }"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <span class="text-xs text-slate-600 bg-slate-100 font-semibold px-2.5 py-1 rounded-lg">
+            {{ overview?.wardsWithCensus?.length ?? 0 }} Wards
+          </span>
         </div>
 
-        <!-- Recent Audit Stream -->
-        <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 class="text-sm font-bold text-slate-900">Recent Audit Activity</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Live immutable ledger events and access records</p>
-            </div>
-            <NuxtLink
-              to="/admin/audit"
-              class="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 self-start sm:self-auto"
+        <div v-if="overview?.wardsWithCensus?.length">
+          <ClientOnly>
+            <apexchart
+              type="bar"
+              height="220"
+              :options="wardCensusOptions"
+              :series="wardCensusSeries"
+            />
+            <template #fallback>
+              <div class="h-[220px] flex items-center justify-center text-xs text-slate-400">Loading chart...</div>
+            </template>
+          </ClientOnly>
+        </div>
+        <div v-else class="py-10 text-center text-xs text-slate-400">
+          No ward census data recorded.
+        </div>
+      </div>
+
+      <!-- Chart 2: Staff Role Distribution — real donut chart -->
+      <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Staff Account Allocation</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Clinical and administrative privilege distribution</p>
+          </div>
+          <span class="text-xs text-slate-600 bg-slate-100 font-semibold px-2.5 py-1 rounded-lg">
+            {{ overview?.metrics?.totalStaff ?? 0 }} Accounts
+          </span>
+        </div>
+
+        <div v-if="overview?.roleBreakdown && Object.keys(overview.roleBreakdown).length">
+          <ClientOnly>
+            <apexchart
+              type="donut"
+              height="220"
+              :options="staffRoleOptions"
+              :series="staffRoleSeries"
+            />
+            <template #fallback>
+              <div class="h-[220px] flex items-center justify-center text-xs text-slate-400">Loading chart...</div>
+            </template>
+          </ClientOnly>
+        </div>
+        <div v-else class="py-10 text-center text-xs text-slate-400">
+          No staff data recorded.
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Audit Stream -->
+    <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Recent Audit Activity</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Live immutable ledger events and access records</p>
+        </div>
+        <NuxtLink
+          to="/admin/audit"
+          class="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 self-start sm:self-auto"
+        >
+          <span>View Full Ledger</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </NuxtLink>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
+              <th class="py-3 px-3 font-mono">Block</th>
+              <th class="py-3 px-3">Action</th>
+              <th class="py-3 px-3">Actor</th>
+              <th class="py-3 px-3">Ward</th>
+              <th class="py-3 px-3 font-mono">SHA-256 Digest</th>
+              <th class="py-3 px-3">Timestamp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr
+              v-for="log in overview?.recentAuditLogs"
+              :key="log.indexNum"
+              class="hover:bg-slate-50/60 transition-colors"
             >
-              <span>View Full Ledger</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </NuxtLink>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
-                  <th class="py-3 px-3 font-mono">Block</th>
-                  <th class="py-3 px-3">Action</th>
-                  <th class="py-3 px-3">Actor</th>
-                  <th class="py-3 px-3">Ward</th>
-                  <th class="py-3 px-3 font-mono">SHA-256 Digest</th>
-                  <th class="py-3 px-3">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr
-                  v-for="log in overview?.recentAuditLogs"
-                  :key="log.indexNum"
-                  class="hover:bg-slate-50/60 transition-colors"
-                >
-                  <td class="py-3.5 px-3 font-mono font-bold text-slate-900">#{{ log.indexNum }}</td>
-                  <td class="py-3.5 px-3">
-                    <span class="inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold" :class="getActionBadgeClass(log.action)">
-                      {{ log.action }}
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-3 font-medium text-slate-800">{{ log.userId }}</td>
-                  <td class="py-3.5 px-3 text-slate-500 font-mono">{{ log.activeWard }}</td>
-                  <td class="py-3.5 px-3 font-mono text-[11px] text-slate-400">
-                    <span class="hover:text-slate-700 cursor-pointer select-all font-mono" :title="log.blockHash">
-                      {{ log.blockHash.slice(0, 10) }}...{{ log.blockHash.slice(-6) }}
-                    </span>
-                  </td>
-                  <td class="py-3.5 px-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
-                    {{ formatDate(log.createdAt) }}
-                  </td>
-                </tr>
-                <tr v-if="!overview?.recentAuditLogs?.length">
-                  <td colspan="6" class="py-8 text-center text-slate-400">No audit logs recorded yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+              <td class="py-3.5 px-3 font-mono font-bold text-slate-900">#{{ log.indexNum }}</td>
+              <td class="py-3.5 px-3">
+                <span class="inline-block px-2 py-0.5 rounded-md text-[11px] font-semibold" :class="getActionBadgeClass(log.action)">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td class="py-3.5 px-3 font-medium text-slate-800">{{ log.userId }}</td>
+              <td class="py-3.5 px-3 text-slate-500 font-mono">{{ log.activeWard }}</td>
+              <td class="py-3.5 px-3 font-mono text-[11px] text-slate-400">
+                <span class="hover:text-slate-700 cursor-pointer select-all font-mono" :title="log.blockHash">
+                  {{ log.blockHash.slice(0, 10) }}...{{ log.blockHash.slice(-6) }}
+                </span>
+              </td>
+              <td class="py-3.5 px-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                {{ formatDate(log.createdAt) }}
+              </td>
+            </tr>
+            <tr v-if="!overview?.recentAuditLogs?.length">
+              <td colspan="6" class="py-8 text-center text-slate-400">No audit logs recorded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAdmin } from '~/composables/useAdmin'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
 import SecurityPostureMeter from '~/components/SecurityPostureMeter.vue'
@@ -267,5 +260,130 @@ const formatDate = (iso: string) => {
     second: '2-digit',
   })
 }
-</script>
 
+// --- Ward Census Bar Chart ---
+const wardCensusSeries = computed(() => {
+  const wards = overview.value?.wardsWithCensus ?? []
+  return [
+    { name: 'Patients', data: wards.map((w) => w.patientCount) },
+    { name: 'Staff', data: wards.map((w) => w.staffCount) },
+  ]
+})
+
+const wardCensusOptions = computed(() => ({
+  chart: {
+    type: 'bar',
+    toolbar: { show: false },
+    fontFamily: 'inherit',
+    background: 'transparent',
+    animations: { enabled: true, easing: 'easeinout', speed: 600 },
+  },
+  plotOptions: {
+    bar: {
+      horizontal: false,
+      borderRadius: 5,
+      columnWidth: '55%',
+      dataLabels: { position: 'top' },
+    },
+  },
+  colors: ['#3b82f6', '#94a3b8'],
+  dataLabels: {
+    enabled: true,
+    offsetY: -16,
+    style: { fontSize: '10px', colors: ['#64748b'], fontFamily: 'monospace', fontWeight: '700' },
+  },
+  xaxis: {
+    categories: (overview.value?.wardsWithCensus ?? []).map((w) => `${w.name} (${w.code})`),
+    labels: {
+      style: { fontSize: '10px', fontFamily: 'inherit', colors: '#94a3b8' },
+      rotate: -20,
+    },
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+  yaxis: {
+    labels: {
+      style: { fontSize: '10px', fontFamily: 'monospace', colors: '#94a3b8' },
+    },
+  },
+  grid: {
+    borderColor: '#f1f5f9',
+    strokeDashArray: 3,
+    yaxis: { lines: { show: true } },
+    xaxis: { lines: { show: false } },
+  },
+  legend: {
+    show: true,
+    position: 'top',
+    horizontalAlign: 'right',
+    fontSize: '11px',
+    fontFamily: 'inherit',
+  },
+  tooltip: {
+    shared: true,
+    intersect: false,
+    y: { formatter: (val: number, opts: any) => `${val} ${opts.seriesName === 'Patients' ? 'patients' : 'staff'}` },
+  },
+}))
+
+// --- Staff Role Donut Chart ---
+const staffRoleSeries = computed(() => {
+  const breakdown = overview.value?.roleBreakdown ?? {}
+  return Object.values(breakdown).map((v) => Number(v))
+})
+
+const staffRoleOptions = computed(() => {
+  const breakdown = overview.value?.roleBreakdown ?? {}
+  const labels = Object.keys(breakdown).map((r) =>
+    r.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+  )
+  return {
+    chart: {
+      type: 'donut',
+      toolbar: { show: false },
+      fontFamily: 'inherit',
+      background: 'transparent',
+      animations: { enabled: true, easing: 'easeinout', speed: 600 },
+    },
+    labels,
+    colors: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#64748b'],
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '62%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Total Staff',
+              fontSize: '11px',
+              color: '#64748b',
+              fontFamily: 'inherit',
+              formatter: () => String(overview.value?.metrics?.totalStaff ?? 0),
+            },
+          },
+        },
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number, opts: any) => {
+        const count = opts.w.globals.series[opts.seriesIndex]
+        return count > 0 ? String(count) : ''
+      },
+      style: { fontSize: '11px', fontFamily: 'inherit', fontWeight: '700' },
+      dropShadow: { enabled: false },
+    },
+    legend: {
+      show: true,
+      position: 'bottom',
+      fontSize: '11px',
+      fontFamily: 'inherit',
+    },
+    stroke: { width: 2, colors: ['#ffffff'] },
+    tooltip: {
+      y: { formatter: (val: number) => `${val} account${val !== 1 ? 's' : ''}` },
+    },
+  }
+})
+</script>

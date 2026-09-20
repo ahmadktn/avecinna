@@ -26,9 +26,9 @@
           </svg>
         </div>
         <div class="pr-8">
-          <h3 class="text-lg font-bold text-slate-900 tracking-tight">Multi-Disciplinary Care Team & Consults</h3>
+          <h3 class="text-lg font-bold text-slate-900 tracking-tight">Multi-Disciplinary Care Team &amp; Consults</h3>
           <p class="text-xs text-slate-500 mt-0.5">
-            Manage attending clinicians and grant CAAC consult access for <strong class="text-slate-800">{{ patientName || 'Patient' }}</strong>.
+            Assign doctors, nurses, and clinical specialists to provide authorized CAAC care for <strong class="text-slate-800">{{ patientName || 'Patient' }}</strong>.
           </p>
         </div>
       </div>
@@ -64,7 +64,7 @@
         </div>
 
         <div v-else-if="careTeamList.length === 0" class="py-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-          No external care team consults granted. Primary ward staff have default CAAC access.
+          No external care team members assigned. Primary ward doctors and nurses have default CAAC access.
         </div>
 
         <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -74,8 +74,11 @@
             class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs hover:bg-slate-100/60 transition-colors"
           >
             <div class="min-w-0 space-y-0.5">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-slate-900 truncate">{{ member.staffName || member.staffUsername }}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="getRoleBadge(member.staffRole)">
+                  {{ formatRole(member.staffRole) }}
+                </span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase" :class="getRelationshipBadge(member.relationshipType)">
                   {{ member.relationshipType }}
                 </span>
@@ -88,6 +91,7 @@
             </div>
 
             <button
+              v-if="canManageCareTeam"
               type="button"
               @click="handleRevoke(member.id)"
               :disabled="actionLoading"
@@ -97,27 +101,85 @@
             </button>
           </div>
         </div>
+
+        <!-- Clean Close Action for Read-Only Roles -->
+        <div v-if="!canManageCareTeam" class="flex justify-end pt-3 border-t border-slate-100">
+          <button
+            type="button"
+            @click="$emit('close')"
+            class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-xs transition-colors cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
       </div>
 
-      <!-- Add Clinicians Form (Supports Multi-Clinician Selection) -->
-      <div class="border-t border-slate-100 pt-5 space-y-4">
+      <!-- Add Clinicians Form (Doctors & Unit Heads Only) -->
+      <div v-if="canManageCareTeam" class="border-t border-slate-100 pt-5 space-y-4">
         <div>
-          <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Grant Consult Access to Clinicians</h4>
-          <p class="text-[11px] text-slate-500">Select one or multiple doctors/specialists to add to this patient's care team.</p>
+          <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Assign Doctors &amp; Nurses to Care Team</h4>
+          <p class="text-[11px] text-slate-500">Select attending doctors, bedside/specialist nurses, or clinical pharmacists.</p>
         </div>
 
         <form @submit.prevent="handleBatchGrant" class="space-y-4 text-xs">
-          <!-- Multi-Clinician Selection Box -->
-          <div class="space-y-1.5">
-            <label class="block font-bold text-slate-700">
-              Select Clinicians <span class="text-red-500">*</span>
-              <span class="text-slate-400 font-normal font-mono ml-1">({{ selectedStaffIds.length }} selected)</span>
-            </label>
+          <!-- Role Filter Tabs + Search -->
+          <div class="space-y-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <!-- Filter Pills -->
+              <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-semibold text-slate-600">
+                <button
+                  type="button"
+                  @click="roleFilter = 'ALL'"
+                  class="px-2.5 py-1 rounded-md transition-all cursor-pointer"
+                  :class="roleFilter === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'hover:text-slate-900'"
+                >
+                  All Staff ({{ staffList.length }})
+                </button>
+                <button
+                  type="button"
+                  @click="roleFilter = 'DOCTOR'"
+                  class="px-2.5 py-1 rounded-md transition-all cursor-pointer"
+                  :class="roleFilter === 'DOCTOR' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'hover:text-slate-900'"
+                >
+                  Doctors ({{ doctorCount }})
+                </button>
+                <button
+                  type="button"
+                  @click="roleFilter = 'NURSE'"
+                  class="px-2.5 py-1 rounded-md transition-all cursor-pointer"
+                  :class="roleFilter === 'NURSE' ? 'bg-white text-emerald-700 shadow-2xs font-bold' : 'hover:text-slate-900'"
+                >
+                  Nurses ({{ nurseCount }})
+                </button>
+                <button
+                  type="button"
+                  @click="roleFilter = 'PHARMACIST'"
+                  class="px-2.5 py-1 rounded-md transition-all cursor-pointer"
+                  :class="roleFilter === 'PHARMACIST' ? 'bg-white text-amber-700 shadow-2xs font-bold' : 'hover:text-slate-900'"
+                >
+                  Pharmacy ({{ pharmacyCount }})
+                </button>
+              </div>
 
-            <!-- Clinician Chips List -->
-            <div class="max-h-36 overflow-y-auto border border-slate-200 rounded-xl p-2.5 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <span class="text-slate-500 font-mono text-[11px]">
+                {{ selectedStaffIds.length }} selected
+              </span>
+            </div>
+
+            <!-- Search input -->
+            <input
+              v-model="staffSearch"
+              type="text"
+              placeholder="Search by name, role, or ward..."
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <!-- Multi-Staff Selection Box -->
+          <div class="space-y-1.5">
+            <div class="max-h-44 overflow-y-auto border border-slate-200 rounded-xl p-2.5 bg-slate-50 grid grid-cols-1 sm:grid-cols-2 gap-2">
               <label
-                v-for="s in staffList"
+                v-for="s in filteredStaffList"
                 :key="s.id"
                 class="flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors select-none"
                 :class="selectedStaffIds.includes(s.id) ? 'bg-blue-50 border-blue-300 text-blue-900 font-bold' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100/70'"
@@ -126,33 +188,42 @@
                   type="checkbox"
                   :value="s.id"
                   v-model="selectedStaffIds"
-                  class="rounded text-blue-600 focus:ring-blue-500"
+                  class="rounded text-blue-600 focus:ring-blue-500 shrink-0"
                 />
-                <div class="min-w-0 truncate">
-                  <span class="block truncate">{{ s.fullName }}</span>
-                  <span class="text-[10px] text-slate-400 font-mono font-normal">@{{ s.username }} · {{ s.role }}</span>
+                <div class="min-w-0 truncate space-y-0.5">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="block truncate font-medium">{{ s.fullName }}</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-[10px] font-mono font-normal text-slate-500 truncate">
+                    <span class="px-1 py-0.2 rounded uppercase font-bold text-[9px]" :class="getRoleBadge(s.role)">{{ formatRole(s.role) }}</span>
+                    <span v-if="s.homeWardName">· {{ s.homeWardName }}</span>
+                  </div>
                 </div>
               </label>
+
+              <div v-if="filteredStaffList.length === 0" class="col-span-full py-4 text-center text-slate-400 text-xs">
+                No staff members matching criteria.
+              </div>
             </div>
           </div>
 
           <!-- Parameters: Relationship, Duration, Reason -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block font-bold text-slate-700 mb-1.5">Relationship / Role Type <span class="text-red-500">*</span></label>
+              <label class="block font-bold text-slate-700 mb-1.5">Care Team Relationship <span class="text-red-500">*</span></label>
               <select
                 v-model="grantConfig.relationshipType"
                 required
                 class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
               >
-                <option value="CONSULT">CONSULT (Specialist Consultation)</option>
-                <option value="ON_CALL">ON_CALL (Emergency Coverage)</option>
-                <option value="PRIMARY">PRIMARY (Primary Attending)</option>
+                <option value="CONSULT">CONSULT (Specialist / Liaison Consult)</option>
+                <option value="PRIMARY">PRIMARY (Primary Attending / Primary Nurse)</option>
+                <option value="ON_CALL">ON_CALL (Emergency / Shift Coverage)</option>
               </select>
             </div>
 
             <div>
-              <label class="block font-bold text-slate-700 mb-1.5">Consult Duration <span class="text-red-500">*</span></label>
+              <label class="block font-bold text-slate-700 mb-1.5">Authorization Duration <span class="text-red-500">*</span></label>
               <select
                 v-model.number="grantConfig.durationHours"
                 required
@@ -174,7 +245,7 @@
               v-model="grantConfig.grantReason"
               type="text"
               required
-              placeholder="e.g. Multi-disciplinary pre-operative consult and clinical assessment"
+              placeholder="e.g. Multi-disciplinary pre-operative consult, bedside wound care, or medication therapy review"
               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-900 focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -193,7 +264,7 @@
               class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-semibold shadow-xs flex items-center gap-2 cursor-pointer"
             >
               <span v-if="actionLoading" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <span>Grant Consult Access ({{ selectedStaffIds.length }})</span>
+              <span>Grant Access ({{ selectedStaffIds.length }})</span>
             </button>
           </div>
         </form>
@@ -203,7 +274,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { useAuth } from '~/composables/useAuth'
 import { useDoctor } from '~/composables/useDoctor'
 import { triggerGlobalRefresh } from '~/composables/useAutoRefresh'
 
@@ -220,21 +292,60 @@ const emit = defineEmits<{
   updated: []
 }>()
 
+const auth = useAuth()
 const doctorApi = useDoctor()
 const careTeamList = doctorApi.careTeam
 const staffList = doctorApi.staffList
 const loading = doctorApi.loading
+
+const canManageCareTeam = computed(() =>
+  ['DOCTOR', 'HEAD_OF_UNIT', 'ADMIN'].includes(auth.user.value?.role || '')
+)
 
 const actionLoading = ref(false)
 const successMsg = ref<string | null>(null)
 const errorMsg = ref<string | null>(null)
 
 const selectedStaffIds = ref<string[]>([])
+const roleFilter = ref<'ALL' | 'DOCTOR' | 'NURSE' | 'PHARMACIST'>('ALL')
+const staffSearch = ref('')
 
 const grantConfig = ref({
   relationshipType: 'CONSULT' as 'PRIMARY' | 'ON_CALL' | 'CONSULT' | 'OUTPATIENT_DOCTOR',
   durationHours: 24,
   grantReason: '',
+})
+
+// Counts
+const doctorCount = computed(() => staffList.value.filter((s) => s.role === 'DOCTOR' || s.role === 'HEAD_OF_UNIT').length)
+const nurseCount = computed(() => staffList.value.filter((s) => s.role === 'NURSE').length)
+const pharmacyCount = computed(() => staffList.value.filter((s) => s.role === 'PHARMACIST').length)
+
+// Filtered Staff List
+const filteredStaffList = computed(() => {
+  let list = staffList.value
+
+  if (roleFilter.value === 'DOCTOR') {
+    list = list.filter((s) => s.role === 'DOCTOR' || s.role === 'HEAD_OF_UNIT')
+  } else if (roleFilter.value === 'NURSE') {
+    list = list.filter((s) => s.role === 'NURSE')
+  } else if (roleFilter.value === 'PHARMACIST') {
+    list = list.filter((s) => s.role === 'PHARMACIST')
+  }
+
+  if (staffSearch.value.trim()) {
+    const q = staffSearch.value.toLowerCase()
+    list = list.filter(
+      (s) =>
+        s.fullName?.toLowerCase().includes(q) ||
+        s.username?.toLowerCase().includes(q) ||
+        s.role?.toLowerCase().includes(q) ||
+        s.homeWardName?.toLowerCase().includes(q) ||
+        s.homeWardCode?.toLowerCase().includes(q)
+    )
+  }
+
+  return list
 })
 
 const loadCareTeam = async () => {
@@ -253,6 +364,8 @@ watch(
       successMsg.value = null
       errorMsg.value = null
       selectedStaffIds.value = []
+      staffSearch.value = ''
+      roleFilter.value = 'ALL'
       await Promise.all([doctorApi.fetchStaffList(), loadCareTeam()])
     }
   }
@@ -274,7 +387,7 @@ const handleBatchGrant = async () => {
       })
     }
 
-    successMsg.value = `Successfully granted consult access to ${selectedStaffIds.value.length} clinician(s)!`
+    successMsg.value = `Successfully granted care team access to ${selectedStaffIds.value.length} clinician(s)!`
     selectedStaffIds.value = []
     grantConfig.value.grantReason = ''
     emit('updated')
@@ -299,6 +412,26 @@ const handleRevoke = async (careTeamId: string) => {
     errorMsg.value = err.message || 'Failed to revoke care team access'
   } finally {
     actionLoading.value = false
+  }
+}
+
+const formatRole = (role?: string) => {
+  if (!role) return 'Staff'
+  if (role === 'HEAD_OF_UNIT') return 'Unit Head'
+  return role.charAt(0) + role.slice(1).toLowerCase()
+}
+
+const getRoleBadge = (role?: string) => {
+  switch (role) {
+    case 'DOCTOR':
+    case 'HEAD_OF_UNIT':
+      return 'bg-blue-100 text-blue-800'
+    case 'NURSE':
+      return 'bg-emerald-100 text-emerald-800'
+    case 'PHARMACIST':
+      return 'bg-amber-100 text-amber-800'
+    default:
+      return 'bg-slate-100 text-slate-700'
   }
 }
 

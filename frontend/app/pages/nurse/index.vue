@@ -122,7 +122,7 @@
             </div>
 
             <div v-else-if="careTeamPatients.length === 0" class="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-              No active cross-ward care team assignments. You have full access to all {{ activeWardName }} inpatients.
+              No active cross-ward care team assignments. Authorized for bedside nursing observations and care plans in {{ activeWardName }}.
             </div>
 
             <div v-else class="divide-y divide-slate-100">

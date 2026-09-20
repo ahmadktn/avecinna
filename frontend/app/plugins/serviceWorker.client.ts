@@ -14,6 +14,9 @@ export default defineNuxtPlugin(() => {
         scope: '/',
       })
 
+      // Prompt immediate check for updated worker script
+      registration.update().catch(() => {})
+
       // Register Background Sync tag if supported by browser
       if ('sync' in registration) {
         window.addEventListener('online', async () => {

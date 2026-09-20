@@ -197,6 +197,15 @@ export async function doctorRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const session = request.userSession || request.user;
+
+      // Role check: Only Doctors and Heads of Unit can record clinical encounters
+      if (session.role !== 'DOCTOR' && session.role !== 'HEAD_OF_UNIT') {
+        return reply.status(403).send({
+          error: 'Forbidden',
+          message: 'Access denied: Only Attending Doctors and Heads of Unit can record clinical encounters.',
+        });
+      }
+
       const body: any = request.body || {};
       const {
         patientId,
