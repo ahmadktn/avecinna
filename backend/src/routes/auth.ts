@@ -50,7 +50,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, reply: FastifyReply) => {
       const body: any = request.body || {};
       const { username, password } = body;
-      const rawDeviceId = body.deviceId || request.headers['user-agent'];
+      const rawDeviceId = body.deviceId || request.headers['user-agent'] || request.ip;
 
       if (!username || !password) {
         return reply.status(400).send({ error: 'Bad Request', message: 'Username and password are required.' });
@@ -59,7 +59,7 @@ export async function authRoutes(fastify: FastifyInstance) {
       if (!rawDeviceId) {
         return reply.status(400).send({
           error: 'Bad Request',
-          message: 'Device identifier or User-Agent header is required for session tracking.',
+          message: 'Device identifier, User-Agent, or client IP is required for session tracking.',
         });
       }
 

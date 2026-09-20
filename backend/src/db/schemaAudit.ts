@@ -30,6 +30,7 @@ export const auditBlocks = pgTable(
     requestId: varchar('request_id', { length: 64 }), // Request correlation ID
     merkleRoot: varchar('merkle_root', { length: 64 }),
     signature: varchar('signature', { length: 256 }),
+    secondaryParentHash: varchar('secondary_parent_hash', { length: 64 }), // Secondary parent for Merkle DAG merge commits
     isOfflineSync: boolean('is_offline_sync').default(false).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },

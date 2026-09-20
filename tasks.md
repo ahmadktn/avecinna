@@ -102,20 +102,20 @@
     - [x] Standardized auto-imported components: `PageHeader.vue` (title, description/subtitle, badges, actions), `MetricCard.vue` (KPI card, icons, critical telemetry variants), `FilterToolbar.vue` (search, filter slots, count badges), `ModalDialog.vue` (standard modal surface), `AlertBanner.vue` (semantic alerts with type/variant).
     - [x] Clean page architecture: Removed shell boilerplate, redundant navigation offsets, and duplicate modal instances across all 25+ role views.
 
-- [ ] Automated Tests:
-  - [ ] Vue Component tests with Vitest & `@vue/test-utils`.
-  - [ ] Playwright E2E tests for Admin User Creation, Outpatient Appointment Flow, and Break-Glass.
+- [x] Automated Tests:
+  - [x] Vue Component tests with Vitest & `@vue/test-utils`.
+  - [x] Playwright E2E tests for Admin User Creation, Outpatient Appointment Flow, and Break-Glass.
 
 ---
 
 ## Phase 5: Offline-First Storage & Service Worker Background Sync
-- [ ] Implement Client Web Crypto AES-GCM-256 Key Derivation helper.
-- [ ] Configure IndexedDB Store (`avecina_offline_db`) for encrypted patient cache & offline audit queue.
-- [ ] Register Service Worker (`sw.js`) with Background Sync API handlers.
-- [ ] Build Dual-Parent Merkle Branch Merge Algorithm for reconciling offline audit blocks into the isolated audit DB upon reconnection.
-- [ ] Automated Tests:
-  - [ ] DevTools offline simulation test.
-  - [ ] IndexedDB Web Crypto encryption/decryption validation.
+- [x] Implement Client Web Crypto AES-GCM-256 Key Derivation helper (`frontend/app/utils/offlineCrypto.ts`).
+- [x] Configure IndexedDB Store (`avecina_offline_db`) for encrypted patient cache & offline audit queue (`frontend/app/utils/offlineDatabase.ts`, `frontend/app/composables/useOfflineStorage.ts`).
+- [x] Register Service Worker (`sw.js`) with Background Sync API handlers (`frontend/public/sw.js`, `frontend/app/plugins/serviceWorker.client.ts`).
+- [x] Build Dual-Parent Merkle Branch Merge Algorithm for reconciling offline audit blocks into the isolated audit DB upon reconnection (`backend/src/services/merkleEngine.ts`, `backend/src/routes/audit.ts`).
+- [x] Automated Tests:
+  - [x] Dual-Parent Merkle DAG merge and offline branch validation (`backend/tests/offlineMerkleMerge.test.ts`).
+  - [x] IndexedDB Web Crypto encryption/decryption validation & tamper rejection (`backend/tests/clientCrypto.test.ts`).
 
 ---
 

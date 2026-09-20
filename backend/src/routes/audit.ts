@@ -4,6 +4,7 @@ import {
   computeMerkleRoot,
   getMerkleTreeHierarchy,
   getAuditLedgerAnalytics,
+  mergeOfflineAuditBranch,
 } from '../services/merkleEngine.js';
 import { dbPrimary } from '../db/clientPrimary.js';
 import { dbAudit } from '../db/clientAudit.js';
@@ -49,6 +50,86 @@ export async function auditRoutes(fastify: FastifyInstance) {
           ? `Audit chain is 100% cryptographically intact with ${chainVerification.totalBlocks} blocks.`
           : `CRITICAL TAMPERING DETECTED at block ${chainVerification.brokenBlockId}!`,
       });
+    }
+  );
+
+  // 1b. POST /audit/sync-offline-branch (Reconcile & Merge Offline Ward Audit Branch via Dual-Parent Merkle DAG)
+  fastify.post(
+    '/audit/sync-offline-branch',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['Cryptographic Audit Ledger & Security Alerts'],
+        summary: 'Reconcile and Merge Offline Ward Audit Branch (Dual-Parent Merkle DAG)',
+        description:
+          'Receives an array of cryptographically chained offline audit blocks from a disconnected workstation, verifies sequential hash continuity, inserts them into avecinna_audit_db, and creates a Git-style dual-parent merge node.',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          required: ['branchHeadHash', 'blocks'],
+          properties: {
+            branchHeadHash: { type: 'string' },
+            branchRootHash: { type: 'string' },
+            blocks: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['blockHash', 'prevHash', 'userId', 'action', 'activeWard', 'payloadHash', 'timestamp'],
+                properties: {
+                  blockHash: { type: 'string' },
+                  prevHash: { type: 'string' },
+                  userId: { type: 'string' },
+                  patientId: { type: 'string' },
+                  action: { type: 'string' },
+                  activeWard: { type: 'string' },
+                  relationshipType: { type: 'string' },
+                  payloadHash: { type: 'string' },
+                  payload: { type: 'object', additionalProperties: true },
+                  timestamp: { type: 'string' },
+                  ipAddress: { type: 'string' },
+                  userAgent: { type: 'string' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const user = request.userSession || request.user;
+      const body = (request.body || {}) as any;
+      const { branchHeadHash, branchRootHash, blocks = [] } = body;
+
+      if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
+        return reply.status(400).send({
+          error: 'Bad Request',
+          message: 'At least one offline audit block is required for branch synchronization.',
+        });
+      }
+
+      try {
+        const result = await mergeOfflineAuditBranch({
+          branchHeadHash,
+          branchRootHash,
+          blocks,
+          syncedByUserId: user.id || user.userId,
+          syncedFromWard: user.activeWardId || user.homeWardId || 'UNKNOWN_WARD',
+          request,
+        });
+
+        return reply.status(200).send({
+          message: 'Offline audit branch successfully reconciled and merged via Dual-Parent Merkle commit.',
+          syncedBlocksCount: result.syncedBlocksCount,
+          branchMerkleRoot: result.branchMerkleRoot,
+          mergeNode: result.mergeNode,
+        });
+      } catch (err: any) {
+        fastify.log.error({ err }, 'Offline audit branch merge failed');
+        return reply.status(400).send({
+          error: 'Audit Merge Error',
+          message: err.message || 'Failed to reconcile offline audit branch.',
+        });
+      }
     }
   );
 

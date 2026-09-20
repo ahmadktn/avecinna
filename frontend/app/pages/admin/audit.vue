@@ -165,6 +165,8 @@
                 >
                   <option value="ALL">All Actions</option>
                   <option value="VIEW_PATIENT">VIEW_PATIENT</option>
+                  <option value="OFFLINE_BRANCH_MERGE">OFFLINE_BRANCH_MERGE (DAG)</option>
+                  <option value="OFFLINE_PATIENT_VIEW">OFFLINE_PATIENT_VIEW</option>
                   <option value="BREAK_GLASS_TIER1">BREAK_GLASS_TIER1</option>
                   <option value="BREAK_GLASS_TIER2">BREAK_GLASS_TIER2</option>
                   <option value="SWITCH_WARD">SWITCH_WARD</option>
@@ -219,7 +221,25 @@
                     @click="openLogDrawer(b)"
                     class="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
-                    <td class="px-6 py-4.5 font-mono font-extrabold text-blue-700">#{{ b.indexNum }}</td>
+                    <td class="px-6 py-4.5 font-mono font-extrabold text-blue-700">
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span>#{{ b.indexNum }}</span>
+                        <span
+                          v-if="b.action === 'OFFLINE_BRANCH_MERGE'"
+                          class="px-1.5 py-0.5 rounded text-[9px] font-sans font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          title="Dual-Parent Merkle DAG Merge Commit"
+                        >
+                          DAG MERGE
+                        </span>
+                        <span
+                          v-else-if="b.isOfflineSync"
+                          class="px-1.5 py-0.5 rounded text-[9px] font-sans font-bold bg-amber-100 text-amber-800 border border-amber-300"
+                          title="Reconciled from offline workstation branch"
+                        >
+                          OFFLINE
+                        </span>
+                      </div>
+                    </td>
                     <td class="px-6 py-4.5">
                       <span class="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold" :class="getActionBadgeClass(b.action)">
                         {{ b.action }}
@@ -1417,6 +1437,12 @@ const openLogDrawerFromFlag = (flaggedItem: any) => {
 }
 
 const getActionBadgeClass = (action: string) => {
+  if (action === 'OFFLINE_BRANCH_MERGE') {
+    return 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+  }
+  if (action.includes('OFFLINE')) {
+    return 'bg-amber-100 text-amber-800 border border-amber-300'
+  }
   if (action.includes('BREAK_GLASS') || action.includes('EMERGENCY')) {
     return 'bg-amber-100 text-amber-800'
   }

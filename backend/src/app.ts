@@ -190,6 +190,7 @@ export async function buildApp() {
       ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS request_path VARCHAR(255);
       ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS execution_mode VARCHAR(20) DEFAULT 'MODE_A';
       ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS request_id VARCHAR(64);
+      ALTER TABLE audit_blocks ADD COLUMN IF NOT EXISTS secondary_parent_hash VARCHAR(64);
       CREATE INDEX IF NOT EXISTS idx_audit_blocks_hash ON audit_blocks(block_hash);
       CREATE INDEX IF NOT EXISTS idx_audit_blocks_user ON audit_blocks(user_id);
       CREATE INDEX IF NOT EXISTS idx_audit_blocks_ip ON audit_blocks(ip_address);

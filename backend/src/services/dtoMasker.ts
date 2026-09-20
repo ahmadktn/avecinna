@@ -85,10 +85,6 @@ export function filterPatientRecordByRole(
         vitals: record.emergencySummaryJson?.vitals || record.fullRecordJson?.vitals,
         activeMedications: record.emergencySummaryJson?.activeMedications || record.fullRecordJson?.activeMedications,
         nursingCarePlan: record.fullRecordJson?.nursingCarePlan || record.fullRecordJson?.carePlan || null,
-        fullRecord: {
-          nursingCarePlan: record.fullRecordJson?.nursingCarePlan || record.fullRecordJson?.carePlan || null,
-          diagnosis: record.fullRecordJson?.diagnosis || null,
-        },
       };
 
     case 'PHARMACIST':

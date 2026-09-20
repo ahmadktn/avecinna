@@ -16,7 +16,7 @@
     "db:push:audit": "drizzle-kit push --config=drizzle.audit.config.ts",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run tests/"
   },
   "keywords": [],
   "author": "VitalsDeck",

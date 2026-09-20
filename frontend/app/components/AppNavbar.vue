@@ -36,6 +36,47 @@
 
     <!-- Right: Actions -->
     <div class="flex items-center gap-2 shrink-0">
+      <!-- Network & Offline Encrypted Cache Status Indicator -->
+      <div
+        v-if="!isOnline"
+        class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-300 text-xs font-medium text-amber-800 shrink-0"
+        title="Offline Mode: Clinical data is read from and written to client-side AES-GCM-256 encrypted IndexedDB"
+      >
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 4.243a9 9 0 01-2.828-5.657m0 0l2.828-2.829m-2.828 2.829L3 21m6.364-12.728a5 5 0 012.828-1.414m0 0l2.829 2.829" />
+        </svg>
+        <span class="font-medium hidden sm:inline">Offline (Encrypted Cache)</span>
+        <span class="font-medium sm:hidden">Offline</span>
+        <span v-if="pendingAuditCount > 0" class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-amber-200 text-amber-900">
+          {{ pendingAuditCount }} queued
+        </span>
+      </div>
+
+      <div
+        v-else-if="isSyncing"
+        class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs font-medium text-blue-700 shrink-0"
+      >
+        <svg class="w-3.5 h-3.5 text-blue-600 animate-spin shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span class="font-medium hidden sm:inline">Syncing DAG Branch...</span>
+        <span class="font-medium sm:hidden">Syncing...</span>
+      </div>
+
+      <div
+        v-else-if="pendingAuditCount > 0"
+        @click="triggerSync"
+        class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-xs font-medium text-emerald-800 cursor-pointer shrink-0 transition-colors"
+        title="Click to merge offline audit blocks into central audit database"
+      >
+        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <span class="hidden sm:inline">Sync Queue:</span>
+        <span class="font-mono font-semibold">{{ pendingAuditCount }}</span>
+      </div>
+
       <!-- Admin: Audit status pill -->
       <div v-if="role === 'ADMIN'" class="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs font-medium text-slate-600">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -76,13 +117,23 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useOfflineStorage } from '~/composables/useOfflineStorage'
 
 defineEmits(['openWardSwitcher', 'openBreakGlass', 'toggleSidebar'])
 
 const auth = useAuth()
+const offlineStorage = useOfflineStorage()
 
 const role = computed(() => auth.role.value)
 const activeWard = computed(() => auth.activeWard.value)
+
+const isOnline = computed(() => offlineStorage.isOnline.value)
+const isSyncing = computed(() => offlineStorage.isSyncing.value)
+const pendingAuditCount = computed(() => offlineStorage.pendingAuditCount.value)
+
+const triggerSync = async () => {
+  await offlineStorage.triggerBackgroundSync()
+}
 
 const activeWardLabel = computed(() => {
   if (!activeWard.value) return 'No ward selected'
