@@ -198,6 +198,9 @@ import { useAuth } from '~/composables/useAuth'
 import { useApi } from '~/composables/useApi'
 import RoleBadge from '~/components/RoleBadge.vue'
 
+const auth = useAuth()
+const api = useApi()
+
 const user = computed(() => auth.user.value)
 const activeWard = computed(() => auth.activeWard.value)
 
