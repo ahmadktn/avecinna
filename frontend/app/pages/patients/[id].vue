@@ -202,6 +202,13 @@
             </div>
           </div>
 
+          <!-- Dynamic Physiological Trajectory & NEWS2 Clinical Warning Chart -->
+          <VitalsTrendChart
+            v-if="patient.vitals || patient.fullRecord?.vitals"
+            :vitals="patient.vitals || patient.fullRecord?.vitals"
+            :patientName="patient.fullName"
+          />
+
           <!-- Nursing Care Plan Banner (if present or if role is Nurse/Paramedic) -->
           <div
             v-if="patient.nursingCarePlan || patient.fullRecord?.nursingCarePlan || role === 'NURSE' || role === 'PARAMEDIC'"
@@ -424,6 +431,7 @@ import { useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { usePatients } from '~/composables/usePatients'
 import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
+import VitalsTrendChart from '~/components/VitalsTrendChart.vue'
 
 const route = useRoute()
 const auth = useAuth()

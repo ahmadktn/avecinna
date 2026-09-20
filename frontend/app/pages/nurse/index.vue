@@ -219,6 +219,15 @@
           </div>
         </div>
 
+        <!-- Bedside Acuity Heatmap & Census Matrix -->
+        <WardBedMatrix
+          :patients="wardPatients"
+          :wardName="activeWardName"
+          :wardCode="activeWardCode"
+          :totalBeds="12"
+          @recordVitals="openVitalsModal"
+        />
+
         <!-- Inpatient Bed Census Table -->
         <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -501,6 +510,7 @@ import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useNurse } from '~/composables/useNurse'
 import { useAutoRefresh, triggerGlobalRefresh } from '~/composables/useAutoRefresh'
+import WardBedMatrix from '~/components/WardBedMatrix.vue'
 
 const auth = useAuth()
 const nurse = useNurse()

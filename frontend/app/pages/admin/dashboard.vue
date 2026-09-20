@@ -86,8 +86,11 @@
       </MetricCard>
     </div>
 
-        <!-- Real Meaningful Analytics Charts -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Zero-Trust Security Posture & Cryptographic Health Meter -->
+    <SecurityPostureMeter :overview="overview" />
+
+    <!-- Real Meaningful Analytics Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Chart 1: Ward Patient Census -->
           <div class="bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs space-y-5">
             <div class="flex items-center justify-between">
@@ -223,6 +226,7 @@
 <script setup lang="ts">
 import { useAdmin } from '~/composables/useAdmin'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
+import SecurityPostureMeter from '~/components/SecurityPostureMeter.vue'
 
 const admin = useAdmin()
 const overview = admin.overview

@@ -213,7 +213,10 @@
           </div>
 
           <!-- Tab Content 2: Today's Consultations List -->
-          <div v-else class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
+          <div v-else class="space-y-4">
+            <ConsultationFlowMeter :appointments="todayAppointments" />
+
+            <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
             <div v-if="loading && todayAppointments.length === 0" class="p-12 text-center text-xs text-slate-400">
               <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
               Loading consultation queue...
@@ -269,6 +272,7 @@
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
 
@@ -289,6 +293,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useDoctor } from '~/composables/useDoctor'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
 import type { Patient } from '~/composables/usePatients'
+import ConsultationFlowMeter from '~/components/ConsultationFlowMeter.vue'
 
 const auth = useAuth()
 const doctorApi = useDoctor()

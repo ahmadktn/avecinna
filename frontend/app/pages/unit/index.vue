@@ -243,6 +243,15 @@
           </div>
         </div>
 
+        <!-- Ward Bedside Acuity Heatmap & Census Matrix -->
+        <WardBedMatrix
+          :patients="wardPatients"
+          :wardName="wardName"
+          :wardCode="wardCode"
+          :totalBeds="12"
+          @recordVitals="(id) => navigateTo(`/patients/${id}`)"
+        />
+
         <!-- Full-Width Inpatient Acuity & Census Table -->
         <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-5">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -351,6 +360,7 @@ import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useUnit } from '~/composables/useUnit'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
+import WardBedMatrix from '~/components/WardBedMatrix.vue'
 
 const auth = useAuth()
 const unitApi = useUnit()
