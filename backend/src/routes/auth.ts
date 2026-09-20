@@ -105,6 +105,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         userId: user.id,
         username: user.username,
         role: user.role,
+        jti: crypto.randomUUID(),
       });
 
       const sessionId = crypto.randomUUID();

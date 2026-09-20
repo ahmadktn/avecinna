@@ -1,0 +1,52 @@
+{
+  "name": "@avecina/sdk",
+  "version": "1.0.0",
+  "description": "Universal Zero-Trust Healthcare Developer SDK for Context-Aware Access Control (CAAC), Role DTO Response Masking (OWASP API3), and Isolated Merkle Audit Logging",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "avecina",
+    "healthcare-sdk",
+    "zero-trust",
+    "caac",
+    "hipaa",
+    "merkle",
+    "audit-ledger",
+    "owasp-api3",
+    "express",
+    "fastify",
+    "hono",
+    "nextjs",
+    "nestjs"
+  ],
+  "author": "VitalsDeck",
+  "license": "ISC",
+  "peerDependencies": {
+    "express": ">=4.0.0",
+    "fastify": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "express": "^4.21.0",
+    "fastify": "^5.0.0",
+    "typescript": "^5.6.0"
+  }
+}

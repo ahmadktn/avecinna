@@ -1,0 +1,23 @@
+{
+  "name": "custom-express-clinical-app",
+  "version": "1.0.0",
+  "description": "Example Third-Party Clinical Microservice Integrated with @avecina/security-middleware",
+  "main": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@avecina/security-middleware": "file:../../packages/security-middleware",
+    "dotenv": "^17.4.2",
+    "express": "^4.21.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.23.13",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,158 @@
+import crypto from 'crypto';
+import { CAACService } from '../caac/caacService.js';
+import { DTOMaskingService } from '../masking/maskingService.js';
+import { AuditService } from '../audit/auditService.js';
+import { AvecinnaSDKOptions, FastifyAdapterOptions, UserContext } from '../types/index.js';
+
+export function createFastifyAdapter(
+  caac: CAACService,
+  masking: DTOMaskingService,
+  audit: AuditService,
+  sdkOptions: AvecinnaSDKOptions
+) {
+  return function fastifyPlugin(adapterOptions?: FastifyAdapterOptions) {
+    const shouldEnforceCaac = adapterOptions?.enforceCaac ?? sdkOptions.enforceCaac ?? true;
+    const shouldEnforceMasking = adapterOptions?.enforceDtoMasking ?? sdkOptions.enforceDtoMasking ?? true;
+    const patientParamName = adapterOptions?.patientIdParam || 'id';
+
+    const plugin = async function avecinnaFastifyPlugin(fastify: any) {
+      // 1. PreHandler CAAC Authorization Gate
+      fastify.addHook('preHandler', async (request: any, reply: any) => {
+        let user: UserContext | null = null;
+        if (sdkOptions.extractUserContext) {
+          user = sdkOptions.extractUserContext(request);
+        } else {
+          user = request.userSession || request.user || null;
+        }
+
+        if (!user || !user.userId) {
+          return reply.status(401).send({
+            error: 'Unauthorized',
+            message: 'Valid clinician session or UserContext is required for @avecina/sdk.',
+            executionMode: sdkOptions.executionMode || 'MODE_C',
+          });
+        }
+
+        let patientId: string | null = null;
+        if (sdkOptions.extractPatientId) {
+          patientId = sdkOptions.extractPatientId(request);
+        } else {
+          const params = request.params || {};
+          const query = request.query || {};
+          const body = request.body || {};
+          patientId = params[patientParamName] || params.id || params.patientId || query.patientId || body.patientId || null;
+        }
+
+        if (shouldEnforceCaac && patientId) {
+          const caacResult = await caac.evaluate({
+            userId: user.userId,
+            role: user.role,
+            activeWardId: user.activeWardId,
+            patientId,
+            shiftStart: user.shiftStart,
+            shiftEnd: user.shiftEnd,
+            isBreakGlass: user.isBreakGlass,
+          });
+
+          if (!caacResult.isPermitted) {
+            await audit.log({
+              userId: user.userId,
+              patientId,
+              action: adapterOptions?.action ? `${adapterOptions.action}_DENIED` : 'MODE_C_ACCESS_DENIED',
+              activeWard: user.activeWardId,
+              ipAddress: request.ip,
+              userAgent: request.headers ? request.headers['user-agent'] : undefined,
+              httpMethod: request.method,
+              requestPath: request.url,
+              payload: { reason: caacResult.denialReason },
+              executionMode: sdkOptions.executionMode || 'MODE_C',
+            });
+
+            return reply.status(403).send({
+              error: 'Forbidden',
+              message: caacResult.denialReason || 'Access denied by Context-Aware Access Control.',
+              executionMode: sdkOptions.executionMode || 'MODE_C',
+              patientId,
+            });
+          }
+
+          request.avecina = {
+            user,
+            patientId,
+            caacResult,
+            patient: caacResult.patient,
+          };
+        } else {
+          request.avecina = {
+            user,
+            patientId,
+            caacResult: null,
+            patient: null,
+          };
+        }
+      });
+
+      // 2. onSend Hook for DTO Masking & Merkle Audit Ledger
+      fastify.addHook('onSend', async (request: any, reply: any, payload: any) => {
+        const user = request.avecina?.user || request.userSession || request.user;
+        if (!user) return payload;
+
+        reply.header('X-Avecinna-Execution-Mode', sdkOptions.executionMode || 'MODE_C');
+        reply.header('X-Avecinna-Audit-Logged', 'true');
+        if (request.avecina?.caacResult?.relationshipType) {
+          reply.header('X-Avecinna-Relationship-Type', request.avecina.caacResult.relationshipType);
+        }
+
+        if (reply.statusCode < 200 || reply.statusCode >= 300) {
+          return payload;
+        }
+
+        let data: any;
+        try {
+          data = typeof payload === 'string' ? JSON.parse(payload) : payload;
+        } catch {
+          return payload;
+        }
+
+        if (shouldEnforceMasking && data && typeof data === 'object') {
+          if (data.patient && typeof data.patient === 'object') {
+            data.patient = masking.maskPatient(data.patient, user.role, false);
+          } else if (data.id || data.mrn) {
+            data = masking.maskPatient(data, user.role, false);
+          } else if (Array.isArray(data)) {
+            data = data.map((item: any) =>
+              item && (item.id || item.mrn) ? masking.maskPatient(item, user.role, false) : item
+            );
+          }
+        }
+
+        const pHash = crypto.createHash('sha256').update(JSON.stringify(data)).digest('hex');
+
+        try {
+          await audit.log({
+            userId: user.userId,
+            patientId: request.avecina?.patientId || undefined,
+            action: adapterOptions?.action || `MODE_C_${request.method}_SUCCESS`,
+            activeWard: user.activeWardId,
+            relationshipType: request.avecina?.caacResult?.relationshipType || null,
+            payloadHash: pHash,
+            ipAddress: request.ip,
+            userAgent: request.headers ? request.headers['user-agent'] : undefined,
+            httpMethod: request.method,
+            requestPath: request.url,
+            executionMode: sdkOptions.executionMode || 'MODE_C',
+          });
+        } catch (err) {
+          console.error('[@avecina/sdk] Audit logging error in Fastify adapter:', err);
+        }
+
+        return JSON.stringify(data);
+      });
+    };
+
+    // Override Fastify encapsulation so hooks register across parent instance
+    (plugin as any)[Symbol.for('skip-override')] = true;
+
+    return plugin;
+  };
+}

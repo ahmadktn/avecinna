@@ -1,0 +1,48 @@
+{
+  "name": "@avecina/security-middleware",
+  "version": "1.0.0",
+  "description": "Avecinna Zero-Trust Healthcare Security Middleware SDK (CAAC, Role DTO Masking, and Isolated Merkle Audit Logging)",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "avecina",
+    "emr",
+    "zero-trust",
+    "caac",
+    "merkle",
+    "hipaa",
+    "express",
+    "fastify",
+    "healthcare-security"
+  ],
+  "author": "VitalsDeck",
+  "license": "ISC",
+  "peerDependencies": {
+    "express": ">=4.0.0",
+    "fastify": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "express": "^4.21.0",
+    "fastify": "^5.0.0",
+    "typescript": "^5.6.0"
+  }
+}

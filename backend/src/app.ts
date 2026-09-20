@@ -17,6 +17,7 @@ import clerkRoutes from './routes/clerk';
 import careTeamsRoutes from './routes/careTeams';
 import doctorRoutes from './routes/doctor';
 import nurseRoutes from './routes/nurse';
+import proxyRoutes from './routes/proxy';
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -100,6 +101,10 @@ export async function buildApp() {
             name: 'System Health',
             description: 'Dual PostgreSQL database connection health monitoring.',
           },
+          {
+            name: 'Mode B: EMR Reverse Proxy Sidecar',
+            description: 'Zero-Trust reverse proxy sidecar retrofitting OpenMRS / FHIR with CAAC, DTO masking, and Merkle audit logging.',
+          },
         ],
         components: {
           securitySchemes: {
@@ -147,6 +152,7 @@ export async function buildApp() {
   await fastify.register(careTeamsRoutes, { prefix: '/api/v1' });
   await fastify.register(doctorRoutes, { prefix: '/api/v1' });
   await fastify.register(nurseRoutes, { prefix: '/api/v1' });
+  await fastify.register(proxyRoutes);
 
   // 6. Ensure Primary clinical tables exist and default users are provisioned
   try {
