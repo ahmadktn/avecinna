@@ -43,6 +43,13 @@ export const useApi = () => {
       const message = responseData?.message || responseData?.error || err.message || 'An unexpected network error occurred'
       const errorObj = new Error(message) as Error & { statusCode?: number }
       errorObj.statusCode = err.statusCode || err.response?.status || 500
+
+      // If token is expired or session revoked during active navigation, redirect to login
+      if (import.meta.client && errorObj.statusCode === 401 && !endpoint.includes('/auth/login')) {
+        localStorage.removeItem('avecinna_token')
+        navigateTo('/login')
+      }
+
       throw errorObj
     }
   }
