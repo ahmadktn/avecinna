@@ -56,8 +56,9 @@
     </FilterToolbar>
 
         <!-- Patients Table Card -->
-        <div class="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden">
-          <div class="overflow-x-auto">
+    <SkeletonTable v-if="loading && patientsList.length === 0" :rows="6" />
+    <div v-else class="bg-white border border-slate-200/80 rounded-xl shadow-2xs overflow-hidden">
+      <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="border-b border-slate-100 bg-slate-50/50 text-slate-400 uppercase tracking-wider font-semibold">

@@ -120,22 +120,32 @@
 ---
 
 ## Phase 6: Third-Party Integration — Mode B Proxy Sidecar & Mode C Middleware SDK
-- [ ] **Mode B: Security Reverse Proxy Gateway Sidecar**:
-  - [ ] Fastify Proxy Plugin (`/emr-proxy/v1/*`).
-  - [ ] Upstream HTTP Interceptor forwarding requests to OpenMRS / Bahmni / FHIR endpoints.
-  - [ ] Reverse Proxy CAAC authorization check, DTO response masking (OWASP API3), and block logging to `avecinna_audit_db`.
-- [ ] **Mode C: Embedded Middleware SDK (`packages/security-middleware`)**:
-  - [ ] Create npm package structure (`packages/security-middleware`).
-  - [ ] Implement exportable Fastify/Express plugin registering CAAC evaluation, DTO masking, and Merkle audit logging.
-  - [ ] Publish local build and create integration sample app (`examples/custom-express-app`).
-- [ ] Automated Tests:
-  - [ ] Mock upstream OpenMRS server integration test.
-  - [ ] Mode C Express/Fastify middleware plugin unit and integration test.
+- [x] **Mode B: Security Reverse Proxy Gateway Sidecar**:
+  - [x] Fastify Proxy Plugin (`/emr-proxy/v1/*`).
+  - [x] Upstream HTTP Interceptor forwarding requests to OpenMRS / Bahmni / FHIR endpoints.
+  - [x] Reverse Proxy CAAC authorization check, DTO response masking (OWASP API3), and block logging to `avecinna_audit_db`.
+- [x] **Mode C: Embedded Middleware SDK (`packages/security-sdk`)**:
+  - [x] Create npm package structure (`packages/security-sdk`).
+  - [x] Implement exportable Fastify/Express/WebStandard adapters registering CAAC evaluation, DTO masking, and Merkle audit logging.
+  - [x] Publish local build and create integration sample app (`examples/custom-express-app`).
+- [x] Automated Tests:
+  - [x] Mock upstream OpenMRS server integration test (`backend/tests/proxySidecar.test.ts`).
+  - [x] Mode C Express/Fastify/WebStandard middleware plugin unit and integration test (`backend/tests/securityMiddleware.test.ts`).
 
 ---
 
 ## Phase 7: Hackathon Demonstration Prep & System Polish
-- [ ] Seed full synthetic Nigerian hospital dataset (10 Wards, 50 Clinicians, 100 Inpatients/Outpatients, 20 Lab Documents).
+- [x] Build Clean Database Purge Engine (`backend/src/db/reset.ts`) for truncating `avecinna_primary_db` and resetting `avecinna_audit_db`.
+- [x] Seed full synthetic Nigerian hospital dataset (`backend/src/db/seedFullHospital.ts` / `pnpm db:seed:full`):
+  - [x] 10 Specialized Wards (`w-cardio`, `w-icu`, `w-emerg`, `w-peds`, `w-gopd`, `w-obgyn`, `w-ortho`, `w-oncol`, `w-nephro`, `w-psych`).
+  - [x] 52 Healthcare Professionals across all 7 roles with Argon2 hashed credentials (`admin`, `dr_cardio`, `nurse_cardio`, `pharmacist`, `clerk`, etc.).
+  - [x] 100 Comprehensive Clinical Patient Charts (80 Inpatients + 20 Outpatients) with Nigerian clinical phenotypes, vital telemetry, and SOAP notes.
+  - [x] Active Duty Rosters (`ward_rosters`) across all 10 wards.
+  - [x] Primary & Cross-Ward Multi-Disciplinary Consult Care Teams (`care_teams`).
+  - [x] Outpatient Queue & Appointments (`outpatient_appointments`).
+  - [x] Diagnostic Lab Results & Medical Document Attachments with computed SHA-256 binary file hashes.
+  - [x] 150+ Cryptographically Chained SHA-256 Audit Blocks in isolated `avecinna_audit_db` with sequence reset.
+  - [x] Realistic Security Alerts (`security_alerts`).
 - [ ] Create Hackathon Demo Script & Judge Verification Dashboard (showing Mode A Standalone, Mode B OpenMRS Proxy, Mode C SDK, Admin Privacy Enforcement, Head of Unit View, and Isolated Audit DB).
 - [ ] Final security audit pass (OWASP API Top 10 checklist).
 - [ ] Build production distribution / Docker Compose setup running primary Postgres container + isolated audit Postgres container + proxy sidecar.

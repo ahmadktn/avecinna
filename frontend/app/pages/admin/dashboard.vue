@@ -32,7 +32,8 @@
     />
 
     <!-- 4 Clean Stat Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <SkeletonMetricCards v-if="loading && !overview" :count="4" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- Total Patients -->
       <MetricCard
         label="Hospital Patients"
@@ -87,7 +88,8 @@
     </div>
 
     <!-- Zero-Trust Security Posture & Cryptographic Health Meter -->
-    <SecurityPostureMeter :overview="overview" />
+    <div v-if="loading && !overview" class="h-28 bg-white border border-slate-200/80 rounded-xl p-6 shadow-2xs animate-pulse"></div>
+    <SecurityPostureMeter v-else :overview="overview" />
 
     <!-- Real Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,7 +1,6 @@
 ---
 title: Avecinna Documentation
 description: Context-Aware Secure Electronic Medical Records (EMR) — Technical Architecture, Zero-Trust Authorization & Cryptographic Audit Ledger
-layout: page
 ---
 
 # Avecinna: Context-Aware Secure EMR

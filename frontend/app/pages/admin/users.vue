@@ -81,9 +81,10 @@
     />
 
         <!-- Staff Accounts Table -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+    <SkeletonTable v-if="loading && usersList.length === 0" :rows="6" />
+    <div v-else class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                   <th class="px-6 py-4">Clinician Name</th>

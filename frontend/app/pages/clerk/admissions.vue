@@ -48,7 +48,8 @@
     />
 
     <!-- Summary KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <SkeletonMetricCards v-if="loading && patientsList.length === 0" :count="3" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-3 gap-6">
       <MetricCard
         label="Total Inpatients"
         :value="totalInpatients"
@@ -110,9 +111,10 @@
       </template>
     </FilterToolbar>
 
-        <!-- Inpatient Bed Allocation Table -->
-        <div class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
-          <div class="overflow-x-auto">
+    <!-- Inpatient Bed Allocation Table -->
+    <SkeletonTable v-if="loading && patientsList.length === 0" :rows="6" />
+    <div v-else class="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+      <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">

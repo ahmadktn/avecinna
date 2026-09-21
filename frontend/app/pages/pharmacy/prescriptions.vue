@@ -28,10 +28,11 @@
       </template>
     </FilterToolbar>
 
-        <!-- Prescription Queue Table -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+    <!-- Prescription Queue Table -->
+    <SkeletonTable v-if="loading" :rows="4" />
+    <div v-else class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
               <thead>
                 <tr class="bg-slate-50/80 text-slate-500 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
                   <th class="px-6 py-4">PATIENT</th>
@@ -159,6 +160,7 @@ import { ref, computed } from 'vue'
 
 const searchQuery = ref('')
 const statusFilter = ref('all')
+const loading = ref(false)
 const selectedOrderForDispense = ref<any | null>(null)
 
 const orders = ref([

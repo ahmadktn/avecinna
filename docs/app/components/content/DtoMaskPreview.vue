@@ -1,11 +1,11 @@
 <template>
-  <div class="my-6 rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition dark:border-slate-800 dark:bg-slate-900">
-    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
+  <div class="my-6 rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
       <div>
-        <h4 class="font-brand text-base font-semibold text-slate-900 dark:text-slate-100">
+        <h4 class="font-brand text-base font-semibold text-slate-900">
           Server-Side Role DTO Masking (OWASP API3 Mitigation)
         </h4>
-        <p class="text-xs text-slate-500 dark:text-slate-400">
+        <p class="text-xs text-slate-500">
           Select a clinician role to inspect the JSON response payload serialized by the backend.
         </p>
       </div>
@@ -19,8 +19,8 @@
           :class="[
             'rounded-md px-2.5 py-1 text-xs font-semibold transition',
             selectedRole === r
-              ? 'bg-blue-600 text-white dark:bg-blue-500'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+              ? 'bg-blue-600 text-white'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           ]"
         >
           {{ r }}
@@ -30,9 +30,9 @@
 
     <!-- Payload JSON Viewer -->
     <div class="mt-4">
-      <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-1.5 dark:text-slate-400">
+      <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-1.5">
         <span>RESPONSE BODY (HTTP 200 OK)</span>
-        <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ policySummary }}</span>
+        <span class="text-emerald-600 font-semibold">{{ policySummary }}</span>
       </div>
       <pre class="overflow-x-auto rounded-lg bg-slate-950 p-4 font-mono text-xs text-slate-200 leading-relaxed max-h-80">{{ formattedJson }}</pre>
     </div>

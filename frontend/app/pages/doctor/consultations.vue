@@ -79,13 +79,9 @@
         </div>
 
         <!-- Appointments Table -->
-        <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
-          <div v-if="loading && appointmentsList.length === 0" class="p-12 text-center text-xs text-slate-400">
-            <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            Loading consultation appointments...
-          </div>
-
-          <div v-else-if="appointmentsList.length === 0" class="p-12 text-center text-xs text-slate-400 space-y-1">
+        <SkeletonTable v-if="loading && appointmentsList.length === 0" :rows="5" />
+        <div v-else class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
+          <div v-if="appointmentsList.length === 0" class="p-12 text-center text-xs text-slate-400 space-y-1">
             <p class="font-medium text-slate-600">No consultation appointments found.</p>
             <p class="text-[11px] text-slate-400">Try adjusting your filters or date selection.</p>
           </div>

@@ -92,6 +92,9 @@
         <!-- Admin Privacy Banner if Admin role -->
         <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
+        <!-- Skeleton Loading State -->
+        <SkeletonPatientDetail v-if="loading && !patient && !error" />
+
         <!-- Patient Full Chart Record -->
         <div v-if="patient && !error" class="space-y-5">
           <!-- Profile Header Card -->

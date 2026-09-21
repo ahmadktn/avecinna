@@ -26,7 +26,8 @@
     </PageHeader>
 
     <!-- 4 KPI Telemetry Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <SkeletonMetricCards v-if="loading && activeWardPatients.length === 0" :count="4" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <MetricCard
         label="In-Ward Patients"
         :value="metrics.activeWardPatientsCount"
@@ -78,7 +79,8 @@
     </div>
 
         <!-- Focused Clinical Queue View with Clean Tab Switcher -->
-        <div class="space-y-4">
+        <SkeletonTable v-if="loading && activeWardPatients.length === 0" :rows="5" />
+        <div v-else class="space-y-4">
           <!-- Clean Tabs Header -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
             <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">

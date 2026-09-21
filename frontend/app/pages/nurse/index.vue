@@ -46,7 +46,8 @@
     </PageHeader>
 
     <!-- 4 KPI Telemetry Summary Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <SkeletonMetricCards v-if="loading && wardPatients.length === 0" :count="4" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <MetricCard
         label="Ward Inpatients"
         :value="metrics.wardInpatientsCount"
@@ -78,15 +79,15 @@
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </template>
       </MetricCard>
 
       <MetricCard
-        label="Critical Acuity"
+        label="High Vigilance Acuity"
         :value="metrics.criticalCount"
-        :subtext="`${metrics.criticalCount} requiring urgent stabilization`"
+        subtext="Acuity alert trigger"
         :variant="metrics.criticalCount > 0 ? 'critical' : 'default'"
       >
         <template #icon>
@@ -117,9 +118,7 @@
               </NuxtLink>
             </div>
 
-            <div v-if="loading && careTeamPatients.length === 0" class="py-8 text-center text-xs text-slate-400">
-              Loading care team assignments...
-            </div>
+            <SkeletonTable v-if="loading && careTeamPatients.length === 0" :rows="3" />
 
             <div v-else-if="careTeamPatients.length === 0" class="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               No active cross-ward care team assignments. Authorized for bedside nursing observations and care plans in {{ activeWardName }}.

@@ -50,7 +50,8 @@
     </PageHeader>
 
     <!-- 4 KPI Telemetry Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <SkeletonMetricCards v-if="loading && patientsList.length === 0" :count="4" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricCard
         label="Authorized Inpatients"
         :value="wardCount"
@@ -66,7 +67,7 @@
       <MetricCard
         label="Care Team Consults"
         :value="careTeamCount"
-        subtext="Cross-ward grants"
+        subtext="Cross-ward authorized"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,22 +77,22 @@
       </MetricCard>
 
       <MetricCard
-        label="Monitoring"
+        label="Telemetry Monitoring"
         :value="monitoringCount"
-        subtext="Telemetry watch protocol"
+        subtext="Active vital frequency"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </template>
       </MetricCard>
 
       <MetricCard
-        label="Critical Acuity"
+        label="Critical Acuity Alert"
         :value="criticalCount"
-        subtext="High vigilance care"
-        :variant="criticalCount > 0 ? 'critical' : 'default'"
+        variant="critical"
+        subtext="Immediate review required"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,16 +157,12 @@
     </FilterToolbar>
 
     <!-- Patients List / Table -->
-        <div class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
-          <div v-if="loading && patientsList.length === 0" class="p-12 text-center text-xs text-slate-400">
-            <div class="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-            Loading patient records...
-          </div>
-
-          <div v-else-if="filteredPatients.length === 0" class="p-12 text-center text-xs text-slate-400 space-y-1">
-            <p class="font-medium text-slate-600">No patient records matching your criteria.</p>
-            <p class="text-[11px] text-slate-400">Try adjusting your search query, scope, or status filter.</p>
-          </div>
+    <SkeletonTable v-if="loading && patientsList.length === 0" :rows="6" />
+    <div v-else class="bg-white border border-slate-200/90 rounded-xl shadow-2xs overflow-hidden">
+      <div v-if="filteredPatients.length === 0" class="p-12 text-center text-xs text-slate-400 space-y-1">
+        <p class="font-medium text-slate-600">No patient records matching your criteria.</p>
+        <p class="text-[11px] text-slate-400">Try adjusting your search query, scope, or status filter.</p>
+      </div>
 
           <div v-else class="divide-y divide-slate-100">
             <div

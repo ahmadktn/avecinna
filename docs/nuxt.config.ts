@@ -1,26 +1,36 @@
+import tailwindcss from '@tailwindcss/vite'
+
+// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: '@nuxt-themes/docus',
+  compatibilityDate: '2025-07-15',
+  future: {
+    compatibilityVersion: 4,
+  },
   devtools: { enabled: true },
   modules: [
-    '@nuxtjs/tailwindcss',
+    '@nuxt/content',
     '@nuxt/icon',
   ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
   css: [
     '~/assets/css/main.css',
   ],
+  icon: {
+    serverBundle: 'local',
+  },
   content: {
-    highlight: {
-      theme: {
-        default: 'github-light',
-        dark: 'github-dark',
+    build: {
+      markdown: {
+        highlight: {
+          theme: {
+            default: 'github-light',
+            dark: 'github-dark',
+          },
+          langs: ['json', 'js', 'ts', 'bash', 'sql', 'mermaid', 'yaml', 'http'],
+        },
       },
-      preload: ['json', 'js', 'ts', 'bash', 'sql', 'mermaid', 'yaml'],
-    },
-    navigation: {
-      fields: ['icon', 'title', 'description'],
     },
   },
-  tailwindcss: {
-    viewer: false,
-  },
-});
+})

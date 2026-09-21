@@ -215,15 +215,10 @@
         </div>
 
         <!-- Roster Table Card -->
-        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-          <!-- Loading state -->
-          <div v-if="loading && rosterList.length === 0" class="p-12 text-center">
-            <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-            <p class="text-xs text-slate-500 font-medium">Loading ward duty rosters...</p>
-          </div>
-
+        <SkeletonTable v-if="loading && rosterList.length === 0" :rows="6" />
+        <div v-else class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
           <!-- Empty state -->
-          <div v-else-if="rosterList.length === 0" class="p-12 text-center space-y-3">
+          <div v-if="rosterList.length === 0" class="p-12 text-center space-y-3">
             <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

@@ -32,7 +32,8 @@
     </PageHeader>
 
     <!-- 4 Stat Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <SkeletonMetricCards v-if="loading && blocksList.length === 0" :count="4" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Total Blocks -->
       <MetricCard
         label="Chained Blocks"
@@ -88,7 +89,8 @@
     </div>
 
         <!-- Section Navigation Tabs -->
-        <div class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-xs font-semibold">
+        <SkeletonTable v-if="loading && blocksList.length === 0" :rows="6" />
+        <div v-else class="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-xs font-semibold">
           <button
             type="button"
             @click="activeTab = 'ledger'"

@@ -55,7 +55,8 @@
     </PageHeader>
 
     <!-- 5 KPI Stat Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <SkeletonMetricCards v-if="loading && wardPatients.length === 0" :count="5" />
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       <MetricCard
         label="Ward Inpatients"
         :value="metrics.totalWardInpatients"
@@ -81,9 +82,9 @@
         </template>
       </MetricCard>
       <MetricCard
-        label="Clinicians On-Duty"
-        :value="metrics.onDutyStaffCount"
-        :subtext="`of ${metrics.totalAssignedStaff} total assigned`"
+        label="Active Clinicians"
+        :value="metrics.activeDoctorsOnShift"
+        subtext="Currently on ward duty"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,13 +94,13 @@
       </MetricCard>
 
       <MetricCard
-        label="Clinic Queue"
-        :value="metrics.todayAppointmentsCount"
-        subtext="Consultation slots today"
+        label="Duty Nurses"
+        :value="metrics.activeNursesOnShift"
+        subtext="Bedside care coverage"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         </template>
       </MetricCard>
@@ -138,9 +139,7 @@
               </NuxtLink>
             </div>
 
-            <div v-if="loading && onDutyStaff.length === 0" class="py-8 text-center text-xs text-slate-400">
-              Loading duty roster...
-            </div>
+            <SkeletonTable v-if="loading && onDutyStaff.length === 0" :rows="3" />
 
             <div v-else-if="onDutyStaff.length === 0" class="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               No shifts recorded for today. Click "Full Roster" to schedule staff coverage.
