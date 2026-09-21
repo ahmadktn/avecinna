@@ -231,20 +231,6 @@ pnpm --filter backend test
 * **Cryptographic Tamper Detection:** Verified in `tests/merkleEngine.test.ts` — Changing 1 character in a historical block invalidates the sequential hash chain and breaks the Merkle root.
 * **Break-Glass Rate Limiting:** Verified in `tests/breakGlass.test.ts` — Capped at 3 Tier-2 activations per clinician per shift.
 
----
-
-## 📋 Hackathon Rules Compliance Matrix
-
-| Rule | Requirement | Implementation in Avecinna |
-| :---: | :--- | :--- |
-| **01** | **No real personal data** | 100% synthetic clinical data generated via Synthea; zero real patient ePHI. |
-| **02** | **Build something** | Complete working full-stack prototype (Nuxt 4 PWA + Fastify API + dual PostgreSQL). |
-| **03** | **A prototype is enough** | Scoped working prototype demonstrating CAAC, DTO masking, Break-Glass, and Merkle verification. |
-| **04** | **Spend nothing** | Built exclusively with free and open-source tools on a normal laptop ($0 cost). |
-| **05** | **Explain results honestly** | Dedicated limitations table disclosing offline collisions, prototype scale limits, and roadmap. |
-| **06** | **Power & network cuts** | Client-side AES-GCM-256 encrypted cache + Service Worker + dual-parent Merkle DAG merge. |
-
----
 
 ## ⚖️ License
 Released under the [MIT License](LICENSE). Built for the ICSC Hackathon by **Team VitalsDeck**.
