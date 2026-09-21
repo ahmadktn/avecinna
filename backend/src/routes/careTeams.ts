@@ -284,7 +284,7 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 5. GET /care-teams/available-staff (List all clinical staff for care team assignment: Doctors, Nurses, Unit Heads, Pharmacists)
+  // 5. GET /care-teams/available-staff (List all clinical staff for care team assignment: Doctors, Unit Heads, Pharmacists hospital-wide; Nurses scoped to patient's ward)
   fastify.get(
     '/care-teams/available-staff',
     {
@@ -292,12 +292,40 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
       schema: {
         tags: ['Care Team & Clinical Consultations'],
         summary: 'List Available Clinical Staff for Care Team Assignment',
-        description: 'Returns all active clinical staff across wards (Doctors, Nurses, Unit Heads, Pharmacists) eligible for care team assignment.',
+        description:
+          'Returns active clinical staff eligible for care team assignment. Doctors, Unit Heads, and Pharmacists are available hospital-wide; Nurses are strictly scoped to the patient\'s assigned ward.',
         security: [{ bearerAuth: [] }],
+        querystring: {
+          type: 'object',
+          properties: {
+            patientId: { type: 'string' },
+            wardId: { type: 'string' },
+          },
+        },
       },
     },
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const staffMembers = await dbPrimary
+    async (
+      request: FastifyRequest<{
+        Querystring: { patientId?: string; wardId?: string };
+      }>,
+      reply: FastifyReply
+    ) => {
+      const { patientId, wardId } = request.query || {};
+      let targetWardId = wardId || null;
+
+      if (patientId) {
+        const [patient] = await dbPrimary
+          .select({ primaryWardId: patients.primaryWardId })
+          .from(patients)
+          .where(eq(patients.id, patientId))
+          .limit(1);
+
+        if (patient && patient.primaryWardId) {
+          targetWardId = patient.primaryWardId;
+        }
+      }
+
+      const allStaffMembers = await dbPrimary
         .select({
           id: users.id,
           username: users.username,
@@ -323,9 +351,19 @@ export async function careTeamsRoutes(fastify: FastifyInstance) {
         )
         .orderBy(users.role, users.fullName);
 
+      // Clinical CAAC Rule: Doctors, Unit Heads, and Pharmacists are cross-ward eligible.
+      // Nurses are strictly restricted to the patient's assigned ward.
+      const filteredStaff = allStaffMembers.filter((s) => {
+        if (s.role === 'NURSE') {
+          return targetWardId ? s.homeWardId === targetWardId : true;
+        }
+        return true;
+      });
+
       return reply.send({
-        count: staffMembers.length,
-        staff: staffMembers,
+        count: filteredStaff.length,
+        targetWardId,
+        staff: filteredStaff,
       });
     }
   );

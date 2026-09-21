@@ -155,13 +155,13 @@ interface Persona {
 }
 
 const personas: Persona[] = [
-  { username: 'dr_cardio', shortName: 'Dr. Okafor', roleLabel: 'Cardiologist', wardCode: 'CARD' },
-  { username: 'hou_cardio', shortName: 'Dr. Adebayo', roleLabel: 'Head of Unit', wardCode: 'CARD' },
-  { username: 'nurse_cardio', shortName: 'Nurse Nnamdi', roleLabel: 'Telemetry Lead', wardCode: 'CARD' },
-  // { username: 'pharmacist', shortName: 'Pharm. Usman', roleLabel: 'Pharmacist', wardCode: 'GOPD' },
-  { username: 'clerk', shortName: 'T. Bakare', roleLabel: 'Records Clerk', wardCode: 'GOPD' },
-  { username: 'paramedic_01', shortName: 'D. Yakubu', roleLabel: 'Paramedic EMT', wardCode: 'EMERG' },
-  { username: 'admin', shortName: 'Sys Admin', roleLabel: 'Administrator', wardCode: 'IT' }
+  { username: 'dr_cardio', shortName: 'Dr. Emeka Okafor', roleLabel: 'Cardiologist', wardCode: 'CARD' },
+  { username: 'hou_cardio', shortName: 'Dr. Folake Adebayo', roleLabel: 'Head of Unit', wardCode: 'CARD' },
+  { username: 'nurse_cardio', shortName: 'Nurse Blessing Nnamdi', roleLabel: 'Telemetry Lead', wardCode: 'CARD' },
+  { username: 'pharmacist', shortName: 'Pharm. Zainab Usman', roleLabel: 'Clinical Pharmacist', wardCode: 'GOPD' },
+  { username: 'clerk', shortName: 'Tunde Bakare', roleLabel: 'Records Clerk', wardCode: 'GOPD' },
+  { username: 'paramedic_01', shortName: 'Danladi Yakubu', roleLabel: 'Paramedic EMT', wardCode: 'EMERG' },
+  { username: 'admin', shortName: 'System Administrator', roleLabel: 'IT Administrator', wardCode: 'IT' }
 ]
 
 const auth = useAuth()

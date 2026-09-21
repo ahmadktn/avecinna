@@ -118,7 +118,7 @@
       <div v-if="canManageCareTeam" class="border-t border-slate-100 pt-5 space-y-4">
         <div>
           <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Assign Doctors &amp; Nurses to Care Team</h4>
-          <p class="text-[11px] text-slate-500">Select attending doctors, bedside/specialist nurses, or clinical pharmacists.</p>
+          <p class="text-[11px] text-slate-500">Select attending specialists (hospital-wide), clinical pharmacists, or bedside nurses (scoped to patient's ward).</p>
         </div>
 
         <form @submit.prevent="handleBatchGrant" class="space-y-4 text-xs">
@@ -283,6 +283,7 @@ interface Props {
   isOpen: boolean
   patientId: string
   patientName?: string
+  patientWardId?: string
 }
 
 const props = defineProps<Props>()
@@ -316,14 +317,26 @@ const grantConfig = ref({
   grantReason: '',
 })
 
-// Counts
+// Counts (Nurses strictly scoped to patient ward if ward is specified)
 const doctorCount = computed(() => staffList.value.filter((s) => s.role === 'DOCTOR' || s.role === 'HEAD_OF_UNIT').length)
-const nurseCount = computed(() => staffList.value.filter((s) => s.role === 'NURSE').length)
+const nurseCount = computed(() =>
+  staffList.value.filter((s) => s.role === 'NURSE' && (!props.patientWardId || s.homeWardId === props.patientWardId)).length
+)
 const pharmacyCount = computed(() => staffList.value.filter((s) => s.role === 'PHARMACIST').length)
 
-// Filtered Staff List
+// Filtered Staff List (Doctors/Pharmacists hospital-wide, Nurses scoped to patient's ward)
 const filteredStaffList = computed(() => {
   let list = staffList.value
+
+  // Enforce ward constraint on nurses
+  if (props.patientWardId) {
+    list = list.filter((s) => {
+      if (s.role === 'NURSE') {
+        return s.homeWardId === props.patientWardId
+      }
+      return true
+    })
+  }
 
   if (roleFilter.value === 'DOCTOR') {
     list = list.filter((s) => s.role === 'DOCTOR' || s.role === 'HEAD_OF_UNIT')
@@ -366,7 +379,7 @@ watch(
       selectedStaffIds.value = []
       staffSearch.value = ''
       roleFilter.value = 'ALL'
-      await Promise.all([doctorApi.fetchStaffList(), loadCareTeam()])
+      await Promise.all([doctorApi.fetchStaffList(props.patientId, props.patientWardId), loadCareTeam()])
     }
   }
 )

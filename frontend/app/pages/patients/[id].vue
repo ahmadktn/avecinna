@@ -413,6 +413,7 @@
       :isOpen="showCareTeamModal"
       :patientId="patientId"
       :patientName="patient?.fullName"
+      :patientWardId="patient?.primaryWardId"
       @close="showCareTeamModal = false"
       @updated="handleDataUpdated"
     />

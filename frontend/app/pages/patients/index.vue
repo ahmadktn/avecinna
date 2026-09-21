@@ -329,6 +329,7 @@
       :isOpen="showCareTeamModal"
       :patientId="selectedPatientId"
       :patientName="selectedPatientName"
+      :patientWardId="selectedPatientWardId"
       @close="showCareTeamModal = false"
       @updated="loadData"
     />
@@ -374,6 +375,7 @@ const pageSize = 10
 const showCareTeamModal = ref(false)
 const selectedPatientId = ref('')
 const selectedPatientName = ref('')
+const selectedPatientWardId = ref('')
 
 // Bedside Vitals Modal state
 const showVitalsModal = ref(false)
@@ -457,6 +459,7 @@ const loadData = async () => {
 const openCareTeam = (patient: Patient) => {
   selectedPatientId.value = patient.id
   selectedPatientName.value = patient.fullName
+  selectedPatientWardId.value = patient.primaryWardId || (patient as any).wardId || auth.activeWard.value?.id || ''
   showCareTeamModal.value = true
 }
 

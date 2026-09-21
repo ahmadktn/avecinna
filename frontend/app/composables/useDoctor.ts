@@ -183,9 +183,14 @@ export const useDoctor = () => {
     }
   }
 
-  const fetchStaffList = async () => {
+  const fetchStaffList = async (patientId?: string, wardId?: string) => {
     try {
-      const res = await api.get<{ count: number; staff: StaffItem[] }>('/care-teams/available-staff')
+      const params = new URLSearchParams()
+      if (patientId) params.append('patientId', patientId)
+      if (wardId) params.append('wardId', wardId)
+      const qs = params.toString() ? `?${params.toString()}` : ''
+
+      const res = await api.get<{ count: number; targetWardId?: string; staff: StaffItem[] }>(`/care-teams/available-staff${qs}`)
       staffList.value = res.staff
       return res.staff
     } catch (err) {

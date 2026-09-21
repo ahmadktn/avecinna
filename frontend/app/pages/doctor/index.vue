@@ -283,6 +283,7 @@
       :isOpen="showCareTeamModal"
       :patientId="selectedPatientId"
       :patientName="selectedPatientName"
+      :patientWardId="selectedPatientWardId"
       @close="showCareTeamModal = false"
       @updated="loadOverview"
     />
@@ -305,6 +306,7 @@ const activeTab = ref<'inpatients' | 'consultations'>('inpatients')
 const showCareTeamModal = ref(false)
 const selectedPatientId = ref('')
 const selectedPatientName = ref('')
+const selectedPatientWardId = ref('')
 
 const loading = computed(() => doctorApi.loading.value)
 const error = computed(() => doctorApi.error.value)
@@ -345,6 +347,7 @@ useAutoRefresh(() => loadOverview(), { interval: 15000 })
 const openCareTeam = (patient: Patient) => {
   selectedPatientId.value = patient.id
   selectedPatientName.value = patient.fullName
+  selectedPatientWardId.value = patient.primaryWardId || (patient as any).wardId || auth.activeWard.value?.id || ''
   showCareTeamModal.value = true
 }
 
