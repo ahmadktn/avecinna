@@ -74,11 +74,11 @@
         <span>{{ error }}</span>
       </div>
 
-      <!-- TIER 1 CONTENT (Ephemeral Resuscitation Panel with Live Expiry Countdown) -->
+      <!-- TIER 1 CONTENT (Instant Resuscitation Telemetry) -->
       <div v-if="activeTab === 'tier1'" class="space-y-4">
         <!-- Tier 1 Result Telemetry Card -->
         <div v-if="tier1Result" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
-          <!-- Patient Identity & Expiry Countdown Badge -->
+          <!-- Patient Identity & Blood Group -->
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
             <div>
               <h4 class="font-bold text-slate-900 text-sm">{{ tier1Result.emergencySummary.fullName || 'Patient Emergency Summary' }}</h4>
@@ -90,10 +90,8 @@
               <span class="bg-red-100 text-red-700 font-bold font-mono text-xs px-2.5 py-1 rounded-lg border border-red-200">
                 Blood: {{ tier1Result.emergencySummary.bloodGroup || 'O+' }}
               </span>
-              <!-- Ephemeral Timer Countdown Badge -->
-              <span class="bg-amber-100 text-amber-900 border border-amber-300 font-mono font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
-                <span>{{ formattedCountdown }}</span>
+              <span class="bg-slate-900 text-white font-bold font-mono text-xs px-2.5 py-1 rounded-lg">
+                {{ tier1Result.emergencySummary.codeStatus || 'FULL CODE' }}
               </span>
             </div>
           </div>
@@ -177,7 +175,7 @@
               @click="close"
               class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
             >
-              {{ tier1Result ? 'Close & Clear' : 'Cancel' }}
+              {{ tier1Result ? 'Done' : 'Cancel' }}
             </button>
             <button
               v-if="!tier1Result"
@@ -264,37 +262,6 @@ const tier1Result = ref<Tier1BreakGlassResponse | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-// Ephemeral View Timer (60-second active observation countdown)
-const remainingSeconds = ref(60)
-let timerInterval: any = null
-
-const formattedCountdown = computed(() => {
-  const m = Math.floor(remainingSeconds.value / 60)
-  const s = remainingSeconds.value % 60
-  return `${m}:${s < 10 ? '0' : ''}${s}`
-})
-
-const startCountdownTimer = () => {
-  stopCountdownTimer()
-  remainingSeconds.value = 60
-  timerInterval = setInterval(() => {
-    if (remainingSeconds.value > 0) {
-      remainingSeconds.value--
-    } else {
-      // Ephemeral window expired: wipe all data and close modal immediately
-      stopCountdownTimer()
-      close()
-    }
-  }, 1000)
-}
-
-const stopCountdownTimer = () => {
-  if (timerInterval) {
-    clearInterval(timerInterval)
-    timerInterval = null
-  }
-}
-
 const parsedTier1Allergies = computed<string[]>(() => {
   if (!tier1Result.value?.emergencySummary) return []
   const al = (tier1Result.value.emergencySummary as any).allergies
@@ -335,8 +302,9 @@ watch(
         document.body.style.overflow = 'hidden'
         window.addEventListener('keydown', handleKeyDown)
       } else {
-        stopCountdownTimer()
+        // Instant revocation on modal close: wipe all retrieved data
         tier1Result.value = null
+        error.value = null
         document.body.style.overflow = ''
         window.removeEventListener('keydown', handleKeyDown)
       }
@@ -345,7 +313,6 @@ watch(
 )
 
 onUnmounted(() => {
-  stopCountdownTimer()
   tier1Result.value = null
   if (typeof document !== 'undefined') {
     document.body.style.overflow = ''
@@ -353,9 +320,8 @@ onUnmounted(() => {
   }
 })
 
-// Secure close: wipes in-memory response data immediately
+// Instant access revocation: completely clears retrieved emergency data from memory
 const close = () => {
-  stopCountdownTimer()
   tier1Result.value = null
   error.value = null
   justificationReason.value = ''
@@ -373,7 +339,6 @@ const handleTier1 = async () => {
   try {
     const res = await breakGlass.triggerTier1(pid)
     tier1Result.value = res
-    startCountdownTimer()
     triggerGlobalRefresh()
   } catch (err: any) {
     error.value = err.message || 'Emergency request failed'
