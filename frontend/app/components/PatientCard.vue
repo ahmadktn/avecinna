@@ -76,7 +76,7 @@
 
     <div class="flex items-center gap-4 shrink-0">
       <span class="bg-slate-100 text-slate-600 text-xs px-3 py-1.5 rounded-full font-semibold border border-slate-200">
-        CAAC Locked
+        Unassigned
       </span>
 
       <span class="text-xs font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-200/80 px-4 py-1.5 rounded-xl transition-colors flex items-center gap-1.5">

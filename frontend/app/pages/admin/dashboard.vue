@@ -20,8 +20,6 @@
       </template>
     </PageHeader>
 
-    <AdminRedactionBanner />
-
     <!-- Error State -->
     <AlertBanner
       v-if="error"

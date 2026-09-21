@@ -3,7 +3,7 @@
     <!-- Header Title & Action -->
     <PageHeader
       title="Outpatient Consultation Queue"
-      description="Schedule clinic appointments, manage queue check-ins, and grant outpatient CAAC permits"
+      description="Schedule clinic appointments and manage outpatient queue check-ins"
     >
       <template #actions>
         <button
@@ -209,7 +209,7 @@
     >
       <div class="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-8 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-y-auto my-6 sm:my-8">
         <h3 class="text-lg font-bold text-slate-900 mb-1">Schedule Outpatient Consultation</h3>
-        <p class="text-xs text-slate-500 mb-6">Allocate specialist slot and grant same-day outpatient CAAC permit</p>
+        <p class="text-xs text-slate-500 mb-6">Allocate specialist slot and queue check-in for outpatient consultation</p>
 
         <form @submit.prevent="handleCreateAppointment" class="space-y-4 text-xs">
           <div>

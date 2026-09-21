@@ -13,7 +13,7 @@
     <!-- Station Header -->
     <PageHeader
       title="Nursing Station & Ward Overview"
-      :subtitle="`Real-time physiological telemetry, patient census, and multidisciplinary care team assignments for ${activeWardName}.`"
+      :subtitle="`Patient vital signs, active admissions, and bedside observations for ${activeWardName}.`"
     >
       <template #badge>
         <span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">
@@ -197,8 +197,8 @@
                 <span class="font-bold text-slate-800">{{ activeWardName }}</span>
               </div>
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">CAAC Policy:</span>
-                <span class="text-emerald-700 font-semibold">Active &amp; Authorized</span>
+                <span class="text-slate-500">Access Status:</span>
+                <span class="text-emerald-700 font-semibold">Authorized</span>
               </div>
               <div class="pt-1">
                 <p class="text-[11px] text-slate-400 font-medium leading-relaxed">

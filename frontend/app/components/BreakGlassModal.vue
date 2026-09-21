@@ -34,7 +34,7 @@
             <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Protocol</span>
           </div>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            Override Context-Aware Access Control (CAAC) for acute out-of-ward resuscitation, trauma, and emergency surgical care.
+            Emergency override for acute out-of-ward resuscitation, trauma, and urgent surgical care.
           </p>
         </div>
       </div>

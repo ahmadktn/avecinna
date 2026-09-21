@@ -28,7 +28,7 @@
         <div class="pr-8">
           <h3 class="text-lg font-bold text-slate-900 tracking-tight">Multi-Disciplinary Care Team &amp; Consults</h3>
           <p class="text-xs text-slate-500 mt-0.5">
-            Assign doctors, nurses, and clinical specialists to provide authorized CAAC care for <strong class="text-slate-800">{{ patientName || 'Patient' }}</strong>.
+            Assign doctors, nurses, and clinical specialists to care for <strong class="text-slate-800">{{ patientName || 'Patient' }}</strong>.
           </p>
         </div>
       </div>
@@ -64,7 +64,7 @@
         </div>
 
         <div v-else-if="careTeamList.length === 0" class="py-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-          No external care team members assigned. Primary ward doctors and nurses have default CAAC access.
+          No external consult members assigned. Primary ward clinicians have default access.
         </div>
 
         <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">

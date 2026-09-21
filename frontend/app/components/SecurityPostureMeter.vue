@@ -10,7 +10,7 @@
           </h3>
         </div>
         <p class="text-xs text-slate-500 mt-0.5">
-          Real-time CAAC policy enforcement, isolated audit ledger integrity, and ePHI privacy shield
+          Real-time access policy enforcement, cryptographic audit integrity, and patient data privacy
         </p>
       </div>
 
@@ -27,7 +27,7 @@
 
     <!-- 3 Core Security Pillars Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <!-- Pillar 1: CAAC Defense Index — Radial Bar Gauge -->
+      <!-- Pillar 1: Access Defense Index — Radial Bar Gauge -->
       <div class="bg-slate-50/70 border border-slate-200/80 rounded-xl p-5 flex flex-col items-center gap-3 text-center">
         <ClientOnly>
           <apexchart
@@ -41,9 +41,9 @@
           </template>
         </ClientOnly>
         <div class="space-y-1">
-          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">CAAC Defense Index</h4>
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Access Defense Index</h4>
           <p class="text-[11px] text-slate-500 leading-snug">
-            {{ blockedUnauthorizedAttempts }} unauthorized BOLA/snooping attempts deflected by access policies.
+            {{ blockedUnauthorizedAttempts }} unauthorized access attempts blocked by security policies.
           </p>
           <span class="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
             Optimal Boundary Defense
@@ -134,7 +134,7 @@
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-            <span class="text-slate-500">Admin View: <strong class="text-slate-800">Redacted</strong></span>
+            <span class="text-slate-500">Admin View: <strong class="text-slate-800">Protected</strong></span>
           </div>
         </div>
       </div>

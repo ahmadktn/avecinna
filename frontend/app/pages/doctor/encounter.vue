@@ -65,7 +65,7 @@
             <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
               <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Patient Selection & Identifiers</h3>
-                <span class="text-xs text-slate-400 font-mono">CAAC Authorized</span>
+                <span class="text-xs text-slate-400 font-mono">Active Assignment</span>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

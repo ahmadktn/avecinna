@@ -97,8 +97,8 @@
           </svg>
         </div>
         <div>
-          <span class="text-[10px] text-slate-400 uppercase font-semibold block">CAAC Scope Check</span>
-          <span class="font-mono text-xs font-bold text-slate-800">Dynamic Shift Validated</span>
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Scope Verification</span>
+          <span class="font-mono text-xs font-bold text-slate-800">Shift Validated</span>
         </div>
       </div>
     </div>

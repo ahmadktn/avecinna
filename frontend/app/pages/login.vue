@@ -130,9 +130,9 @@
         </svg>
       </div>
       <div class="space-y-0.5 leading-relaxed">
-        <p class="font-semibold text-slate-200">Zero-Trust Context-Aware Access Control (CAAC)</p>
+        <p class="font-semibold text-slate-200">Zero-Trust Clinical Access &amp; Tamper-Evident Audit</p>
         <p class="text-slate-400 text-[11px]">
-          Access is strictly evaluated by role, shift status, and patient ward association. All clinical events are appended to the physically isolated SHA-256 Merkle audit ledger.
+          Access is evaluated by clinician role, active shift, and ward assignment. All sensitive operations are recorded in an isolated cryptographic audit ledger.
         </p>
       </div>
     </div>

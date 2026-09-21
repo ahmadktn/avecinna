@@ -9,13 +9,10 @@
       @action="loadData"
     />
 
-    <!-- Admin Privacy Banner if Admin role -->
-    <AdminRedactionBanner v-if="role === 'ADMIN'" />
-
     <!-- Page Header -->
     <PageHeader
       title="Patients Directory"
-      :description="`Context-Aware Access Control (CAAC) authorized roster for ${activeWardName} and active Care Team consults.`"
+      :description="`Assigned patients for ${activeWardName} and active care team consults.`"
     >
       <template #badge>
         <span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">

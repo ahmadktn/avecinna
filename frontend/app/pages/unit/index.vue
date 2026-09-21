@@ -13,7 +13,7 @@
     <!-- Clean Page Header -->
     <PageHeader
       title="Departmental Leadership"
-      subtitle="Supervisory telemetry, staff shift coverage, CAAC scanner alerts, and clinical acuity oversight."
+      subtitle="Staff shift coverage, emergency access alerts, and patient acuity oversight."
     >
       <template #badge>
         <span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full text-xs font-semibold font-mono">
@@ -178,8 +178,8 @@
           <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-5">
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
               <div>
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">CAAC Anomaly & Security Scanner Alerts</h3>
-                <p class="text-[11px] text-slate-500">Real-time alerts for out-of-ward access & Tier 2 break-glass</p>
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Security & Emergency Access Alerts</h3>
+                <p class="text-[11px] text-slate-500">Real-time alerts for out-of-ward and emergency access events</p>
               </div>
               <span class="text-xs font-mono font-bold text-slate-400">
                 {{ recentAlerts.length }} Recorded
@@ -187,11 +187,11 @@
             </div>
 
             <div v-if="loading && recentAlerts.length === 0" class="py-8 text-center text-xs text-slate-400">
-              Loading security telemetry...
+              Loading alerts...
             </div>
 
             <div v-else-if="recentAlerts.length === 0" class="py-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-              No active security alerts. Zero CAAC policy violations recorded in unit.
+              No active security alerts recorded for this unit.
             </div>
 
             <div v-else class="space-y-3 max-h-80 overflow-y-auto pr-1">

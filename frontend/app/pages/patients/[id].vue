@@ -65,32 +65,31 @@
           </div>
         </div>
 
-        <!-- Error / CAAC Access Denied State -->
-        <div v-if="error" class="bg-red-50 border border-red-200 rounded-2xl p-10 text-center space-y-5 shadow-2xs">
-          <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 mx-auto flex items-center justify-center shadow-xs">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Error / Access Restricted State -->
+        <div v-if="error" class="bg-amber-50/80 border border-amber-200 rounded-2xl p-8 text-center space-y-4 shadow-2xs">
+          <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 mx-auto flex items-center justify-center shadow-xs">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div class="space-y-1">
-            <h3 class="text-lg font-bold text-red-950">Context-Aware Access Control (CAAC) Authorization Denied</h3>
-            <p class="text-xs text-red-800 max-w-lg mx-auto leading-relaxed">{{ error }}</p>
+            <h3 class="text-base font-bold text-slate-900">Access Restricted</h3>
+            <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+              You are not currently assigned to this patient's ward or care team. Use emergency access if immediate clinical care is required.
+            </p>
           </div>
           <div>
             <button
               @click="showBreakGlassModal = true"
-              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-sm cursor-pointer"
+              class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
             >
               <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span>Activate Emergency Break-Glass</span>
+              <span>Emergency Access</span>
             </button>
           </div>
         </div>
-
-        <!-- Admin Privacy Banner if Admin role -->
-        <AdminRedactionBanner v-if="role === 'ADMIN'" />
 
         <!-- Skeleton Loading State -->
         <SkeletonPatientDetail v-if="loading && !patient && !error" />
@@ -300,31 +299,18 @@
             </div>
           </div>
 
-          <!-- Clinical History / SOAP Encounters Timeline -->
-          <div class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4">
+          <!-- Clinical History / SOAP Encounters Timeline (Physicians & Heads of Unit) -->
+          <div
+            v-if="role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
+            class="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4"
+          >
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Clinical Notes & Encounters History</h3>
-              <span class="text-xs font-mono text-slate-400">SOAP Timeline</span>
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Clinical Notes & Encounters</h3>
+              <span class="text-xs font-mono text-slate-400">Physician Notes</span>
             </div>
 
-            <!-- Role-specific DTO privacy notice for Nurse/Paramedic/Clerk -->
-            <div
-              v-if="role === 'NURSE' || role === 'PARAMEDIC'"
-              class="p-4 bg-purple-50/60 border border-purple-200 rounded-xl text-xs text-purple-900 flex items-start gap-3"
-            >
-              <svg class="w-4 h-4 text-purple-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div class="space-y-0.5">
-                <p class="font-bold">Clinical Progress Notes Redaction (OWASP API3 Mitigation)</p>
-                <p class="text-[11px] text-purple-800 leading-relaxed">
-                  Physician clinical SOAP progress notes are redacted server-side per role DTO privacy policies. You have authorized access to live physiological telemetry, active medications, allergy profiles, and nursing care plans.
-                </p>
-              </div>
-            </div>
-
-            <div v-else-if="clinicalHistoryList.length === 0" class="py-6 text-center text-xs text-slate-400">
-              No previous clinical SOAP encounters recorded.
+            <div v-if="clinicalHistoryList.length === 0" class="py-6 text-center text-xs text-slate-400">
+              No previous clinical encounters recorded.
             </div>
 
             <div v-else class="space-y-4">

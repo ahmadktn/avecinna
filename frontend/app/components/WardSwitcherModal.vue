@@ -31,7 +31,7 @@
         <div>
           <h3 class="text-lg font-bold text-slate-900 tracking-tight">Switch Working Ward</h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            Changing your active ward dynamically updates Context-Aware Access Control (CAAC) authorization rules for in-ward patient records.
+            Select your active ward assignment to view and manage in-ward patient census and clinical tasks.
           </p>
         </div>
       </div>

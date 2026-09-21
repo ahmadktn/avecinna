@@ -6,8 +6,6 @@
       description="Export HIPAA-compliant audit extracts, sequential block logs, incident registries, and Merkle tree proofs"
     />
 
-    <AdminRedactionBanner />
-
         <!-- Report Catalog Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Report 1: Cryptographic Audit Ledger -->

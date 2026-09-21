@@ -36,16 +36,12 @@
         </button>
       </div>
 
-      <!-- Admin Privacy Redaction Notice -->
-      <div v-if="patient.adminPrivacyNotice || role === 'ADMIN'" class="px-8 pt-6">
-        <AdminRedactionBanner />
-      </div>
-
       <!-- Drawer Content & Tabs -->
       <div class="flex-1 overflow-y-auto px-8 py-6 space-y-6">
         <!-- Tab Navigation Bar -->
         <div class="flex border-b border-slate-200 space-x-8 text-xs font-semibold">
           <button
+            v-if="role === 'DOCTOR' || role === 'HEAD_OF_UNIT'"
             type="button"
             @click="activeTab = 'clinical'"
             class="pb-3 transition-colors border-b-2"
@@ -79,12 +75,9 @@
           </button>
         </div>
 
-        <!-- Tab 1: Clinical History -->
-        <div v-if="activeTab === 'clinical'" class="space-y-5 text-xs">
-          <div v-if="typeof patient.clinicalNotes === 'string' && patient.clinicalNotes.includes('REDACTED')" class="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 font-mono">
-            {{ patient.clinicalNotes }}
-          </div>
-          <div v-else class="space-y-5">
+        <!-- Tab 1: Clinical History (Physicians Only) -->
+        <div v-if="activeTab === 'clinical' && (role === 'DOCTOR' || role === 'HEAD_OF_UNIT')" class="space-y-5 text-xs">
+          <div class="space-y-5">
             <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 space-y-2">
               <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-500">Primary Diagnosis & Admission Notes</h4>
               <p class="text-slate-800 leading-relaxed text-sm">
@@ -378,7 +371,9 @@ const auth = useAuth()
 const patientsApi = usePatients()
 
 const role = computed(() => auth.role.value)
-const activeTab = ref<'clinical' | 'vitals' | 'labs' | 'docs'>('clinical')
+const activeTab = ref<'clinical' | 'vitals' | 'labs' | 'docs'>(
+  auth.role.value === 'DOCTOR' || auth.role.value === 'HEAD_OF_UNIT' ? 'clinical' : 'vitals'
+)
 const showAddLabModal = ref(false)
 const showUploadDocModal = ref(false)
 const actionLoading = ref(false)
