@@ -223,7 +223,7 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
     }
   );
 
-  // 4. PATCH /appointments/:id/status (Doctor / Clerk Updates Appointment Status)
+  // 4. PATCH /appointments/:id/status (Doctor / Clerk Updates Appointment Status with BOLA Verification)
   fastify.patch(
     '/appointments/:id/status',
     {
@@ -231,7 +231,7 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
       schema: {
         tags: ['Outpatient Appointments & Encounters'],
         summary: 'Update Appointment Status',
-        description: 'Allows a doctor or clerk to mark an appointment as IN_CONSULTATION, COMPLETED, NO_SHOW, or CANCELLED.',
+        description: 'Allows an assigned doctor, ward head of unit, clerk, or admin to update appointment status.',
         security: [{ bearerAuth: [] }],
         params: {
           type: 'object',
@@ -253,6 +253,45 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
       const { status } = request.body as any;
       const session = (request as any).userSession || (request as any).user;
 
+      // 1. Fetch existing appointment to verify existence and ownership
+      const [existingAppointment] = await dbPrimary
+        .select()
+        .from(outpatientAppointments)
+        .where(eq(outpatientAppointments.id, id))
+        .limit(1);
+
+      if (!existingAppointment) {
+        return reply.status(404).send({ error: 'Not Found', message: 'Appointment not found.' });
+      }
+
+      // 2. BOLA Authorization Check:
+      // Allowed roles: CLERK, ADMIN, or the specific attending DOCTOR / ward HEAD_OF_UNIT
+      const isAssignedDoctor = session.userId === existingAppointment.doctorId;
+      const isWardSupervisor =
+        session.role === 'HEAD_OF_UNIT' &&
+        (session.activeWardId === existingAppointment.clinicWardId || session.homeWardId === existingAppointment.clinicWardId);
+      const isClerkOrAdmin = session.role === 'CLERK' || session.role === 'ADMIN';
+
+      if (!isAssignedDoctor && !isWardSupervisor && !isClerkOrAdmin) {
+        await appendAuditBlock({
+          userId: session.userId,
+          patientId: existingAppointment.patientId,
+          action: 'APPOINTMENT_STATUS_UPDATE_BLOCKED',
+          activeWard: session.activeWardId || existingAppointment.clinicWardId,
+          payload: {
+            appointmentId: id,
+            attemptedStatus: status,
+            reason: 'BOLA_VIOLATION: User is not the assigned clinician, ward supervisor, clerk, or admin.',
+          },
+          request,
+        });
+
+        return reply.status(403).send({
+          error: 'Forbidden',
+          message: 'Access Denied: You are not authorized to update status for another clinician\'s appointment.',
+        });
+      }
+
       const updateData: any = { status, updatedAt: new Date() };
 
       const [updated] = await dbPrimary
@@ -260,10 +299,6 @@ export async function appointmentsRoutes(fastify: FastifyInstance) {
         .set(updateData)
         .where(eq(outpatientAppointments.id, id))
         .returning();
-
-      if (!updated) {
-        return reply.status(404).send({ error: 'Not Found', message: 'Appointment not found.' });
-      }
 
       // Append audit block
       await appendAuditBlock({

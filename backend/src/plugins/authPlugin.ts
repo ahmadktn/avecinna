@@ -27,8 +27,16 @@ declare module 'fastify' {
 }
 
 export default fp(async function (fastify: FastifyInstance) {
-  // 1. Register Fastify JWT plugin
-  const jwtSecret = process.env.JWT_SECRET || 'avecinna_super_secret_jwt_key_icsc_2026_hackathon';
+  // 1. Register Fastify JWT plugin with Production Secret Validation
+  const defaultSecret = 'avecinna_super_secret_jwt_key_icsc_2026_hackathon';
+  const jwtSecret = process.env.JWT_SECRET || defaultSecret;
+
+  if (process.env.NODE_ENV === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET === defaultSecret)) {
+    throw new Error('FATAL SECURITY CONFIGURATION: JWT_SECRET must be set to a secure, unique string in production.');
+  } else if (!process.env.JWT_SECRET) {
+    fastify.log.warn('⚠️  SECURITY ADVISORY: JWT_SECRET environment variable is unset. Using default development secret.');
+  }
+
   await fastify.register(fastifyJwt, {
     secret: jwtSecret,
   });

@@ -29,9 +29,13 @@ export async function buildApp() {
     },
   });
 
-  // 1. Register CORS
+  // 1. Register Hardened CORS
+  const corsOrigin = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+    : (process.env.FRONTEND_URL || true);
+
   await fastify.register(cors, {
-    origin: true,
+    origin: corsOrigin,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
@@ -59,6 +63,43 @@ export async function buildApp() {
     credentials: true,
     maxAge: 86400,
   });
+
+  // 1b. Register Security Headers (@fastify/helmet with fallback)
+  try {
+    const helmetModule: any = await import('@fastify/helmet');
+    await fastify.register(helmetModule.default || helmetModule, {
+      contentSecurityPolicy: false, // Maintain Swagger UI & Nuxt frontend compatibility
+      crossOriginEmbedderPolicy: false,
+    });
+    fastify.log.info('🛡️  @fastify/helmet security headers registered');
+  } catch {
+    fastify.addHook('onSend', async (_request, reply) => {
+      reply.header('X-Content-Type-Options', 'nosniff');
+      reply.header('X-Frame-Options', 'DENY');
+      reply.header('X-XSS-Protection', '1; mode=block');
+      reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+    });
+  }
+
+  // 1c. Register Rate Limiting (@fastify/rate-limit with fallback)
+  try {
+    const rateLimitModule: any = await import('@fastify/rate-limit');
+    await fastify.register(rateLimitModule.default || rateLimitModule, {
+      max: Number(process.env.RATE_LIMIT_MAX) || 300,
+      timeWindow: '1 minute',
+      allowList: ['127.0.0.1', 'localhost'],
+      errorResponseBuilder: (_req, context) => ({
+        statusCode: 429,
+        error: 'Too Many Requests',
+        message: `Rate limit exceeded. Try again in ${context.after}.`,
+        date: new Date().toISOString(),
+        expiresIn: context.ttl,
+      }),
+    });
+    fastify.log.info('🛡️  @fastify/rate-limit registered (API abuse protection)');
+  } catch {
+    // Rate limit package can be installed by user
+  }
 
   // Handle empty JSON bodies gracefully without throwing FST_ERR_CTP_EMPTY_JSON_BODY
   fastify.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, defaultDone) => {

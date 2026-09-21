@@ -96,6 +96,24 @@ describe('Clerk Role Workflow & Outpatient Queue Integration Tests', () => {
     expect(updateRes.statusCode).toBe(200);
     const updateBody = JSON.parse(updateRes.payload);
     expect(updateBody.appointment.status).toBe('IN_CONSULTATION');
+
+    // BOLA Check: An unauthorized staff (e.g. Nurse not in ward/doctor) cannot change appointment status
+    const nurseLogin = await app.inject({
+      method: 'POST',
+      url: '/api/v1/auth/login',
+      payload: { username: 'nurse_peds', password: 'SecurePassword123!' },
+    });
+    const nurseToken = JSON.parse(nurseLogin.payload).token;
+
+    const unauthorizedRes = await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/appointments/${body.appointment.id}/status`,
+      headers: { authorization: `Bearer ${nurseToken}` },
+      payload: { status: 'COMPLETED' },
+    });
+
+    expect(unauthorizedRes.statusCode).toBe(403);
+    expect(JSON.parse(unauthorizedRes.payload).error).toBe('Forbidden');
   });
 
   it('4. PATCH /api/v1/clerk/patients/:id/admission reallocates inpatient bed space', async () => {

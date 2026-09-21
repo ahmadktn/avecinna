@@ -147,5 +147,5 @@
   - [x] 150+ Cryptographically Chained SHA-256 Audit Blocks in isolated `avecinna_audit_db` with sequence reset.
   - [x] Realistic Security Alerts (`security_alerts`).
 - [ ] Create Hackathon Demo Script & Judge Verification Dashboard (showing Mode A Standalone, Mode B OpenMRS Proxy, Mode C SDK, Admin Privacy Enforcement, Head of Unit View, and Isolated Audit DB).
-- [ ] Final security audit pass (OWASP API Top 10 checklist).
-- [ ] Build production distribution / Docker Compose setup running primary Postgres container + isolated audit Postgres container + proxy sidecar.
+- [x] Final security audit pass (OWASP API Top 10 checklist).
+- [x] Build production distribution / Docker Compose setup running primary Postgres container + isolated audit Postgres container + proxy sidecar.

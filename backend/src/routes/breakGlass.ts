@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { dbPrimary } from '../db/clientPrimary.js';
-import { patients } from '../db/schemaPrimary.js';
+import { patients, securityAlerts } from '../db/schemaPrimary.js';
 import { evaluateCAAC } from '../services/caacEngine.js';
 import { filterPatientRecordByRole } from '../services/dtoMasker.js';
 import { appendAuditBlock } from '../services/merkleEngine.js';
 import { createSecurityAlert } from '../services/scannerService.js';
-import { eq } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 
 export async function breakGlassRoutes(fastify: FastifyInstance) {
   // 1. POST /patients/:id/break-glass/tier1 (Immediate Emergency View - 0 Delay)
@@ -144,6 +144,32 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         description: `Tier 2 Break-Glass activated by ${session.username} (${session.role}) for patient ${rawPatient.mrn}. Justification: ${justificationReason}.`,
         metadata: { justificationReason, auditBlockHash },
       });
+
+      // E. Abuse Detection: Check if clinician has exceeded max 3 Tier 2 activations in the last 8 hours
+      const eightHoursAgo = new Date();
+      eightHoursAgo.setHours(eightHoursAgo.getHours() - 8);
+
+      const recentShiftActivations = await dbPrimary
+        .select()
+        .from(securityAlerts)
+        .where(
+          and(
+            eq(securityAlerts.userId, session.userId),
+            eq(securityAlerts.alertType, 'BREAK_GLASS_ACTIVATION'),
+            gte(securityAlerts.createdAt, eightHoursAgo)
+          )
+        );
+
+      if (recentShiftActivations.length >= 3) {
+        await createSecurityAlert({
+          alertType: 'EXCESSIVE_BREAK_GLASS',
+          severity: 'CRITICAL',
+          userId: session.userId,
+          patientId: patientId,
+          description: `ALERT: Clinician ${session.username} (${session.role}) has activated Tier-2 Break-Glass ${recentShiftActivations.length} times in this shift. Exceeds safe clinical threshold.`,
+          metadata: { totalShiftActivations: recentShiftActivations.length, justificationReason },
+        });
+      }
 
       return reply.send({
         tier: 'TIER_2_FULL_RECORD_UNLOCKED',
