@@ -10,6 +10,7 @@ export interface CAACInput {
   shiftStart?: string | Date;
   shiftEnd?: string | Date;
   isBreakGlass?: boolean;
+  action?: 'VIEW_RECORD' | 'RECORD_VITALS' | string;
 }
 
 export interface CAACResult {
@@ -26,7 +27,7 @@ export interface CAACResult {
  * Evaluates Permit = RoleValid AND ShiftActive AND (ActiveWard == PatientWard OR StaffID IN CareTeam OR OutpatientDoctorToday OR BreakGlassActive)
  */
 export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
-  const { userId, role, activeWardId, patientId, shiftStart, shiftEnd, isBreakGlass } = input;
+  const { userId, role, activeWardId, patientId, shiftStart, shiftEnd, isBreakGlass, action } = input;
 
   // 1. Validate Active Shift Window (if shift parameters provided)
   if (shiftStart && shiftEnd) {
@@ -87,17 +88,8 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     };
   }
 
-  // 4. Ward Equality Check (Active Ward == Patient Primary Ward)
-  if (patient.primaryWardId && patient.primaryWardId === activeWardId) {
-    return {
-      isPermitted: true,
-      permitted: true,
-      relationshipType: 'PRIMARY',
-      patient,
-    };
-  }
-
-  // 5. Care Team Relationship Check (Primary, On-Call, Consult)
+  // 4. Care Team Relationship Check (Primary, On-Call, Consult)
+  // If the user has an explicit active care team assignment for this patient, always permit.
   const now = new Date();
   const careTeamMatches = await dbPrimary
     .select()
@@ -117,6 +109,34 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
       isPermitted: true,
       permitted: true,
       relationshipType: relType,
+      patient,
+    };
+  }
+
+  // 5. Ward Equality Check (Active Ward == Patient Primary Ward)
+  // For RECORD_VITALS: on-duty nursing/clinical staff in the patient's active ward can record bedside vitals.
+  // For viewing patient medical records: nursing and paramedic staff MUST be assigned to the patient's
+  // care team (or activate emergency Break-Glass) to prevent unmonitored browsing of unassigned charts.
+  const isNursingRole = role === 'NURSE' || role === 'PARAMEDIC';
+  const isViewingRecord = !action || action === 'VIEW_RECORD';
+
+  if (patient.primaryWardId && patient.primaryWardId === activeWardId) {
+    if (isNursingRole && isViewingRecord) {
+      const msg = 'NO_CARE_TEAM_RELATIONSHIP: Nursing staff must be assigned to the patient care team or activate Emergency Break-Glass to view medical records.';
+      return {
+        isPermitted: false,
+        permitted: false,
+        relationshipType: null,
+        denialReason: msg,
+        reason: msg,
+        patient: null,
+      };
+    }
+
+    return {
+      isPermitted: true,
+      permitted: true,
+      relationshipType: 'PRIMARY',
       patient,
     };
   }

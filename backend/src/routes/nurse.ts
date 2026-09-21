@@ -182,6 +182,7 @@ export async function nurseRoutes(fastify: FastifyInstance) {
         patientId,
         shiftStart: session.shiftStart,
         shiftEnd: session.shiftEnd,
+        action: 'RECORD_VITALS',
       });
 
       if (!caac.isPermitted) {

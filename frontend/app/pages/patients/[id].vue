@@ -72,10 +72,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <div class="space-y-1">
-            <h3 class="text-base font-bold text-slate-900">Access Restricted</h3>
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+              <span>CAAC Policy Restriction</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">Access Restricted — Action Logged</h3>
             <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-              You are not currently assigned to this patient's ward or care team. Use emergency access if immediate clinical care is required.
+              {{ error || "You are not assigned to this patient's care team. This unauthorized access attempt has been sealed into the immutable audit ledger. Use emergency access if immediate clinical resuscitation is required." }}
             </p>
           </div>
           <div>

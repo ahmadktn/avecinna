@@ -265,6 +265,12 @@ async function seed() {
       relationshipType: 'PRIMARY' as const,
     },
     {
+      id: 'ct-primary-cardio-nurse',
+      patientId: 'p-cardio-01',
+      staffId: 'u-nurse-cardio',
+      relationshipType: 'PRIMARY' as const,
+    },
+    {
       id: 'ct-primary-peds',
       patientId: 'p-peds-01',
       staffId: 'u-doc-peds',

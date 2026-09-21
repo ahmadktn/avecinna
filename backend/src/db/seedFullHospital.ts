@@ -345,6 +345,13 @@ export async function seedFullHospital() {
       relationshipType: 'PRIMARY' as const,
     },
     {
+      id: 'ct-primary-cardio-nurse',
+      patientId: 'p-cardio-01',
+      staffId: 'u-nurse-cardio',
+      relationshipType: 'PRIMARY' as const,
+      grantReason: 'Assigned Telemetry Ward Nurse',
+    },
+    {
       id: 'ct-primary-peds',
       patientId: 'p-peds-01',
       staffId: 'u-doc-peds',
