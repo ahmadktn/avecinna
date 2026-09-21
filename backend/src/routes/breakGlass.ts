@@ -1,11 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { dbPrimary } from '../db/clientPrimary.js';
-import { patients, securityAlerts } from '../db/schemaPrimary.js';
+import { patients, securityAlerts, careTeams } from '../db/schemaPrimary.js';
 import { evaluateCAAC } from '../services/caacEngine.js';
 import { filterPatientRecordByRole } from '../services/dtoMasker.js';
 import { appendAuditBlock } from '../services/merkleEngine.js';
 import { createSecurityAlert } from '../services/scannerService.js';
-import { eq, and, gte } from 'drizzle-orm';
+import { eq, and, or, gte, ilike } from 'drizzle-orm';
 
 export async function breakGlassRoutes(fastify: FastifyInstance) {
   // 1. POST /patients/:id/break-glass/tier1 (Immediate Emergency View - 0 Delay)
@@ -28,7 +28,8 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-      const { id: patientId } = request.params;
+      const { id: rawId } = request.params;
+      const cleanId = rawId.trim();
       const session = request.userSession || request.user;
 
       // A. Evaluate CAAC with Emergency Override flag
@@ -36,32 +37,35 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         userId: session.userId,
         role: session.role,
         activeWardId: session.activeWardId,
-        patientId: patientId,
+        patientId: cleanId,
         isBreakGlass: true,
       });
 
       if (!caacResult.patient) {
-        return reply.status(404).send({ error: 'Not Found', message: 'Patient record does not exist.' });
+        return reply.status(404).send({ error: 'Not Found', message: `Patient record '${rawId}' does not exist.` });
       }
 
+      const patient = caacResult.patient;
+      const actualPatientId = patient.id;
+
       // B. Filter into Tier 1 Emergency Summary Mask
-      const emergencySummary = filterPatientRecordByRole(caacResult.patient, session.role, true);
+      const emergencySummary = filterPatientRecordByRole(patient, session.role, true);
 
       // C. AUTOMATIC Server-Side Audit Log to avecinna_audit_db
       const auditBlockHash = await appendAuditBlock({
         userId: session.userId,
-        patientId: patientId,
+        patientId: actualPatientId,
         action: 'BREAK_GLASS_TIER_1',
         activeWard: session.activeWardId,
         relationshipType: 'BREAK_GLASS',
-        payload: { tier: 1, action: 'EMERGENCY_SUMMARY_VIEW' },
+        payload: { tier: 1, action: 'EMERGENCY_SUMMARY_VIEW', queryInput: rawId },
         request,
       });
 
       return reply.send({
         tier: 'TIER_1_EMERGENCY_SUMMARY',
         message: 'Tier 1 Immediate Emergency View granted.',
-        emergencySummary,
+        emergencySummary: { ...emergencySummary, id: actualPatientId },
         auditBlockHash,
       });
     }
@@ -98,7 +102,9 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
-      const { id: patientId } = request.params;
+      const { id: rawId } = request.params;
+      const cleanId = rawId.trim();
+      const mrnPrefixed = cleanId.toUpperCase().startsWith('MRN-') ? cleanId.toUpperCase() : `MRN-${cleanId}`;
       const body: any = request.body || {};
       const justificationReason = body.justificationReason || body.justification;
       const session = request.userSession || request.user;
@@ -110,13 +116,26 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // A. Fetch Patient Record
-      const patientRows = await dbPrimary.select().from(patients).where(eq(patients.id, patientId)).limit(1);
+      // A. Fetch Patient Record by ID, MRN, or prefix
+      const patientRows = await dbPrimary
+        .select()
+        .from(patients)
+        .where(
+          or(
+            eq(patients.id, cleanId),
+            eq(patients.mrn, cleanId),
+            eq(patients.mrn, mrnPrefixed),
+            ilike(patients.mrn, `%${cleanId}%`)
+          )
+        )
+        .limit(1);
+
       if (patientRows.length === 0) {
-        return reply.status(404).send({ error: 'Not Found', message: 'Patient record does not exist.' });
+        return reply.status(404).send({ error: 'Not Found', message: `Patient record '${rawId}' does not exist.` });
       }
 
       const rawPatient = patientRows[0];
+      const actualPatientId = rawPatient.id;
 
       // B. Unmask Full Clinical Record (Doctor level emergency unlock)
       const patientRecord = filterPatientRecordByRole(rawPatient, 'DOCTOR', false);
@@ -124,13 +143,14 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
       // C. AUTOMATIC Server-Side Audit Log to avecinna_audit_db
       const auditBlockHash = await appendAuditBlock({
         userId: session.userId,
-        patientId: patientId,
+        patientId: actualPatientId,
         action: 'BREAK_GLASS_TIER_2',
         activeWard: session.activeWardId,
         relationshipType: 'BREAK_GLASS',
         payload: {
           tier: 2,
           justificationReason,
+          queryInput: rawId,
         },
         request,
       });
@@ -140,10 +160,29 @@ export async function breakGlassRoutes(fastify: FastifyInstance) {
         alertType: 'BREAK_GLASS_ACTIVATION',
         severity: 'HIGH',
         userId: session.userId,
-        patientId: patientId,
+        patientId: actualPatientId,
         description: `Tier 2 Break-Glass activated by ${session.username} (${session.role}) for patient ${rawPatient.mrn}. Justification: ${justificationReason}.`,
-        metadata: { justificationReason, auditBlockHash },
+        metadata: { justificationReason, auditBlockHash, queryInput: rawId },
       });
+
+      // E. Persist 4-Hour Time-Boxed Emergency Consult Authorization in Care Teams
+      const fourHoursLater = new Date();
+      fourHoursLater.setHours(fourHoursLater.getHours() + 4);
+      const emergencyCareTeamId = `ct-bg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+      try {
+        await dbPrimary.insert(careTeams).values({
+          id: emergencyCareTeamId,
+          patientId: actualPatientId,
+          staffId: session.userId,
+          relationshipType: 'CONSULT',
+          grantedByStaffId: session.userId,
+          grantReason: `TIER_2_BREAK_GLASS: ${justificationReason}`,
+          expiresAt: fourHoursLater,
+        });
+      } catch (careTeamErr) {
+        fastify.log.warn({ err: careTeamErr }, 'Care team insert failed during break-glass (may already exist)');
+      }
 
       // E. Abuse Detection: Check if clinician has exceeded max 3 Tier 2 activations in the last 8 hours
       const eightHoursAgo = new Date();

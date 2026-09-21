@@ -1,6 +1,6 @@
 import { dbPrimary } from '../db/clientPrimary.js';
 import { patients, careTeams, outpatientAppointments, users } from '../db/schemaPrimary.js';
-import { eq, and, or, isNull, gte, lte } from 'drizzle-orm';
+import { eq, and, or, isNull, gte, lte, ilike } from 'drizzle-orm';
 
 export interface CAACInput {
   userId: string;
@@ -46,10 +46,25 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     }
   }
 
-  // 2. Fetch Patient Record from Primary DB
-  const patientRows = await dbPrimary.select().from(patients).where(eq(patients.id, patientId)).limit(1);
+  // 2. Fetch Patient Record from Primary DB (Support ID, MRN, or raw digits)
+  const cleanId = patientId.trim();
+  const mrnPrefixed = cleanId.toUpperCase().startsWith('MRN-') ? cleanId.toUpperCase() : `MRN-${cleanId}`;
+
+  const patientRows = await dbPrimary
+    .select()
+    .from(patients)
+    .where(
+      or(
+        eq(patients.id, cleanId),
+        eq(patients.mrn, cleanId),
+        eq(patients.mrn, mrnPrefixed),
+        ilike(patients.mrn, `%${cleanId}%`)
+      )
+    )
+    .limit(1);
+
   if (patientRows.length === 0) {
-    const msg = 'PATIENT_NOT_FOUND: Specified patient record does not exist.';
+    const msg = `PATIENT_NOT_FOUND: Patient record '${patientId}' does not exist.`;
     return {
       isPermitted: false,
       permitted: false,
@@ -60,6 +75,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
   }
 
   const patient = patientRows[0];
+  const actualPatientId = patient.id;
 
   // 3. Emergency Break-Glass Override
   if (isBreakGlass) {
@@ -88,7 +104,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     .from(careTeams)
     .where(
       and(
-        eq(careTeams.patientId, patientId),
+        eq(careTeams.patientId, actualPatientId),
         eq(careTeams.staffId, userId),
         or(isNull(careTeams.expiresAt), gte(careTeams.expiresAt, now))
       )
@@ -117,7 +133,7 @@ export async function evaluateCAAC(input: CAACInput): Promise<CAACResult> {
     .from(outpatientAppointments)
     .where(
       and(
-        eq(outpatientAppointments.patientId, patientId),
+        eq(outpatientAppointments.patientId, actualPatientId),
         eq(outpatientAppointments.doctorId, userId),
         gte(outpatientAppointments.appointmentDate, startOfDay),
         lte(outpatientAppointments.appointmentDate, endOfDay)

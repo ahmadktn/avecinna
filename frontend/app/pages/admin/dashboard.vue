@@ -77,7 +77,7 @@
       <MetricCard
         label="Audit Ledger"
         :value="overview?.metrics.totalAuditBlocks ?? '-'"
-        subtext="100% Cryptographically Intact"
+        subtext="Sequential SHA-256 Chain"
       >
         <template #icon>
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

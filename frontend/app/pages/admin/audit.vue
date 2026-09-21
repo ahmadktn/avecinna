@@ -50,11 +50,12 @@
       <!-- Chain Health -->
       <MetricCard
         label="Integrity Status"
-        value="100% INTACT"
-        subtext="Zero Hash Link Breaks"
+        :value="analytics?.verification?.valid ? 'VERIFIED' : (analytics?.verification ? 'COMPROMISED' : 'PENDING CHECK')"
+        :subtext="analytics?.verification?.valid ? `${analytics?.metrics?.totalBlocks ?? blocksList.length} Blocks Intact` : (analytics?.verification?.brokenBlockId ? `Tamper at Block #${analytics.verification.brokenBlockId}` : 'Hash continuity verified')"
+        :variant="analytics?.verification && !analytics.verification.valid ? 'critical' : 'default'"
       >
         <template #icon>
-          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" :class="analytics?.verification && !analytics.verification.valid ? 'text-red-600' : 'text-emerald-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
           </svg>
         </template>
@@ -464,7 +465,7 @@
                   </span>
                 </div>
                 <p class="text-xs text-slate-500">
-                  Interactive cryptographic Merkle Tree network graph. Drag canvas to pan &middot; scroll to zoom &middot; click any commit node to highlight its authentication path and inspect full SHA-256 proofs below.
+                  Interactive cryptographic graph of transaction blocks and branch roots. Click any node to inspect cryptographic proofs.
                 </p>
               </div>
 
